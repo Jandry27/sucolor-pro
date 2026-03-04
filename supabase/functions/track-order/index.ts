@@ -1,0 +1,132 @@
+// track-order Edge Function (FINAL — con signed URLs + cliente/vehiculo)
+// Copia este código en Supabase → Edge Functions → track-order → Edit
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req: Request) => {
+    if (req.method === "OPTIONS") {
+        return new Response("ok", { headers: corsHeaders });
+    }
+
+    try {
+        const url = new URL(req.url);
+        const codigo = url.searchParams.get("codigo")?.trim();
+        const token = url.searchParams.get("token")?.trim();
+
+        if (!codigo || !token) {
+            return new Response(
+                JSON.stringify({ ok: false, error: "Faltan parámetros: codigo y token son obligatorios." }),
+                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("PROJECT_URL") ?? "";
+        const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SERVICE_ROLE_KEY") ?? "";
+        const supabase = createClient(supabaseUrl, serviceKey);
+
+        // 1. Buscar la orden por código
+        const { data: orden, error: ordErr } = await supabase
+            .from("ordenes")
+            .select("id, codigo, estado, prioridad, fecha_ingreso, fecha_estimada, notas_publicas, share_enabled, share_token, cliente_id, vehiculo_id")
+            .eq("codigo", codigo.toUpperCase())
+            .single();
+
+        if (ordErr || !orden) {
+            return new Response(
+                JSON.stringify({ ok: false, error: "Orden no encontrada." }),
+                { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        if (!orden.share_enabled) {
+            return new Response(
+                JSON.stringify({ ok: false, error: "El portal de seguimiento para esta orden está desactivado." }),
+                { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        if (orden.share_token !== token) {
+            return new Response(
+                JSON.stringify({ ok: false, error: "Token inválido." }),
+                { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        // 2. Obtener cliente y vehículo (queries separadas, sin FK joins)
+        const [{ data: cliente }, { data: vehiculo }] = await Promise.all([
+            supabase.from("clientes").select("nombres, telefono").eq("id", orden.cliente_id).single(),
+            supabase.from("vehiculos").select("marca, modelo, anio, color, placa").eq("id", orden.vehiculo_id).single(),
+        ]);
+
+        // 3. Obtener timeline (solo eventos visibles al cliente)
+        const { data: timeline } = await supabase
+            .from("timeline")
+            .select("id, tipo, mensaje, created_at, meta")
+            .eq("orden_id", orden.id)
+            .eq("visible_cliente", true)
+            .order("created_at", { ascending: true });
+
+        // 4. Obtener media y generar signed URLs para el bucket privado
+        const { data: mediaRows } = await supabase
+            .from("media")
+            .select("id, tipo, categoria, storage_bucket, storage_path, url, caption")
+            .eq("orden_id", orden.id)
+            .order("created_at", { ascending: true });
+
+        const media = await Promise.all((mediaRows ?? []).map(async (m: Record<string, string>) => {
+            let signed_url = m.url ?? "";
+            if (m.storage_bucket && m.storage_path) {
+                const { data: signedData } = await supabase.storage
+                    .from(m.storage_bucket)
+                    .createSignedUrl(m.storage_path, 3600);
+                signed_url = signedData?.signedUrl ?? "";
+            }
+            return {
+                id: m.id,
+                tipo: m.tipo,
+                categoria: m.categoria,
+                signed_url,
+                descripcion: m.caption ?? null,
+            };
+        }));
+
+        // 5. Devolver respuesta completa
+        return new Response(
+            JSON.stringify({
+                ok: true,
+                order: {
+                    codigo: orden.codigo,
+                    estado: orden.estado,
+                    prioridad: orden.prioridad,
+                    fecha_ingreso: orden.fecha_ingreso,
+                    fecha_estimada: orden.fecha_estimada,
+                    notas_publicas: orden.notas_publicas,
+                    cliente: cliente?.nombres ?? "Cliente",
+                    vehiculo: {
+                        marca: vehiculo?.marca ?? "",
+                        modelo: vehiculo?.modelo ?? "",
+                        anio: vehiculo?.anio ?? 0,
+                        color: vehiculo?.color ?? "",
+                        placa: vehiculo?.placa ?? "",
+                    },
+                },
+                timeline: timeline ?? [],
+                media,
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+
+    } catch (err) {
+        console.error("track-order error:", err);
+        return new Response(
+            JSON.stringify({ ok: false, error: "Error interno del servidor." }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+    }
+});

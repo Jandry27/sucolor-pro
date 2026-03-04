@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>SuColor — Redirigiendo...</title>
+    <script>
+        // GitHub Pages SPA redirect
+        // When a direct URL is accessed, GitHub serves this 404 page.
+        // We store the path in sessionStorage and redirect to the root.
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+        // For HashRouter apps, we just redirect to root and let the hash handle it
+        sessionStorage.setItem('spa_redirect', path + search + hash);
+        window.location.replace('/SuColor/');
+    </script>
+</head>
+
+<body>
+    <p style="font-family: sans-serif; color: #9A9A9A; text-align: center; padding: 40px;">
+        Redirigiendo...
+    </p>
+</body>
+
+</html>
