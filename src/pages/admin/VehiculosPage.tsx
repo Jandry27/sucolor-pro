@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Loader2, AlertTriangle, Car, ChevronRight } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, Car, ChevronRight, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { VehicleHistoryDrawer } from '@/components/admin/VehicleHistoryDrawer';
@@ -28,6 +28,21 @@ export function VehiculosPage() {
         const s = q.toLowerCase();
         return v.placa?.toLowerCase().includes(s) || v.marca?.toLowerCase().includes(s) || v.modelo?.toLowerCase().includes(s);
     });
+
+    const handleDelete = async (id: string, placa: string) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar el vehículo con placa "${placa}"?\nEsta acción es irreversible y eliminará sus órdenes asociadas.`)) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase.from('vehiculos').delete().eq('id', id);
+            if (error) throw error;
+            setVehiculos(prev => prev.filter(v => v.id !== id));
+            if (selected?.id === id) setSelected(null);
+        } catch (err: any) {
+            alert('Error al eliminar vehículo: ' + (err.message || 'Error desconocido'));
+        }
+    };
 
     return (
         <AdminLayout>
@@ -100,10 +115,19 @@ export function VehiculosPage() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                            <span className="inline-flex items-center gap-1 text-xs text-[rgba(11,18,32,0.30)] group-hover:text-[#FF5100] transition-colors font-medium">
-                                                Ver historial
-                                                <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                                            </span>
+                                            <div className="flex items-center justify-end gap-3">
+                                                <span className="inline-flex items-center gap-1 text-xs text-[rgba(11,18,32,0.30)] group-hover:text-[#FF5100] transition-colors font-medium">
+                                                    Ver historial
+                                                    <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                                                </span>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.placa); }}
+                                                    className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Eliminar Vehículo"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </motion.tr>
                                 ))}

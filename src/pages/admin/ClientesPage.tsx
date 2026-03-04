@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Loader2, AlertTriangle, Phone, Users } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, Phone, Users, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { Cliente } from '@/types';
@@ -24,6 +24,20 @@ export function ClientesPage() {
         const s = q.toLowerCase();
         return (c as any).nombres?.toLowerCase().includes(s) || c.email?.toLowerCase().includes(s) || c.telefono?.includes(s);
     });
+
+    const handleDelete = async (id: string, nombre: string) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar al cliente "${nombre}"?\nEsta acción es irreversible y eliminará también sus vehículos y órdenes asociadas si las tuviera.`)) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase.from('clientes').delete().eq('id', id);
+            if (error) throw error;
+            setClientes(prev => prev.filter(c => c.id !== id));
+        } catch (err: any) {
+            alert('Error al eliminar cliente: ' + (err.message || 'Error desconocido'));
+        }
+    };
 
     return (
         <AdminLayout>
@@ -56,17 +70,26 @@ export function ClientesPage() {
                             <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.03 }}
                                 className="card-hover" style={{ padding: '16px' }}>
-                                <div className="flex items-center gap-3 mb-3">
-                                    {/* Avatar */}
-                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-sm flex-shrink-0"
-                                        style={{ background: '#FF5100' }}>
-                                        {(c as any).nombres?.[0]?.toUpperCase() ?? '?'}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="font-semibold text-[#0B1220] text-sm truncate">{(c as any).nombres}</p>
-                                        <p className="text-xs text-[rgba(11,18,32,0.40)]">
-                                            {new Date(c.created_at).toLocaleDateString('es')}
-                                        </p>
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                        {/* Avatar */}
+                                        <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-sm flex-shrink-0"
+                                            style={{ background: '#FF5100' }}>
+                                            {(c as any).nombres?.[0]?.toUpperCase() ?? '?'}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-[#0B1220] text-sm truncate">{(c as any).nombres}</p>
+                                            <p className="text-xs text-[rgba(11,18,32,0.40)]">
+                                                {new Date(c.created_at).toLocaleDateString('es')}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(c.id, (c as any).nombres); }}
+                                            className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Eliminar Cliente"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
                                 {c.telefono && (
