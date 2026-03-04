@@ -7,6 +7,7 @@ import { OrderDetailPage } from '@/pages/admin/OrderDetailPage';
 import { ClientesPage } from '@/pages/admin/ClientesPage';
 import { VehiculosPage } from '@/pages/admin/VehiculosPage';
 import { NuevaOrdenPage } from '@/pages/admin/NuevaOrdenPage';
+import { ReportesPage } from '@/pages/admin/ReportesPage';
 
 export default function App() {
     return (
@@ -23,6 +24,7 @@ export default function App() {
                 <Route path="/admin/orders/:id" element={<OrderDetailPage />} />
                 <Route path="/admin/clientes" element={<ClientesPage />} />
                 <Route path="/admin/vehiculos" element={<VehiculosPage />} />
+                <Route path="/admin/reportes" element={<ReportesPage />} />
 
                 {/* ── Legacy redirect ─────────────────────────────────────── */}
                 <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

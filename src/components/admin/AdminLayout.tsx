@@ -1,13 +1,14 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { LayoutDashboard, Users, Car, LogOut, Menu, X, PlusCircle } from 'lucide-react';
+import { LayoutDashboard, Users, Car, FileText, FileBarChart, LogOut, Loader2, PlusCircle, Menu, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const NAV = [
-    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/orders/nueva', icon: PlusCircle, label: 'Nueva Orden' },
     { to: '/admin/clientes', icon: Users, label: 'Clientes' },
     { to: '/admin/vehiculos', icon: Car, label: 'Vehículos' },
+    { to: '/admin/reportes', icon: FileBarChart, label: 'Reportes' },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -38,8 +39,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             to={to}
                             onClick={() => setMobileOpen(false)}
                             className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${active
-                                    ? 'bg-[rgba(255,81,0,0.08)] text-[#FF5100]'
-                                    : 'text-[rgba(11,18,32,0.60)] hover:text-[#0B1220] hover:bg-[rgba(15,23,42,0.04)]'
+                                ? 'bg-[rgba(255,81,0,0.08)] text-[#FF5100]'
+                                : 'text-[rgba(11,18,32,0.60)] hover:text-[#0B1220] hover:bg-[rgba(15,23,42,0.04)]'
                                 }`}
                         >
                             {active && (
