@@ -8,11 +8,11 @@ function FadeIn({ children, delay = 0, className = '' }: {
     children: React.ReactNode; delay?: number; className?: string;
 }) {
     const ref = useRef<HTMLDivElement>(null);
-    const inView = useInView(ref, { once: true, margin: '-60px 0px' });
+    const inView = useInView(ref, { once: true, margin: '0px' });
     return (
-        <motion.div ref={ref} initial={{ opacity: 0, y: 20 }}
+        <motion.div ref={ref} initial={{ opacity: 0, y: 16 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.5, delay, ease: 'easeOut' }}
+            transition={{ duration: 0.45, delay, ease: 'easeOut' }}
             className={className}>
             {children}
         </motion.div>
@@ -43,7 +43,7 @@ const STATS = [
 
 export function LandingPage() {
     return (
-        <div className="min-h-screen bg-white overflow-x-hidden">
+        <div className="min-h-screen bg-white">
             {/* ── NAV ─────────────────────────────────────────────── */}
             <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-[rgba(15,23,42,0.07)]"
                 style={{ boxShadow: '0 1px 24px rgba(0,0,0,0.05)' }}>
