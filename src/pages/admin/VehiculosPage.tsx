@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Loader2, AlertTriangle, Car } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, Car, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { VehicleHistoryDrawer } from '@/components/admin/VehicleHistoryDrawer';
 import type { Vehiculo } from '@/types';
 
 interface VehiculoRow extends Vehiculo { id: string; created_at?: string; }
@@ -12,6 +13,7 @@ export function VehiculosPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [q, setQ] = useState('');
+    const [selected, setSelected] = useState<VehiculoRow | null>(null);
 
     useEffect(() => {
         supabase.from('vehiculos').select('*').order('created_at', { ascending: false })
@@ -57,7 +59,7 @@ export function VehiculosPage() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-[rgba(15,23,42,0.07)] bg-[#F7F8FA]">
-                                    {['Placa', 'Marca', 'Modelo', 'Año', 'Color'].map(h => (
+                                    {['Placa', 'Marca', 'Modelo', 'Año', 'Color', ''].map(h => (
                                         <th key={h} className="text-left px-4 py-3 text-xs font-bold text-[rgba(11,18,32,0.45)] uppercase tracking-wider">
                                             {h}
                                         </th>
@@ -66,9 +68,14 @@ export function VehiculosPage() {
                             </thead>
                             <tbody>
                                 {filtered.map((v, i) => (
-                                    <motion.tr key={v.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                                    <motion.tr
+                                        key={v.id}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
                                         transition={{ delay: i * 0.02 }}
-                                        className="border-b border-[rgba(15,23,42,0.05)] hover:bg-[#F7F8FA] transition-colors last:border-0">
+                                        onClick={() => setSelected(v)}
+                                        className="border-b border-[rgba(15,23,42,0.05)] hover:bg-[rgba(255,81,0,0.04)] transition-colors last:border-0 cursor-pointer group"
+                                    >
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <Car className="w-3.5 h-3.5 text-[#FF5100]" />
@@ -92,11 +99,17 @@ export function VehiculosPage() {
                                                 <span className="text-[rgba(11,18,32,0.55)]">{v.color}</span>
                                             </div>
                                         </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <span className="inline-flex items-center gap-1 text-xs text-[rgba(11,18,32,0.30)] group-hover:text-[#FF5100] transition-colors font-medium">
+                                                Ver historial
+                                                <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                                            </span>
+                                        </td>
                                     </motion.tr>
                                 ))}
                                 {filtered.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="text-center py-14 text-sm text-[rgba(11,18,32,0.35)]">
+                                        <td colSpan={6} className="text-center py-14 text-sm text-[rgba(11,18,32,0.35)]">
                                             No se encontraron vehículos
                                         </td>
                                     </tr>
@@ -106,6 +119,12 @@ export function VehiculosPage() {
                     </div>
                 )}
             </div>
+
+            {/* Drawer de historial */}
+            <VehicleHistoryDrawer
+                vehiculo={selected}
+                onClose={() => setSelected(null)}
+            />
         </AdminLayout>
     );
 }

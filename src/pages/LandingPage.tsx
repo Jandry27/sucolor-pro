@@ -45,18 +45,34 @@ export function LandingPage() {
     return (
         <div className="min-h-screen bg-white overflow-x-hidden">
             {/* ── NAV ─────────────────────────────────────────────── */}
-            <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-[rgba(15,23,42,0.07)]">
-                <div className="max-w-5xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
-                    <img src="/logo.png" alt="SuColor" className="h-12 w-auto object-contain" style={{ maxHeight: '52px' }} />
+            <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-[rgba(15,23,42,0.07)]"
+                style={{ boxShadow: '0 1px 24px rgba(0,0,0,0.05)' }}>
+                <div className="max-w-5xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
+                    {/* Marca — logo + texto */}
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <img src="/logo.png" alt="SuColor"
+                            className="h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+                            style={{ maxHeight: '64px', filter: 'drop-shadow(0 2px 8px rgba(255,81,0,0.15))' }} />
+                        <div className="hidden sm:flex flex-col leading-tight">
+                            <span className="text-lg font-extrabold tracking-tight text-[#0B1220]">
+                                Su<span className="text-[#FF5100]">Color</span>
+                            </span>
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[rgba(11,18,32,0.38)]">
+                                Taller Automotriz
+                            </span>
+                        </div>
+                    </Link>
+
+                    {/* Acciones */}
                     <div className="flex items-center gap-2">
                         <Link to="/admin/login"
-                            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium text-[rgba(11,18,32,0.60)] hover:text-[#0B1220] hover:bg-[rgba(15,23,42,0.05)] transition-all duration-150">
+                            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium text-[rgba(11,18,32,0.55)] hover:text-[#0B1220] hover:bg-[rgba(15,23,42,0.05)] transition-all duration-150">
                             Panel Admin <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                         <a href="https://wa.me/593989575378" target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-white transition-all duration-150"
-                            style={{ background: '#25D366' }}>
-                            <MessageCircle className="w-3.5 h-3.5" />
+                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-px"
+                            style={{ background: '#25D366', boxShadow: '0 3px 12px rgba(37,211,102,0.30)' }}>
+                            <MessageCircle className="w-4 h-4" />
                             <span className="hidden sm:inline">WhatsApp</span>
                         </a>
                     </div>
@@ -211,18 +227,124 @@ export function LandingPage() {
                 </FadeIn>
             </section>
 
-            {/* ── FOOTER ───────────────────────────────────────────── */}
-            <footer className="border-t border-[rgba(15,23,42,0.07)] bg-[#F7F8FA]">
-                <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <img src="/logo.png" alt="SuColor" className="h-8 w-auto object-contain" />
-                    <p className="text-xs text-[rgba(11,18,32,0.35)] text-center">
-                        © {new Date().getFullYear()} SuColor — Taller automotriz profesional
-                    </p>
-                    <Link to="/admin/login" className="text-xs text-[rgba(11,18,32,0.40)] hover:text-[#FF5100] transition-colors">
-                        Panel Admin
-                    </Link>
-                </div>
+            {/* ── FOOTER PREMIUM ───────────────────────────────────── */}
+            <footer className="bg-white border-t border-[rgba(15,23,42,0.07)]">
+                <FadeIn>
+                    <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-10">
+
+                        {/* Grid de 4 columnas */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 mb-14">
+
+                            {/* ── Col 1: Marca ── */}
+                            <div className="lg:col-span-1 space-y-4">
+                                <img src="/logo.png" alt="SuColor" className="h-14 w-auto object-contain" />
+                                <p className="text-sm text-[rgba(11,18,32,0.50)] leading-relaxed max-w-[220px]">
+                                    Taller automotriz especializado en latonería, pintura profesional y restauración estética de vehículos.
+                                </p>
+                                <div className="flex items-start gap-2 text-sm text-[rgba(11,18,32,0.45)]">
+                                    <MapPin className="w-3.5 h-3.5 text-[#FF5100] mt-0.5 flex-shrink-0" />
+                                    <span>Machala y Jaramijo<br />Loja — Ecuador</span>
+                                </div>
+                                {/* CTA Consultar estado */}
+                                <Link to="/"
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#FF5100] hover:gap-2.5 transition-all duration-200 group">
+                                    <Search className="w-3.5 h-3.5" />
+                                    Consultar estado de vehículo
+                                    <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+                                </Link>
+                            </div>
+
+                            {/* ── Col 2: Servicios ── */}
+                            <div className="space-y-5">
+                                <p className="text-xs font-bold text-[#0B1220] uppercase tracking-widest">Servicios</p>
+                                <ul className="space-y-3">
+                                    {[
+                                        'Latonería automotriz',
+                                        'Pintura profesional',
+                                        'Pulido y detailing',
+                                        'Restauración estética',
+                                    ].map(s => (
+                                        <li key={s}>
+                                            <span className="text-sm text-[rgba(11,18,32,0.50)] hover:text-[#0B1220] transition-colors duration-150 cursor-default">
+                                                {s}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* ── Col 3: Contacto ── */}
+                            <div className="space-y-5">
+                                <p className="text-xs font-bold text-[#0B1220] uppercase tracking-widest">Contacto</p>
+                                <ul className="space-y-3">
+                                    <li>
+                                        <a href="tel:+593989575378"
+                                            className="flex items-center gap-2 text-sm text-[rgba(11,18,32,0.50)] hover:text-[#0B1220] transition-colors duration-150 group">
+                                            <Phone className="w-3.5 h-3.5 text-[#FF5100] group-hover:scale-110 transition-transform" />
+                                            +593 989 575 378
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://wa.me/593960255898" target="_blank" rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 hover:-translate-y-px"
+                                            style={{ background: '#25D366', boxShadow: '0 2px 10px rgba(37,211,102,0.25)' }}>
+                                            <MessageCircle className="w-3.5 h-3.5" />
+                                            WhatsApp
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <div className="flex items-start gap-2 text-sm text-[rgba(11,18,32,0.50)]">
+                                            <MapPin className="w-3.5 h-3.5 text-[#FF5100] mt-0.5 flex-shrink-0" />
+                                            <span>Loja, Ecuador</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {/* ── Col 4: Horario ── */}
+                            <div className="space-y-5">
+                                <p className="text-xs font-bold text-[#0B1220] uppercase tracking-widest">Horario</p>
+                                <ul className="space-y-4">
+                                    <li>
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <Clock className="w-3.5 h-3.5 text-[#FF5100]" />
+                                            <span className="text-xs font-semibold text-[#0B1220]">Lunes – Viernes</span>
+                                        </div>
+                                        <p className="text-sm text-[rgba(11,18,32,0.50)] pl-5">08:00 – 18:00</p>
+                                    </li>
+                                    <li>
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <Clock className="w-3.5 h-3.5 text-[#FF5100]" />
+                                            <span className="text-xs font-semibold text-[#0B1220]">Sábados</span>
+                                        </div>
+                                        <p className="text-sm text-[rgba(11,18,32,0.50)] pl-5">08:00 – 14:00</p>
+                                    </li>
+                                    <li>
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-[rgba(22,163,74,0.08)] text-[#16A34A]">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
+                                            Abierto ahora
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Separador */}
+                        <div className="border-t border-[rgba(15,23,42,0.06)] pt-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <p className="text-xs text-[rgba(11,18,32,0.35)] text-center sm:text-left">
+                                © {new Date().getFullYear()} SuColor Taller Automotriz · Todos los derechos reservados
+                            </p>
+                            <p className="text-xs text-[rgba(11,18,32,0.25)]">
+                                Sistema de seguimiento de vehículos SuColor PRO
+                            </p>
+                            <Link to="/admin/login" className="text-xs text-[rgba(11,18,32,0.30)] hover:text-[#FF5100] transition-colors duration-150">
+                                Panel Admin
+                            </Link>
+                        </div>
+                    </div>
+                </FadeIn>
             </footer>
+
 
             {/* WhatsApp FAB */}
             <motion.a href="https://wa.me/593989575378" target="_blank" rel="noopener noreferrer"
