@@ -100,6 +100,9 @@ export interface AdminOrder {
     notas_internas: string | null;
     share_enabled: boolean;
     share_token: string | null;
+    precio_total: number | null;
+    monto_pagado: number | null;
+    updated_at: string;
     cliente_id: string;
     vehiculo_id: string;
     cliente: Cliente;

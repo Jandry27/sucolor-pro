@@ -13,11 +13,34 @@ const STATUS_STATS = [
 
 export function DashboardPage() {
     const { orders, loading, error, refetch } = useOrders();
-    const urgentes = orders.filter(o => o.prioridad === 'URGENTE' && o.estado !== 'ENTREGADO').length;
+    const now = new Date();
+
+    // Filtrar órdenes activas: no están ENTREGADO o fueron entregadas hace menos de 5 minutos
+    const activeOrders = orders.filter(o => {
+        if (o.estado !== 'ENTREGADO') return true;
+        const updatedAt = new Date(o.updated_at);
+        const diffMinutes = (now.getTime() - updatedAt.getTime()) / (1000 * 60);
+        return diffMinutes <= 5;
+    });
+
+    const urgentes = activeOrders.filter(o => o.prioridad === 'URGENTE').length;
     const statsData = STATUS_STATS.map(s => ({
         ...s,
-        count: orders.filter(o => o.estado === s.estado).length,
+        count: activeOrders.filter(o => o.estado === s.estado).length,
     }));
+
+    // Calcular ganancias del mes actual (basado en órdenes ENTREGADO este mes)
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthlyRevenue = orders
+        .filter(o => {
+            if (o.estado !== 'ENTREGADO') return false;
+            const oDate = new Date(o.updated_at);
+            return oDate.getMonth() === currentMonth && oDate.getFullYear() === currentYear;
+        })
+        .reduce((sum, o) => sum + (o.precio_total || o.monto_pagado || 0), 0);
+
+    const monthName = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(now);
 
     return (
         <AdminLayout>
@@ -27,13 +50,19 @@ export function DashboardPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Dashboard</h1>
                         <p className="text-sm text-[rgba(11,18,32,0.50)] mt-0.5">
-                            {orders.length} órdenes activas
+                            {activeOrders.length} órdenes activas
                             {urgentes > 0 && (
                                 <span className="ml-2 inline-flex items-center gap-1 text-[#EF4444] font-medium">
                                     <AlertTriangle className="w-3 h-3" /> {urgentes} urgentes
                                 </span>
                             )}
                         </p>
+                    </div>
+
+                    {/* Reporte de ganancias del mes */}
+                    <div className="hidden md:flex flex-col items-end mr-auto ml-8 px-5 py-2 rounded-xl bg-[rgba(22,163,74,0.08)] border border-[rgba(22,163,74,0.15)]">
+                        <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider mb-0.5">Ingresos {monthName}</span>
+                        <span className="text-lg font-black text-[#16A34A] leading-none">${monthlyRevenue.toFixed(2)}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Link to="/admin/orders/nueva" className="btn-primary text-sm">
@@ -49,7 +78,7 @@ export function DashboardPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                         className="card-sm text-center">
-                        <p className="text-3xl font-bold text-[#0B1220]">{orders.length}</p>
+                        <p className="text-3xl font-bold text-[#0B1220]">{activeOrders.length}</p>
                         <p className="text-xs text-[rgba(11,18,32,0.45)] mt-1 font-medium">Total Activas</p>
                     </motion.div>
                     {statsData.map((s, i) => (
@@ -75,7 +104,13 @@ export function DashboardPage() {
                         <button onClick={refetch} className="btn-secondary text-sm">Reintentar</button>
                     </div>
                 ) : (
-                    <KanbanBoard orders={orders} />
+                    <>
+                        <div className="md:hidden flex flex-col items-center justify-center p-4 mb-4 rounded-xl bg-[rgba(22,163,74,0.08)] border border-[rgba(22,163,74,0.15)]">
+                            <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider mb-1">Ingresos {monthName}</span>
+                            <span className="text-2xl font-black text-[#16A34A] leading-none">${monthlyRevenue.toFixed(2)}</span>
+                        </div>
+                        <KanbanBoard orders={activeOrders} />
+                    </>
                 )}
             </div>
         </AdminLayout>

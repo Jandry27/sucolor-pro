@@ -14,7 +14,7 @@ export function useOrders(filterEstado?: OrderStatus) {
             // Step 1: fetch orders (no join — avoids FK constraint requirement)
             let ordQ = supabase
                 .from('ordenes')
-                .select('id, codigo, estado, prioridad, fecha_ingreso, fecha_estimada, notas_publicas, notas_internas, share_enabled, share_token, cliente_id, vehiculo_id')
+                .select('id, codigo, estado, prioridad, fecha_ingreso, fecha_estimada, notas_publicas, notas_internas, share_enabled, share_token, precio_total, monto_pagado, updated_at, cliente_id, vehiculo_id')
                 .order('fecha_ingreso', { ascending: false });
 
             if (filterEstado) ordQ = ordQ.eq('estado', filterEstado);
