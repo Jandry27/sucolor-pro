@@ -165,7 +165,25 @@ export function NuevaOrdenPage() {
             return;
         }
         if (!vPlaca.trim() || !vMarca.trim()) { setErrorMsg('Placa y marca son obligatorios.'); return; }
+
         setSaving(true);
+        let currentClienteId = clienteId;
+
+        // Si no se asignó cliente, creamos uno temporal/anónimo para satisfacer la DB
+        if (!currentClienteId) {
+            const { data: anonCliente, error: errAnon } = await supabase.from('clientes')
+                .insert({ nombres: 'Cliente Anónimo (Placa: ' + vPlaca.trim().toUpperCase() + ')', notas: 'Generado automáticamente por sistema al omitir cliente' })
+                .select('id').single();
+            if (errAnon) {
+                setSaving(false);
+                setErrorMsg('Error al generar cliente anónimo: ' + errAnon.message);
+                return;
+            }
+            currentClienteId = anonCliente.id;
+            // Opcional: seteamos en estado por si se usa en la orden
+            setClienteId(currentClienteId);
+        }
+
         const { data, error } = await supabase.from('vehiculos')
             .insert({
                 placa: vPlaca.trim().toUpperCase(),
@@ -173,7 +191,7 @@ export function NuevaOrdenPage() {
                 modelo: vModelo.trim() || null,
                 anio: vAnio ? parseInt(vAnio) : null,
                 color: vColor || null,
-                cliente_id: clienteId,
+                cliente_id: currentClienteId,
             })
             .select('id').single();
         setSaving(false);
