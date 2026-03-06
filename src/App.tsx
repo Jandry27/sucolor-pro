@@ -4,6 +4,7 @@ import { LandingPage } from '@/pages/LandingPage';
 import { LoginPage } from '@/pages/admin/LoginPage';
 import { DashboardPage } from '@/pages/admin/DashboardPage';
 import { OrderDetailPage } from '@/pages/admin/OrderDetailPage';
+import { OrdersListPage } from '@/pages/admin/OrdersListPage';
 import { ClientesPage } from '@/pages/admin/ClientesPage';
 import { VehiculosPage } from '@/pages/admin/VehiculosPage';
 import { NuevaOrdenPage } from '@/pages/admin/NuevaOrdenPage';
@@ -20,6 +21,7 @@ export default function App() {
                 {/* ── Admin ───────────────────────────────────────────────── */}
                 <Route path="/admin/login" element={<LoginPage />} />
                 <Route path="/admin/dashboard" element={<DashboardPage />} />
+                <Route path="/admin/orders" element={<OrdersListPage />} />
                 <Route path="/admin/orders/nueva" element={<NuevaOrdenPage />} />
                 <Route path="/admin/orders/:id" element={<OrderDetailPage />} />
                 <Route path="/admin/clientes" element={<ClientesPage />} />
@@ -27,7 +29,7 @@ export default function App() {
                 <Route path="/admin/reportes" element={<ReportesPage />} />
 
                 {/* ── Legacy redirect ─────────────────────────────────────── */}
-                <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="/admin" element={<Navigate to="/admin/orders" replace />} />
 
                 {/* ── Catch-all ───────────────────────────────────────────── */}
                 <Route path="*" element={<NotFound />} />

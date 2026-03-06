@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Share2, ToggleLeft, ToggleRight, Copy, Check, Loader2, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Share2, ToggleLeft, ToggleRight, Copy, Check, Loader2, AlertTriangle, ExternalLink, Trash2, Edit2, X, Save } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { PhotoUploadPanel } from '@/components/admin/PhotoUploadPanel';
@@ -29,6 +29,19 @@ export function OrderDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [precioTotal, setPrecioTotal] = useState(0);
     const [montoPagado, setMontoPagado] = useState(0);
+
+    // Edit states (Client & Vehicle)
+    const [isEditingDetails, setIsEditingDetails] = useState(false);
+    const [editNombres, setEditNombres] = useState('');
+    const [editPlaca, setEditPlaca] = useState('');
+    const [editMarca, setEditMarca] = useState('');
+    const [editModelo, setEditModelo] = useState('');
+    const [savingDetails, setSavingDetails] = useState(false);
+
+    // Edit states (Notes)
+    const [isEditingNotes, setIsEditingNotes] = useState(false);
+    const [editNotasPublicas, setEditNotasPublicas] = useState('');
+    const [savingNotes, setSavingNotes] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -73,6 +86,82 @@ export function OrderDetailPage() {
         setCopied(true); setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleDeleteOrder = async () => {
+        if (!order) return;
+        if (!window.confirm('¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer.')) return;
+
+        setSaving(true);
+        const { error } = await supabase.from('ordenes').delete().eq('id', order.id);
+        setSaving(false);
+
+        if (!error) {
+            navigate('/admin/orders');
+        } else {
+            console.error('Error deleting order:', error);
+            alert('Asegúrese de eliminar primero los pagos y las fotos asociadas a la orden.');
+        }
+    };
+
+    const handleEditDetails = () => {
+        if (!order) return;
+        setEditNombres((order.cliente as any).nombres === 'Cliente anónimo (No registrado)' || (order.cliente as any).nombres === '—' ? '' : (order.cliente as any).nombres);
+        setEditPlaca(order.vehiculo.placa === '—' ? '' : order.vehiculo.placa);
+        setEditMarca(order.vehiculo.marca === '—' ? '' : order.vehiculo.marca);
+        setEditModelo(order.vehiculo.modelo || '');
+        setIsEditingDetails(true);
+    };
+
+    const handleSaveDetails = async () => {
+        if (!order) return;
+        setSavingDetails(true);
+        try {
+            if (order.cliente_id) {
+                await supabase.from('clientes').update({ nombres: editNombres }).eq('id', order.cliente_id);
+            }
+            if (order.vehiculo_id) {
+                await supabase.from('vehiculos').update({
+                    placa: editPlaca.toUpperCase(),
+                    marca: editMarca,
+                    modelo: editModelo
+                }).eq('id', order.vehiculo_id);
+            }
+
+            setOrder({
+                ...order,
+                cliente: { ...(order.cliente as any), nombres: editNombres || 'Cliente anónimo (No registrado)' },
+                vehiculo: { ...order.vehiculo, placa: editPlaca.toUpperCase() || '—', marca: editMarca || '—', modelo: editModelo }
+            } as any);
+            setIsEditingDetails(false);
+        } catch (e) {
+            console.error(e);
+            alert('Error al guardar detalles');
+        } finally {
+            setSavingDetails(false);
+        }
+    };
+
+    const handleEditNotes = () => {
+        if (!order) return;
+        setEditNotasPublicas(order.notas_publicas || '');
+        setIsEditingNotes(true);
+    };
+
+    const handleSaveNotes = async () => {
+        if (!order) return;
+        setSavingNotes(true);
+        try {
+            const val = editNotasPublicas.trim() === '' ? null : editNotasPublicas;
+            await supabase.from('ordenes').update({ notas_publicas: val }).eq('id', order.id);
+            setOrder({ ...order, notas_publicas: val } as any);
+            setIsEditingNotes(false);
+        } catch (e) {
+            console.error(e);
+            alert('Error al guardar notas');
+        } finally {
+            setSavingNotes(false);
+        }
+    };
+
     const trackUrl = order?.share_token
         ? `${window.location.origin}${window.location.pathname.replace(/\/admin.*/, '')}#/track/${order.codigo}?token=${order.share_token}`
         : null;
@@ -108,17 +197,75 @@ export function OrderDetailPage() {
                 <motion.div className="card" style={{ padding: '20px' }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <div className="flex items-start justify-between gap-4 flex-wrap">
-                        <div>
-                            <span className="font-mono-code text-xs text-[#FF5100] font-bold">{order.codigo}</span>
-                            <h1 className="text-xl font-bold text-[#0B1220] mt-1">
-                                {(order.cliente as any).nombres}
-                            </h1>
-                            <p className="text-sm text-[rgba(11,18,32,0.50)] mt-0.5">
-                                {order.vehiculo.marca} {order.vehiculo.modelo} —{' '}
-                                <span className="font-mono-code">{order.vehiculo.placa}</span>
-                            </p>
-                        </div>
-                        {saving && <Loader2 className="w-4 h-4 text-[#FF5100] animate-spin mt-1" />}
+                        {isEditingDetails ? (
+                            <div className="w-full space-y-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="font-mono-code text-xs text-[#FF5100] font-bold">{order.codigo}</span>
+                                    <span className="text-xs text-[rgba(11,18,32,0.40)] font-medium bg-[rgba(15,23,42,0.04)] px-2 py-0.5 rounded-md">
+                                        Modo Edición
+                                    </span>
+                                </div>
+                                <div className="grid sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Cliente</label>
+                                        <input value={editNombres} onChange={e => setEditNombres(e.target.value)} placeholder="Nombre del cliente" className="w-full text-sm px-3 py-1.5 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA]" disabled={!order.cliente_id} />
+                                        {!order.cliente_id && <p className="text-[10px] text-orange-500 mt-1">Orden registrada sin cliente (Anónimo)</p>}
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Placa</label>
+                                        <input value={editPlaca} onChange={e => setEditPlaca(e.target.value)} placeholder="ABC-1234" className="w-full text-sm px-3 py-1.5 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA] font-mono uppercase" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Marca</label>
+                                        <input value={editMarca} onChange={e => setEditMarca(e.target.value)} placeholder="Marca" className="w-full text-sm px-3 py-1.5 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA]" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Modelo</label>
+                                        <input value={editModelo} onChange={e => setEditModelo(e.target.value)} placeholder="Modelo" className="w-full text-sm px-3 py-1.5 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA]" />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 pt-2 border-t border-[rgba(15,23,42,0.06)]">
+                                    <button onClick={handleSaveDetails} disabled={savingDetails} className="btn-primary flex items-center gap-1.5 px-3 py-1.5 text-xs">
+                                        {savingDetails ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Guardar
+                                    </button>
+                                    <button onClick={() => setIsEditingDetails(false)} disabled={savingDetails} className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs border-transparent hover:bg-[rgba(15,23,42,0.06)]">
+                                        <X className="w-3.5 h-3.5" /> Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div>
+                                    <span className="font-mono-code text-xs text-[#FF5100] font-bold">{order.codigo}</span>
+                                    <h1 className="text-xl font-bold text-[#0B1220] mt-1">
+                                        {(order.cliente as any).nombres}
+                                    </h1>
+                                    <p className="text-sm text-[rgba(11,18,32,0.50)] mt-0.5 flex items-center gap-1">
+                                        {order.vehiculo.marca} {order.vehiculo.modelo} —{' '}
+                                        <span className="font-mono-code">{order.vehiculo.placa}</span>
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    {saving && <Loader2 className="w-4 h-4 text-[#FF5100] animate-spin mt-1" />}
+                                    <button
+                                        onClick={handleEditDetails}
+                                        disabled={saving}
+                                        className="p-2 text-[rgba(11,18,32,0.40)] bg-[rgba(15,23,42,0.03)] hover:bg-[rgba(15,23,42,0.06)] hover:text-[#0B1220] rounded-lg transition-colors border border-transparent hover:border-[rgba(15,23,42,0.1)]"
+                                        title="Editar detalles del cliente y vehículo"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={handleDeleteOrder}
+                                        disabled={saving}
+                                        className="p-2 text-[#EF4444] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.1)] hover:bg-[rgba(239,68,68,0.1)] hover:border-[rgba(239,68,68,0.2)] rounded-lg transition-colors ml-1"
+                                        title="Eliminar orden"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </motion.div>
 
@@ -186,10 +333,41 @@ export function OrderDetailPage() {
                 {/* Notas */}
                 <motion.div className="card" style={{ padding: '20px' }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                    <h2 className="text-sm font-semibold text-[#0B1220] mb-2">Notas para el cliente</h2>
-                    <p className={`text-sm leading-relaxed ${order.notas_publicas ? 'text-[rgba(11,18,32,0.65)]' : 'text-[rgba(11,18,32,0.30)] italic'}`}>
-                        {order.notas_publicas ?? 'Sin notas públicas'}
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-sm font-semibold text-[#0B1220]">Notas para el cliente</h2>
+                        {!isEditingNotes && (
+                            <button
+                                onClick={handleEditNotes}
+                                className="p-1.5 text-[rgba(11,18,32,0.40)] bg-[rgba(15,23,42,0.03)] hover:bg-[rgba(15,23,42,0.06)] hover:text-[#0B1220] rounded-lg transition-colors border border-transparent hover:border-[rgba(15,23,42,0.1)]"
+                                title="Editar notas"
+                            >
+                                <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
+                    {isEditingNotes ? (
+                        <div className="space-y-3">
+                            <textarea
+                                value={editNotasPublicas}
+                                onChange={e => setEditNotasPublicas(e.target.value)}
+                                rows={3}
+                                placeholder="Escribe aquí los detalles del trabajo a realizar..."
+                                className="w-full text-sm p-3 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA] resize-none focus:outline-none focus:border-[#FF5100] focus:ring-1 focus:ring-[#FF5100]"
+                            />
+                            <div className="flex items-center gap-2">
+                                <button onClick={handleSaveNotes} disabled={savingNotes} className="btn-primary flex items-center gap-1.5 px-3 py-1.5 text-xs">
+                                    {savingNotes ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Guardar notas
+                                </button>
+                                <button onClick={() => setIsEditingNotes(false)} disabled={savingNotes} className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs border-transparent hover:bg-[rgba(15,23,42,0.06)]">
+                                    <X className="w-3.5 h-3.5" /> Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className={`text-sm leading-relaxed ${order.notas_publicas ? 'text-[rgba(11,18,32,0.65)]' : 'text-[rgba(11,18,32,0.30)] italic'}`}>
+                            {order.notas_publicas ?? 'Sin notas públicas'}
+                        </p>
+                    )}
                 </motion.div>
 
                 {/* Pagos */}

@@ -127,6 +127,12 @@ export function NuevaOrdenPage() {
         setStep('vehiculo');
     };
 
+    const saltarCliente = () => {
+        setClienteSeleccionado(null);
+        setClienteId(null);
+        setStep('vehiculo');
+    };
+
     // ── Buscar vehículo existente por placa ───────────────────────────────────
     const buscarVehiculo = async () => {
         const q = placaBusqueda.trim();
@@ -328,8 +334,11 @@ export function NuevaOrdenPage() {
                                 <label className="form-label">Teléfono</label>
                                 <input value={cTel} onChange={e => setCTel(e.target.value)} placeholder="0989575378" className="input-field" />
                             </div>
-                            <button onClick={guardarCliente} disabled={saving} className="btn-primary w-full flex items-center justify-center gap-2">
+                            <button onClick={guardarCliente} disabled={saving} className="btn-primary w-full flex items-center justify-center gap-2 mb-3">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Registrar y continuar <ChevronRight className="w-4 h-4" /></>}
+                            </button>
+                            <button onClick={saltarCliente} disabled={saving} className="btn-secondary w-full text-sm">
+                                Omitir este paso / Registro Rápido
                             </button>
                         </div>
                     </motion.div>
@@ -338,11 +347,16 @@ export function NuevaOrdenPage() {
                 {/* ── PASO 2: VEHÍCULO ─────────────────────────────────────────── */}
                 {step === 'vehiculo' && (
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card space-y-5" style={{ padding: '24px' }}>
-                        {clienteSeleccionado && (
+                        {clienteSeleccionado ? (
                             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(255,81,0,0.06)] border border-[rgba(255,81,0,0.12)]">
                                 <User className="w-3.5 h-3.5 text-[#FF5100] flex-shrink-0" />
                                 <span className="text-xs font-medium text-[#FF5100]">{clienteSeleccionado.nombres}</span>
                                 {clienteSeleccionado.telefono && <span className="text-xs text-[rgba(11,18,32,0.40)] ml-auto">{clienteSeleccionado.telefono}</span>}
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(15,23,42,0.04)] border border-[rgba(15,23,42,0.08)]">
+                                <User className="w-3.5 h-3.5 text-[rgba(11,18,32,0.40)] flex-shrink-0" />
+                                <span className="text-xs font-medium text-[rgba(11,18,32,0.50)]">Cliente anónimo (No registrado)</span>
                             </div>
                         )}
 
@@ -560,7 +574,7 @@ export function NuevaOrdenPage() {
                         )}
 
                         <div className="flex gap-3">
-                            <button onClick={() => navigate('/admin/dashboard')} className="btn-secondary flex-1">Ver Dashboard</button>
+                            <button onClick={() => navigate('/admin/orders')} className="btn-secondary flex-1">Ir a Órdenes</button>
                             {ordenId && (
                                 <button onClick={() => navigate(`/admin/orders/${ordenId}`)} className="btn-secondary flex-1">Ver Orden</button>
                             )}

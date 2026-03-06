@@ -1,10 +1,11 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { LayoutDashboard, Users, Car, FileText, FileBarChart, LogOut, Loader2, PlusCircle, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Car, FileText, FileBarChart, LogOut, Loader2, PlusCircle, Menu, X, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const NAV = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin/orders', icon: ClipboardList, label: 'Órdenes' },
     { to: '/admin/orders/nueva', icon: PlusCircle, label: 'Nueva Orden' },
     { to: '/admin/clientes', icon: Users, label: 'Clientes' },
     { to: '/admin/vehiculos', icon: Car, label: 'Vehículos' },

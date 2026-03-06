@@ -13,9 +13,9 @@ const COLUMNS: { estado: OrderStatus; label: string; color: string }[] = [
     { estado: 'ENTREGADO', label: 'Entregado', color: '#0EA5E9' },
 ];
 
-interface KanbanBoardProps { orders: AdminOrder[]; }
+interface KanbanBoardProps { orders: AdminOrder[]; onDelete?: (id: string) => void; }
 
-export function KanbanBoard({ orders }: KanbanBoardProps) {
+export function KanbanBoard({ orders, onDelete }: KanbanBoardProps) {
     return (
         <div className="flex gap-3.5 overflow-x-auto pb-4" style={{ scrollSnapType: 'x mandatory' }}>
             {COLUMNS.map(col => {
@@ -41,7 +41,7 @@ export function KanbanBoard({ orders }: KanbanBoardProps) {
                         <div className="flex flex-col gap-2 min-h-[80px]">
                             <AnimatePresence>
                                 {colOrders.map(order => (
-                                    <OrderCard key={order.id} order={order} />
+                                    <OrderCard key={order.id} order={order} onDelete={onDelete} />
                                 ))}
                             </AnimatePresence>
                             {colOrders.length === 0 && (

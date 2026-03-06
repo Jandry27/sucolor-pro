@@ -12,7 +12,7 @@ const STATUS_STATS = [
 ] as const;
 
 export function DashboardPage() {
-    const { orders, loading, error, refetch } = useOrders();
+    const { orders, loading, error, refetch, deleteOrder } = useOrders();
     const now = new Date();
 
     // Filtrar órdenes activas: no están ENTREGADO o fueron entregadas hace menos de 5 minutos
@@ -109,7 +109,7 @@ export function DashboardPage() {
                             <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider mb-1">Ingresos {monthName}</span>
                             <span className="text-2xl font-black text-[#16A34A] leading-none">${monthlyRevenue.toFixed(2)}</span>
                         </div>
-                        <KanbanBoard orders={activeOrders} />
+                        <KanbanBoard orders={activeOrders} onDelete={deleteOrder} />
                     </>
                 )}
             </div>

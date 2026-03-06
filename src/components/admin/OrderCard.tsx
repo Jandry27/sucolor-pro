@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, AlertTriangle, Share2, ChevronRight } from 'lucide-react';
+import { Clock, AlertTriangle, Share2, ChevronRight, Trash2 } from 'lucide-react';
 import type { AdminOrder } from '@/types';
 
 const PRIORITY_STYLE: Record<string, { color: string; bg: string }> = {
@@ -10,11 +10,19 @@ const PRIORITY_STYLE: Record<string, { color: string; bg: string }> = {
     URGENTE: { color: '#EF4444', bg: 'rgba(239,68,68,0.10)' },
 };
 
-interface OrderCardProps { order: AdminOrder; }
+interface OrderCardProps { order: AdminOrder; onDelete?: (id: string) => void; }
 
-export function OrderCard({ order }: OrderCardProps) {
+export function OrderCard({ order, onDelete }: OrderCardProps) {
     const pStyle = PRIORITY_STYLE[order.prioridad] ?? PRIORITY_STYLE.NORMAL;
     const fecha = new Date(order.fecha_ingreso).toLocaleDateString('es', { day: '2-digit', month: 'short' });
+
+    const handleDelete = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onDelete && window.confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
+            onDelete(order.id);
+        }
+    };
 
     return (
         <motion.div layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
@@ -31,10 +39,21 @@ export function OrderCard({ order }: OrderCardProps) {
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                            style={{ color: pStyle.color, background: pStyle.bg }}>
-                            {order.prioridad}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                            {onDelete && (
+                                <button
+                                    onClick={handleDelete}
+                                    className="p-1 text-red-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                    title="Eliminar orden"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                            )}
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                style={{ color: pStyle.color, background: pStyle.bg }}>
+                                {order.prioridad}
+                            </span>
+                        </div>
                         {order.share_enabled && (
                             <Share2 className="w-3 h-3 text-[#FF5100]" />
                         )}
