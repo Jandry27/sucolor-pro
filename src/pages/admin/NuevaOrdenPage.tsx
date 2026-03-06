@@ -199,17 +199,56 @@ export function NuevaOrdenPage() {
         });
     };
 
-    // ── Subir fotos a storage después de crear la orden ───────────────────────
+    // ── Subir fotos a Cloudinary después de crear la orden ───────────────────────
     const uploadPhotos = async (oid: string) => {
         if (photos.length === 0) return;
         setUploadingPhotos(true);
         setPhotoError(null);
+
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+        if (!cloudName || !uploadPreset) {
+            setPhotoError("Faltan credenciales de Cloudinary en el entorno.");
+            setUploadingPhotos(false);
+            return;
+        }
+
         for (const photo of photos) {
-            const ext = photo.file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-            const path = `${oid}/ANTES_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-            const { error: upErr } = await supabase.storage.from('autos').upload(path, photo.file, { cacheControl: '3600', upsert: false });
-            if (upErr) { setPhotoError(`Error al subir foto: ${upErr.message}`); continue; }
-            await supabase.from('media').insert({ orden_id: oid, tipo: 'FOTO', categoria: 'ANTES', storage_bucket: 'autos', storage_path: path, url: null });
+            try {
+                const formData = new FormData();
+                formData.append('file', photo.file);
+                formData.append('upload_preset', uploadPreset);
+                formData.append('folder', `sucolor/ordenes/${oid}`);
+
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!res.ok) {
+                    const errTxt = await res.text();
+                    throw new Error(`Cloudinary HTTP error ${res.status}: ${errTxt}`);
+                }
+
+                const data = await res.json();
+                const secureUrl = data.secure_url;
+
+                if (!secureUrl) throw new Error("Cloudinary no devolvió una secure_url");
+
+                // Guardar la URL optimizada en la base de datos (anulando bucket y path de supabase)
+                await supabase.from('media').insert({
+                    orden_id: oid,
+                    tipo: 'FOTO',
+                    categoria: 'ANTES',
+                    storage_bucket: null,
+                    storage_path: null,
+                    url: secureUrl
+                });
+            } catch (err: any) {
+                setPhotoError(`Error al subir foto: ${err.message}`);
+                console.error("Cloudinary upload error:", err);
+            }
         }
         setUploadingPhotos(false);
     };

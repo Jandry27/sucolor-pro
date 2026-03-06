@@ -42,7 +42,7 @@ export function useOrders(filterEstado?: OrderStatus) {
             const orderIds = ordenes.map(o => o.id);
             const { data: mediaFiles } = await supabase
                 .from('media')
-                .select('orden_id, storage_bucket, storage_path')
+                .select('orden_id, storage_bucket, storage_path, url')
                 .in('orden_id', orderIds)
                 .eq('categoria', 'ANTES')
                 .order('created_at', { ascending: true }); // Get the first uploaded photo
@@ -50,8 +50,6 @@ export function useOrders(filterEstado?: OrderStatus) {
             // Use order_id as key, grab the URL of the first one found
             const coverPhotos: Record<string, string> = {};
             if (mediaFiles && mediaFiles.length > 0) {
-                // Generate a public URL for each (since we don't strictly require RLS for viewing thumbnails, we can use getPublicUrl if the bucket is public, but let's use createSignedUrl for safety just in case the bucket 'autos' is private)
-
                 // Group by order
                 const firstMediaMap = new Map<string, any>();
                 mediaFiles.forEach(file => {
@@ -63,8 +61,13 @@ export function useOrders(filterEstado?: OrderStatus) {
                 // Request URLs
                 const urlsToFetch = Array.from(firstMediaMap.entries()).map(async ([ordId, file]) => {
                     try {
-                        const { data } = await supabase.storage.from(file.storage_bucket).createSignedUrl(file.storage_path, 3600);
-                        if (data?.signedUrl) coverPhotos[ordId] = data.signedUrl;
+                        if (file.url) {
+                            coverPhotos[ordId] = file.url; // Nueva lógica (Cloudinary)
+                        } else if (file.storage_bucket && file.storage_path) {
+                            // Lógica legacy (Supabase Storage)
+                            const { data } = await supabase.storage.from(file.storage_bucket).createSignedUrl(file.storage_path, 3600);
+                            if (data?.signedUrl) coverPhotos[ordId] = data.signedUrl;
+                        }
                     } catch (e) {
                         console.error('Error fetching cover photo URL', e);
                     }

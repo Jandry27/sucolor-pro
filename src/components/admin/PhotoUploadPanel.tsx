@@ -45,21 +45,54 @@ export function PhotoUploadPanel({ ordenId }: PhotoUploadPanelProps) {
     const handleFiles = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
         setUploading(true); setUploadError(null);
+
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+        if (!cloudName || !uploadPreset) {
+            setUploadError("Faltan credenciales de Cloudinary en el entorno.");
+            setUploading(false);
+            return;
+        }
+
         for (const file of Array.from(files)) {
-            const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-            const path = `${ordenId}/${activeTab}_${Date.now()}.${ext}`;
-            const bucket = 'autos';
-            const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { cacheControl: '3600', upsert: false });
-            if (upErr) { setUploadError(`Error al subir: ${upErr.message}`); continue; }
-            const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
-            const signedUrl = signed?.signedUrl ?? '';
-            const { data: mediaRow, error: insertErr } = await supabase.from('media').insert({
-                orden_id: ordenId, tipo: 'FOTO', categoria: activeTab,
-                storage_bucket: bucket, storage_path: path, url: null,
-            }).select('id').single();
-            if (insertErr) setUploadError(`Foto subida pero no guardada en DB: ${insertErr.message}`);
-            if (signedUrl) {
-                setMedia(prev => [...prev, { id: mediaRow?.id ?? `temp_${Date.now()}`, url: signedUrl, categoria: activeTab }]);
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', uploadPreset);
+                formData.append('folder', `sucolor/ordenes/${ordenId}/${activeTab}`);
+
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!res.ok) {
+                    const errTxt = await res.text();
+                    throw new Error(`Cloudinary HTTP error ${res.status}: ${errTxt}`);
+                }
+
+                const data = await res.json();
+                const secureUrl = data.secure_url;
+
+                if (!secureUrl) throw new Error("Cloudinary no devolvió una secure_url");
+
+                const { data: mediaRow, error: insertErr } = await supabase.from('media').insert({
+                    orden_id: ordenId,
+                    tipo: 'FOTO',
+                    categoria: activeTab,
+                    storage_bucket: null,
+                    storage_path: null,
+                    url: secureUrl,
+                }).select('id').single();
+
+                if (insertErr) throw new Error(`Foto subida pero no guardada en DB: ${insertErr.message}`);
+
+                setMedia(prev => [...prev, { id: mediaRow?.id ?? `temp_${Date.now()}`, url: secureUrl, categoria: activeTab }]);
+
+            } catch (err: any) {
+                setUploadError(`Error al subir: ${err.message}`);
+                console.error("Cloudinary upload error:", err);
             }
         }
         setUploading(false);
