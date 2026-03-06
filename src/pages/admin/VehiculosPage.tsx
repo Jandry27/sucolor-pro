@@ -70,39 +70,110 @@ export function VehiculosPage() {
                         <p className="text-sm text-[rgba(11,18,32,0.55)]">{error}</p>
                     </div>
                 ) : (
-                    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-[rgba(15,23,42,0.07)] bg-[#F7F8FA]">
-                                    {['Placa', 'Marca', 'Modelo', 'Año', 'Color', ''].map(h => (
-                                        <th key={h} className="text-left px-4 py-3 text-xs font-bold text-[rgba(11,18,32,0.45)] uppercase tracking-wider">
-                                            {h}
-                                        </th>
+                    <>
+                        {/* ── Vista Desktop (Tabla) ── */}
+                        <div className="card hidden sm:block" style={{ padding: 0, overflow: 'hidden' }}>
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-[rgba(15,23,42,0.07)] bg-[#F7F8FA]">
+                                        {['Placa', 'Marca', 'Modelo', 'Año', 'Color', ''].map(h => (
+                                            <th key={h} className="text-left px-4 py-3 text-xs font-bold text-[rgba(11,18,32,0.45)] uppercase tracking-wider">
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filtered.map((v, i) => (
+                                        <motion.tr
+                                            key={v.id}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: i * 0.02 }}
+                                            onClick={() => setSelected(v)}
+                                            className="border-b border-[rgba(15,23,42,0.05)] hover:bg-[rgba(255,81,0,0.04)] transition-colors last:border-0 cursor-pointer group"
+                                        >
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Car className="w-3.5 h-3.5 text-[#FF5100]" />
+                                                    <span className="font-mono-code font-semibold text-[#0B1220] text-xs">{v.placa}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 font-medium text-[rgba(11,18,32,0.70)]">{v.marca}</td>
+                                            <td className="px-4 py-3 text-[rgba(11,18,32,0.55)]">{v.modelo}</td>
+                                            <td className="px-4 py-3 text-[rgba(11,18,32,0.55)]">{v.anio}</td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-3 h-3 rounded-full border border-[rgba(15,23,42,0.15)]"
+                                                        style={{
+                                                            background: v.color?.toLowerCase() === 'blanco' ? '#f9fafb'
+                                                                : v.color?.toLowerCase() === 'negro' ? '#111827'
+                                                                    : v.color?.toLowerCase() === 'rojo' ? '#ef4444'
+                                                                        : v.color?.toLowerCase() === 'azul' ? '#3b82f6'
+                                                                            : v.color?.toLowerCase() === 'verde' ? '#22c55e'
+                                                                                : '#9ca3af'
+                                                        }} />
+                                                    <span className="text-[rgba(11,18,32,0.55)]">{v.color}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <span className="inline-flex items-center gap-1 text-xs text-[rgba(11,18,32,0.30)] group-hover:text-[#FF5100] transition-colors font-medium">
+                                                        Ver historial
+                                                        <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                                                    </span>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.placa); }}
+                                                        className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                        title="Eliminar Vehículo"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </motion.tr>
                                     ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map((v, i) => (
-                                    <motion.tr
-                                        key={v.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: i * 0.02 }}
-                                        onClick={() => setSelected(v)}
-                                        className="border-b border-[rgba(15,23,42,0.05)] hover:bg-[rgba(255,81,0,0.04)] transition-colors last:border-0 cursor-pointer group"
-                                    >
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Car className="w-3.5 h-3.5 text-[#FF5100]" />
-                                                <span className="font-mono-code font-semibold text-[#0B1220] text-xs">{v.placa}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 font-medium text-[rgba(11,18,32,0.70)]">{v.marca}</td>
-                                        <td className="px-4 py-3 text-[rgba(11,18,32,0.55)]">{v.modelo}</td>
-                                        <td className="px-4 py-3 text-[rgba(11,18,32,0.55)]">{v.anio}</td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-3 h-3 rounded-full border border-[rgba(15,23,42,0.15)]"
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* ── Vista Móvil (Tarjetas) ── */}
+                        <div className="grid grid-cols-1 gap-3 sm:hidden">
+                            {filtered.map((v, i) => (
+                                <motion.div
+                                    key={v.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.03 }}
+                                    onClick={() => setSelected(v)}
+                                    className="card-hover relative cursor-pointer group"
+                                    style={{ padding: '16px' }}
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <Car className="w-4 h-4 text-[#FF5100]" />
+                                            <span className="font-mono-code font-bold text-[#FF5100] text-sm">{v.placa}</span>
+                                        </div>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.placa); }}
+                                            className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Eliminar Vehículo"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <p className="font-semibold text-[#0B1220] text-base leading-tight">
+                                            {v.marca} <span className="text-[rgba(11,18,32,0.60)] font-medium">{v.modelo}</span>
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-3 border-t border-[rgba(15,23,42,0.06)] mt-auto">
+                                        <div className="flex items-center gap-3 text-xs text-[rgba(11,18,32,0.55)]">
+                                            <span>{v.anio}</span>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-2.5 h-2.5 rounded-full border border-[rgba(15,23,42,0.15)]"
                                                     style={{
                                                         background: v.color?.toLowerCase() === 'blanco' ? '#f9fafb'
                                                             : v.color?.toLowerCase() === 'negro' ? '#111827'
@@ -111,36 +182,25 @@ export function VehiculosPage() {
                                                                         : v.color?.toLowerCase() === 'verde' ? '#22c55e'
                                                                             : '#9ca3af'
                                                     }} />
-                                                <span className="text-[rgba(11,18,32,0.55)]">{v.color}</span>
                                             </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <div className="flex items-center justify-end gap-3">
-                                                <span className="inline-flex items-center gap-1 text-xs text-[rgba(11,18,32,0.30)] group-hover:text-[#FF5100] transition-colors font-medium">
-                                                    Ver historial
-                                                    <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                                                </span>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.placa); }}
-                                                    className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                    title="Eliminar Vehículo"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                ))}
-                                {filtered.length === 0 && (
-                                    <tr>
-                                        <td colSpan={6} className="text-center py-14 text-sm text-[rgba(11,18,32,0.35)]">
-                                            No se encontraron vehículos
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                        </div>
+                                        <span className="inline-flex items-center gap-1 text-xs text-[#FF5100] font-medium">
+                                            Ver historial
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        </span>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        {/* ── Empty State ── */}
+                        {filtered.length === 0 && (
+                            <div className="card flex flex-col items-center py-14 gap-3 border-0 shadow-none bg-transparent">
+                                <Car className="w-8 h-8 text-[rgba(11,18,32,0.20)]" />
+                                <p className="text-sm text-[rgba(11,18,32,0.40)]">No se encontraron vehículos</p>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
