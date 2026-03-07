@@ -39,7 +39,7 @@ interface PublicGastosPanelProps {
 
 export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
-    const totalGastos = gastos?.reduce((sum, g) => sum + (g.costo || 0), 0) || 0;
+    const totalGastos = gastos?.reduce((sum, g) => sum + (g.monto || 0), 0) || 0;
 
     return (
         <motion.div className="card" style={{ padding: '24px' }}
@@ -95,7 +95,7 @@ export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
                                 </div>
                             </div>
                             <div className="font-mono-code font-bold text-[rgba(11,18,32,0.9)]">
-                                ${(gasto.costo || 0).toFixed(2)}
+                                ${(gasto.monto || 0).toFixed(2)}
                             </div>
                         </motion.div>
                     ))}

@@ -75,11 +75,11 @@ serve(async (req: Request) => {
             console.error("Error fetching gastos:", gastosErr);
         }
 
-        // Mapear monto a costo para el frontend
+        // Mapear al modelo del frontend
         const gastos = (gastosRows ?? []).map((g: any) => ({
             id: g.id,
             descripcion: g.descripcion,
-            costo: Number(g.monto),
+            monto: Number(g.monto),
             factura_url: g.factura_url,
             created_at: g.created_at
         }));
