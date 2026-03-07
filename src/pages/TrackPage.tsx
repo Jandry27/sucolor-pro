@@ -54,7 +54,6 @@ export function TrackPage() {
                 <OrderProgress estado={order.estado} />
                 <PublicNotes notes={order.notas_publicas} />
                 <MediaGallery media={media} />
-                <MediaGallery media={media} />
                 <PublicGastosPanel gastos={gastos} />
             </main>
 
