@@ -1,0 +1,113 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { DollarSign, Search } from 'lucide-react';
+import type { OrdenGasto } from '@/types';
+import { formatDateTime } from '@/lib/constants';
+import { useState } from 'react';
+
+// Lightbox for public view
+const Lightbox = ({ src, onClose }: { src: string; onClose: () => void }) => (
+    <AnimatePresence>
+        <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <motion.img
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                src={src}
+                alt="Factura"
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+            />
+            <button
+                onClick={onClose}
+                className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+                aria-label="Cerrar factura"
+            >
+                ✕
+            </button>
+        </motion.div>
+    </AnimatePresence>
+);
+
+interface PublicGastosPanelProps {
+    gastos: OrdenGasto[];
+}
+
+export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const totalGastos = gastos?.reduce((sum, g) => sum + (g.costo || 0), 0) || 0;
+
+    return (
+        <motion.div className="card" style={{ padding: '24px' }}
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.24, ease: 'easeOut' }}>
+
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2 text-[#FF5100]">
+                    <DollarSign className="w-5 h-5" />
+                    <h3 className="font-semibold text-[#0B1220] text-sm">Repuestos y Gastos</h3>
+                </div>
+                {totalGastos > 0 && (
+                    <span className="font-bold text-[#FF5100] text-sm">
+                        Total: ${(totalGastos).toFixed(2)}
+                    </span>
+                )}
+            </div>
+
+            {gastos && gastos.length > 0 ? (
+                <div className="space-y-3">
+                    {gastos.map((gasto, i) => (
+                        <motion.div
+                            key={gasto.id}
+                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="p-4 rounded-xl border border-[rgba(15,23,42,0.06)] bg-white/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                        >
+                            <div className="flex items-start sm:items-center gap-4">
+                                {gasto.factura_url && (
+                                    <div
+                                        className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer border border-[rgba(15,23,42,0.1)] group-hover:border-[#FF5100]/30 transition-colors"
+                                        onClick={() => setSelectedImage(gasto.factura_url!)}
+                                        title="Ver factura adjunta"
+                                    >
+                                        <img
+                                            src={gasto.factura_url}
+                                            alt="Miniatura factura"
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.src = "https://via.placeholder.com/150?text=Err";
+                                            }}
+                                        />
+                                        <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Search className="w-4 h-4 text-white drop-shadow-md" />
+                                        </div>
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="font-medium text-sm text-[rgba(11,18,32,0.9)]">{gasto.descripcion}</p>
+                                    <p className="text-xs text-[rgba(11,18,32,0.4)] mt-0.5">{formatDateTime(gasto.created_at)}</p>
+                                </div>
+                            </div>
+                            <div className="font-mono-code font-bold text-[rgba(11,18,32,0.9)]">
+                                ${(gasto.costo || 0).toFixed(2)}
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center py-10 px-4 text-center rounded-xl border border-dashed border-[rgba(15,23,42,0.15)] bg-[rgba(15,23,42,0.02)]">
+                    <p className="text-sm text-[rgba(11,18,32,0.4)] mb-3">No hay registros de repuestos ni gastos adicionales en esta orden.</p>
+                </div>
+            )}
+
+            {/* Lightbox for large image */}
+            {selectedImage && <Lightbox src={selectedImage} onClose={() => setSelectedImage(null)} />}
+        </motion.div>
+    );
+}

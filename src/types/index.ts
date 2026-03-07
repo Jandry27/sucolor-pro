@@ -53,7 +53,7 @@ export interface MediaItem {
 export interface TrackOrderResponse {
     ok: boolean;
     order: Order;
-    timeline: TimelineEvent[];
+    gastos: OrdenGasto[];
     media: MediaItem[];
 }
 
@@ -113,4 +113,13 @@ export interface AuthState {
     user: { id: string; email?: string } | null;
     loading: boolean;
     error: string | null;
+}
+
+export interface OrdenGasto {
+    id: string;
+    orden_id: string;
+    descripcion: string;
+    monto: number;
+    factura_url: string | null;
+    created_at: string;
 }

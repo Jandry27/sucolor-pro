@@ -6,7 +6,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { OrderHeader } from '@/components/OrderHeader';
 import { OrderProgress } from '@/components/OrderProgress';
 import { MediaGallery } from '@/components/MediaGallery';
-import { Timeline } from '@/components/Timeline';
+import { PublicGastosPanel } from '@/components/PublicGastosPanel';
 import { PublicNotes } from '@/components/PublicNotes';
 
 export function TrackPage() {
@@ -19,7 +19,7 @@ export function TrackPage() {
     if (loading) return <LoadingSkeleton />;
     if (error || !data) return <ErrorState message={error ?? 'No se pudo cargar la orden.'} onRetry={refetch} />;
 
-    const { order, timeline, media } = data;
+    const { order, gastos, media } = data;
 
     return (
         <div className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
@@ -54,7 +54,8 @@ export function TrackPage() {
                 <OrderProgress estado={order.estado} />
                 <PublicNotes notes={order.notas_publicas} />
                 <MediaGallery media={media} />
-                <Timeline events={timeline} />
+                <MediaGallery media={media} />
+                <PublicGastosPanel gastos={gastos} />
             </main>
 
             {/* ── Footer ──── */}

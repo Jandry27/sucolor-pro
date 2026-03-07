@@ -64,13 +64,25 @@ serve(async (req: Request) => {
             supabase.from("vehiculos").select("marca, modelo, anio, color, placa").eq("id", orden.vehiculo_id).single(),
         ]);
 
-        // 3. Obtener timeline (solo eventos visibles al cliente)
-        const { data: timeline } = await supabase
-            .from("timeline")
-            .select("id, tipo, mensaje, created_at, meta")
+        // 3. Obtener gastos (para reemplazar el timeline anterior)
+        const { data: gastosRows, error: gastosErr } = await supabase
+            .from("orden_gastos")
+            .select("id, descripcion, monto, factura_url, created_at")
             .eq("orden_id", orden.id)
-            .eq("visible_cliente", true)
-            .order("created_at", { ascending: true });
+            .order("created_at", { ascending: false });
+
+        if (gastosErr) {
+            console.error("Error fetching gastos:", gastosErr);
+        }
+
+        // Mapear monto a costo para el frontend
+        const gastos = (gastosRows ?? []).map((g: any) => ({
+            id: g.id,
+            descripcion: g.descripcion,
+            costo: Number(g.monto),
+            factura_url: g.factura_url,
+            created_at: g.created_at
+        }));
 
         // 4. Obtener media y generar signed URLs para el bucket privado
         const { data: mediaRows } = await supabase
@@ -116,7 +128,7 @@ serve(async (req: Request) => {
                         placa: vehiculo?.placa ?? "",
                     },
                 },
-                timeline: timeline ?? [],
+                gastos: gastos ?? [],
                 media,
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

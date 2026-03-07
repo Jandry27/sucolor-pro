@@ -20,7 +20,10 @@ export function useOrders(filterEstado?: OrderStatus) {
             if (filterEstado) ordQ = ordQ.eq('estado', filterEstado);
 
             const { data: ordenes, error: ordErr } = await ordQ;
-            if (ordErr) throw ordErr;
+            if (ordErr) {
+                console.error("SUPABASE ERROR FETCHING ORDENES:", ordErr);
+                throw ordErr;
+            }
             if (!ordenes || ordenes.length === 0) {
                 setOrders([]);
                 return;
@@ -31,8 +34,8 @@ export function useOrders(filterEstado?: OrderStatus) {
             const vehiculoIds = [...new Set(ordenes.map(o => o.vehiculo_id).filter(Boolean))];
 
             const [{ data: clientes }, { data: vehiculos }] = await Promise.all([
-                supabase.from('clientes').select('id, nombres, telefono, email, cedula, created_at').in('id', clienteIds),
-                supabase.from('vehiculos').select('id, anio, color, marca, placa, modelo').in('id', vehiculoIds),
+                clienteIds.length > 0 ? supabase.from('clientes').select('id, nombres, telefono, email, cedula, created_at').in('id', clienteIds) : { data: [] },
+                vehiculoIds.length > 0 ? supabase.from('vehiculos').select('id, anio, color, marca, placa, modelo').in('id', vehiculoIds) : { data: [] },
             ]);
 
             const clienteMap = Object.fromEntries((clientes ?? []).map(c => [c.id, c]));

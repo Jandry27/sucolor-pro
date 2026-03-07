@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { PhotoUploadPanel } from '@/components/admin/PhotoUploadPanel';
 import { PaymentPanel } from '@/components/admin/PaymentPanel';
+import { GastosPanel } from '@/components/admin/GastosPanel';
 import type { AdminOrder, OrderStatus } from '@/types';
 
 const ESTADOS: { value: OrderStatus; label: string }[] = [
@@ -368,6 +369,11 @@ export function OrderDetailPage() {
                             {order.notas_publicas ?? 'Sin notas públicas'}
                         </p>
                     )}
+                </motion.div>
+
+                {/* Gastos y Repuestos */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+                    <GastosPanel ordenId={order.id} />
                 </motion.div>
 
                 {/* Pagos */}
