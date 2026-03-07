@@ -9,26 +9,33 @@ const Lightbox = ({ src, onClose }: { src: string; onClose: () => void }) => (
     <AnimatePresence>
         <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4 backdrop-blur-sm"
             onClick={onClose}
         >
-            <motion.img
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                src={src}
-                alt="Factura"
-                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-            />
-            <button
-                onClick={onClose}
-                className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
-                aria-label="Cerrar factura"
-            >
-                ✕
-            </button>
+            <div className="w-full max-w-3xl flex justify-between items-center mb-4 z-10" onClick={(e) => e.stopPropagation()}>
+                <a href={src} target="_blank" rel="noopener noreferrer" className="bg-white/10 border border-white/10 hover:bg-white/20 text-white backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5">
+                    <Search className="w-3.5 h-3.5" /> Ver original para hacer zoom
+                </a>
+                <button
+                    onClick={onClose}
+                    className="text-white/70 hover:text-white p-2.5 rounded-full hover:bg-white/20 transition-colors bg-white/10 backdrop-blur-md"
+                    aria-label="Cerrar factura"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                </button>
+            </div>
+
+            <div className="relative max-w-full" onClick={(e) => e.stopPropagation()}>
+                <motion.img
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    src={src}
+                    alt="Factura"
+                    className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
+                />
+            </div>
         </motion.div>
     </AnimatePresence>
 );

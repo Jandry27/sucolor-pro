@@ -109,12 +109,18 @@ export function MediaGallery({ media }: MediaGalleryProps) {
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         onClick={closeLightbox}
                         style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}>
-                        <div onClick={e => e.stopPropagation()} className="relative max-w-3xl w-full">
-                            {/* Close */}
-                            <button onClick={closeLightbox}
-                                className="absolute -top-10 right-0 text-white/70 hover:text-white transition-colors">
-                                <X className="w-5 h-5" />
-                            </button>
+                        <div onClick={e => e.stopPropagation()} className="relative max-w-3xl w-full flex flex-col items-center">
+                            {/* Actions Header */}
+                            <div className="w-full flex justify-between items-center mb-4">
+                                <a href={filtered[lightboxIndex].signed_url} target="_blank" rel="noopener noreferrer"
+                                    className="bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors backdrop-blur-md">
+                                    <ZoomIn className="w-3.5 h-3.5" /> Ver original para hacer zoom
+                                </a>
+                                <button onClick={closeLightbox}
+                                    className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full backdrop-blur-md">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
                             <img src={filtered[lightboxIndex].signed_url} alt=""
                                 className="w-full h-auto max-h-[80vh] object-contain rounded-2xl" />
                             <p className="text-center text-xs text-white/50 mt-3">
