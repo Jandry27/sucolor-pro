@@ -295,10 +295,18 @@ body {
   /* ── Segmented control (tabs) ────────────── */
   .segmented-control {
     display: inline-flex;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     background: rgba(15, 23, 42, 0.05);
     border-radius: 10px;
     padding: 3px;
     gap: 2px;
+  }
+
+  .segmented-control::-webkit-scrollbar {
+    display: none;
   }
 
   .seg-btn {
@@ -311,6 +319,8 @@ body {
     background: transparent;
     cursor: pointer;
     transition: all 0.15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .seg-btn.active {
