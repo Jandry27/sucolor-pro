@@ -63,8 +63,8 @@ export function OrdersListPage() {
                 {/* Page header */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Órdenes Activas</h1>
-                        <p className="text-sm text-[rgba(11,18,32,0.50)] mt-0.5">
+                        <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">Órdenes Activas</h1>
+                        <p className="text-sm text-[rgba(15,23,42,0.60)] mt-0.5">
                             {activeOrders.length} {activeOrders.length === 1 ? 'orden en proceso' : 'órdenes en proceso'}
                         </p>
                     </div>
@@ -90,9 +90,9 @@ export function OrdersListPage() {
                         <Loader2 className="w-7 h-7 text-[#FF5100] animate-spin" />
                     </div>
                 ) : error ? (
-                    <div className="card flex flex-col items-center py-12 gap-3">
+                    <div className="glass-card flex flex-col items-center py-12 gap-3">
                         <AlertTriangle className="w-7 h-7 text-[#EF4444]" />
-                        <p className="text-sm text-[rgba(11,18,32,0.55)]">{error}</p>
+                        <p className="text-sm text-[rgba(15,23,42,0.60)]">{error}</p>
                     </div>
                 ) : (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -104,7 +104,7 @@ export function OrdersListPage() {
                             return (
                                 <motion.div key={order.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
                                     <Link to={`/admin/orders/${order.id}`} className="block h-full">
-                                        <div className="card-hover h-full flex flex-col" style={{ padding: '16px' }}>
+                                        <div className="glass-card-hover h-full flex flex-col !p-4 !rounded-xl !border-slate-200/50">
                                             {/* Header */}
                                             <div className="flex items-start justify-between gap-2 mb-3">
                                                 <div className="flex gap-3">
@@ -119,9 +119,9 @@ export function OrdersListPage() {
                                                     {/* Text content */}
                                                     <div className="min-w-0 flex-1 pl-1 pt-0.5">
                                                         <div className="flex items-center gap-2 mb-1">
-                                                            <span className="font-mono-code text-xs text-[#FF5100] font-bold">{order.codigo}</span>
+                                                            <span className="font-mono-code text-xs text-[#FF6A00] font-bold">{order.codigo}</span>
                                                         </div>
-                                                        <p className="font-semibold text-[#0B1220] text-sm mt-0.5 leading-tight truncate">
+                                                        <p className="font-semibold text-[#0F172A] text-sm mt-0.5 leading-tight truncate">
                                                             {(order.cliente as any).nombres}
                                                         </p>
                                                     </div>
@@ -161,9 +161,9 @@ export function OrdersListPage() {
                             );
                         })}
                         {filtered.length === 0 && (
-                            <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4 card flex flex-col items-center py-14 gap-3">
-                                <Search className="w-8 h-8 text-[rgba(11,18,32,0.20)]" />
-                                <p className="text-sm text-[rgba(11,18,32,0.40)]">No se encontraron órdenes</p>
+                            <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4 glass-card flex flex-col items-center py-14 gap-3">
+                                <Search className="w-8 h-8 text-[rgba(15,23,42,0.20)]" />
+                                <p className="text-sm text-[rgba(15,23,42,0.50)]">No se encontraron órdenes</p>
                             </div>
                         )}
                     </div>

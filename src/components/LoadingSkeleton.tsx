@@ -1,6 +1,6 @@
 export function LoadingSkeleton() {
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <div className="min-h-screen bg-transparent">
             {/* Header skeleton */}
             <div className="bg-white border-b border-[rgba(15,23,42,0.07)] h-14 flex items-center px-6">
                 <div className="skeleton h-7 w-28 rounded-lg" />
@@ -12,7 +12,7 @@ export function LoadingSkeleton() {
 
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-5">
                 {/* Order header card */}
-                <div className="card" style={{ padding: '24px' }}>
+                <div className="glass-card" style={{ padding: '24px' }}>
                     <div className="flex justify-between mb-5">
                         <div>
                             <div className="skeleton h-3 w-24 rounded mb-2" />
@@ -38,7 +38,7 @@ export function LoadingSkeleton() {
                 </div>
 
                 {/* Progress card */}
-                <div className="card" style={{ padding: '24px' }}>
+                <div className="glass-card" style={{ padding: '24px' }}>
                     <div className="flex justify-between mb-5">
                         <div className="skeleton h-4 w-36 rounded" />
                         <div className="skeleton h-4 w-8 rounded" />
@@ -55,7 +55,7 @@ export function LoadingSkeleton() {
                 </div>
 
                 {/* Gallery card */}
-                <div className="card" style={{ padding: '24px' }}>
+                <div className="glass-card" style={{ padding: '24px' }}>
                     <div className="skeleton h-4 w-32 rounded mb-4" />
                     <div className="skeleton h-8 w-48 rounded-lg mb-5" />
                     <div className="grid grid-cols-3 gap-3">

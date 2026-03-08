@@ -32,12 +32,12 @@ export function PaymentPanel({ ordenId, precioTotal, montoPagado, onUpdate }: Pa
     };
 
     return (
-        <div className="card space-y-4" style={{ padding: '20px' }}>
+        <div className="glass-card space-y-4" style={{ padding: '20px' }}>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-[#FF5100]" />
-                    <h3 className="font-semibold text-[#0B1220] text-sm">Control de pagos</h3>
+                    <DollarSign className="w-4 h-4 text-[#FF6A00]" />
+                    <h3 className="font-semibold text-[#0F172A] text-sm">Control de pagos</h3>
                 </div>
                 {!editing && (
                     <button onClick={() => setEditing(true)} className="btn-ghost text-xs gap-1.5">
@@ -66,15 +66,15 @@ export function PaymentPanel({ ordenId, precioTotal, montoPagado, onUpdate }: Pa
             {/* Progress bar */}
             {precioTotal > 0 && (
                 <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs text-[rgba(11,18,32,0.45)]">
+                    <div className="flex justify-between text-xs text-[rgba(15,23,42,0.45)]">
                         <span>Pagado: {fmt(montoPagado)}</span>
                         <span>Total: {fmt(precioTotal)}</span>
                     </div>
                     <div className="h-1.5 bg-[rgba(15,23,42,0.07)] rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${pct}%`, background: completo ? '#16A34A' : 'linear-gradient(90deg, #FF5100, #F59E0B)' }} />
+                            style={{ width: `${pct}%`, background: completo ? '#16A34A' : 'linear-gradient(90deg, #FF6A00, #F59E0B)' }} />
                     </div>
-                    <p className="text-xs text-[rgba(11,18,32,0.40)]">{pct.toFixed(0)}% pagado</p>
+                    <p className="text-xs text-[rgba(15,23,42,0.40)]">{pct.toFixed(0)}% pagado</p>
                 </div>
             )}
 
@@ -86,9 +86,9 @@ export function PaymentPanel({ ordenId, precioTotal, montoPagado, onUpdate }: Pa
                         { label: 'Total pagado', value: fmt(montoPagado), highlight: true },
                     ].map(({ label, value, highlight }) => (
                         <div key={label} className="rounded-xl p-3 text-center border border-[rgba(15,23,42,0.07)]"
-                            style={{ background: '#F7F8FA' }}>
-                            <p className="text-xs text-[rgba(11,18,32,0.45)] mb-1">{label}</p>
-                            <p className={`font-bold text-sm ${highlight ? 'text-[#16A34A]' : 'text-[#0B1220]'}`}>{value}</p>
+                            style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
+                            <p className="text-xs text-[rgba(15,23,42,0.45)] mb-1">{label}</p>
+                            <p className={`font-bold text-sm ${highlight ? 'text-[#16A34A]' : 'text-[#0F172A]'}`}>{value}</p>
                         </div>
                     ))}
                 </div>
@@ -109,7 +109,7 @@ export function PaymentPanel({ ordenId, precioTotal, montoPagado, onUpdate }: Pa
                                 type="number" min="0" step="0.01" className="input-field" placeholder="0.00" />
                         </div>
                     </div>
-                    <p className="text-xs text-[rgba(11,18,32,0.45)]">
+                    <p className="text-xs text-[rgba(15,23,42,0.45)]">
                         Saldo: <span className="font-semibold text-[#F59E0B]">
                             {fmt(Math.max(0, (parseFloat(total) || 0) - (parseFloat(pagado) || 0)))}
                         </span>

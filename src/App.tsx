@@ -40,7 +40,7 @@ export default function App() {
 
 function NotFound() {
     return (
-        <div className="min-h-screen bg-brand-black flex items-center justify-center px-4">
+        <div className="min-h-screen mesh-gradient bg-[#0F172A] flex items-center justify-center px-4">
             <div className="text-center space-y-4">
                 <p className="text-8xl font-display font-black text-brand-white/[0.04]">404</p>
                 <h1 className="text-xl font-display font-semibold text-brand-white">

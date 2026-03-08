@@ -130,12 +130,12 @@ export function GastosPanel({ ordenId }: GastosPanelProps) {
     const totalGastos = gastos.reduce((acc, curr) => acc + Number(curr.monto), 0);
 
     return (
-        <div className="card space-y-4" style={{ padding: '20px' }}>
+        <div className="glass-card space-y-4" style={{ padding: '20px' }}>
             {/* Header */}
             <div className="flex items-center gap-2 mb-4">
-                <Receipt className="w-4 h-4 text-[#FF5100]" />
-                <h3 className="font-semibold text-[#0B1220] text-sm">Repuestos y Gastos</h3>
-                <div className="ml-auto text-xs font-bold bg-[rgba(255,81,0,0.08)] text-[#FF5100] px-2.5 py-1 rounded-md">
+                <Receipt className="w-4 h-4 text-[#FF6A00]" />
+                <h3 className="font-semibold text-[#0F172A] text-sm">Repuestos y Gastos</h3>
+                <div className="ml-auto text-xs font-bold bg-[rgba(255,106,0,0.08)] text-[#FF6A00] px-2.5 py-1 rounded-md">
                     Total: ${totalGastos.toFixed(2)}
                 </div>
             </div>
@@ -155,27 +155,27 @@ export function GastosPanel({ ordenId }: GastosPanelProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="md:col-span-2">
-                        <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Descripción (Repuesto/Servicio)</label>
-                        <input value={descripcion} onChange={e => setDescripcion(e.target.value)} required type="text" placeholder="Ej. Filtro de aceite, Pintura roja..." className="w-full text-sm px-3 py-2 rounded-lg border border-[rgba(15,23,42,0.15)] bg-white focus:outline-none focus:border-[#FF5100]" disabled={saving} />
+                        <label className="text-[10px] uppercase font-bold text-[rgba(15,23,42,0.40)] tracking-wider mb-1 block">Descripción (Repuesto/Servicio)</label>
+                        <input value={descripcion} onChange={e => setDescripcion(e.target.value)} required type="text" placeholder="Ej. Filtro de aceite, Pintura roja..." className="w-full text-sm px-3 py-2 rounded-lg border border-[rgba(15,23,42,0.15)] bg-white/50 focus:outline-none focus:border-[#FF6A00]" disabled={saving} />
                     </div>
                     <div>
-                        <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Costo ($)</label>
-                        <input value={monto} onChange={e => setMonto(e.target.value)} required type="number" step="0.01" min="0" placeholder="0.00" className="w-full text-sm px-3 py-2 rounded-lg border border-[rgba(15,23,42,0.15)] bg-white focus:outline-none focus:border-[#FF5100]" disabled={saving} />
+                        <label className="text-[10px] uppercase font-bold text-[rgba(15,23,42,0.40)] tracking-wider mb-1 block">Costo ($)</label>
+                        <input value={monto} onChange={e => setMonto(e.target.value)} required type="number" step="0.01" min="0" placeholder="0.00" className="w-full text-sm px-3 py-2 rounded-lg border border-[rgba(15,23,42,0.15)] bg-white/50 focus:outline-none focus:border-[#FF6A00]" disabled={saving} />
                     </div>
                 </div>
 
                 <div className="pt-1">
-                    <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Factura o recibo (Opcional)</label>
+                    <label className="text-[10px] uppercase font-bold text-[rgba(15,23,42,0.40)] tracking-wider mb-1 block">Factura o recibo (Opcional)</label>
 
                     {!facturaUrl ? (
                         <div
-                            className="border border-dashed rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer transition-colors bg-white hover:border-[#FF5100] group"
+                            className="border border-dashed rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer transition-colors bg-white/50 hover:border-[#FF6A00] group"
                             style={{ borderColor: 'rgba(15,23,42,0.15)' }}
                             onClick={() => fileRef.current?.click()}
                         >
                             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => handleFileSelect(e.target.files)} />
-                            <Camera className="w-4 h-4 text-[rgba(11,18,32,0.40)] group-hover:text-[#FF5100] transition-colors" />
-                            <span className="text-xs text-[rgba(11,18,32,0.50)] group-hover:text-[#FF5100] transition-colors">Adjuntar foto de la factura</span>
+                            <Camera className="w-4 h-4 text-[rgba(15,23,42,0.40)] group-hover:text-[#FF6A00] transition-colors" />
+                            <span className="text-xs text-[rgba(15,23,42,0.50)] group-hover:text-[#FF6A00] transition-colors">Adjuntar foto de la factura</span>
                         </div>
                     ) : (
                         <div className="relative inline-block border border-[rgba(15,23,42,0.10)] rounded-lg p-1 bg-white">
@@ -197,16 +197,16 @@ export function GastosPanel({ ordenId }: GastosPanelProps) {
 
             {/* Listado de Gastos */}
             <div className="mt-5">
-                <h4 className="text-xs font-bold text-[rgba(11,18,32,0.50)] uppercase tracking-wider mb-3">Historial de Repuestos / Gastos</h4>
+                <h4 className="text-xs font-bold text-[rgba(15,23,42,0.50)] uppercase tracking-wider mb-3">Historial de Repuestos / Gastos</h4>
 
                 {loading ? (
                     <div className="flex justify-center py-6">
-                        <Loader2 className="w-5 h-5 text-[#FF5100] animate-spin" />
+                        <Loader2 className="w-5 h-5 text-[#FF6A00] animate-spin" />
                     </div>
                 ) : gastos.length === 0 ? (
                     <div className="flex flex-col items-center py-6 gap-2 bg-[rgba(15,23,42,0.02)] rounded-xl border border-[rgba(15,23,42,0.05)] border-dashed">
-                        <FileText className="w-6 h-6 text-[rgba(11,18,32,0.20)]" />
-                        <p className="text-sm text-[rgba(11,18,32,0.40)]">No hay gastos registrados para esta orden</p>
+                        <FileText className="w-6 h-6 text-[rgba(15,23,42,0.20)]" />
+                        <p className="text-sm text-[rgba(15,23,42,0.40)]">No hay gastos registrados para esta orden</p>
                     </div>
                 ) : (
                     <div className="space-y-2">
@@ -234,17 +234,17 @@ export function GastosPanel({ ordenId }: GastosPanelProps) {
                                     )}
 
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-[#0B1220] truncate placeholder:">{gasto.descripcion}</p>
-                                        <p className="text-[10px] text-[rgba(11,18,32,0.45)]">
+                                        <p className="text-sm font-semibold text-[#0F172A] truncate placeholder:">{gasto.descripcion}</p>
+                                        <p className="text-[10px] text-[rgba(15,23,42,0.45)]">
                                             {new Date(gasto.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </p>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <span className="font-mono font-bold text-sm text-[#0B1220]">${Number(gasto.monto).toFixed(2)}</span>
+                                        <span className="font-mono font-bold text-sm text-[#0F172A]">${Number(gasto.monto).toFixed(2)}</span>
                                         <button
                                             onClick={(e) => deleteGasto(gasto.id, e)}
-                                            className="p-1.5 rounded-md hover:bg-red-50 text-[rgba(11,18,32,0.30)] hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                            className="p-1.5 rounded-md hover:bg-red-50 text-[rgba(15,23,42,0.30)] hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                                             title="Eliminar gasto"
                                         >
                                             <Trash2 className="w-3.5 h-3.5" />

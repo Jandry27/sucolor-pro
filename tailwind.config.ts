@@ -7,17 +7,17 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
-                display: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                sans: ['Inter', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                display: ['Inter', 'SF Pro Display', 'sans-serif'],
                 mono: ['"JetBrains Mono"', 'monospace'],
             },
             colors: {
                 brand: {
-                    // Primary orange
-                    orange: '#FF5100',
-                    'orange-hover': '#E84800',
-                    'orange-soft': 'rgba(255,81,0,0.10)',
-                    'orange-border': 'rgba(255,81,0,0.20)',
+                    // Primary orange (Neo-Lux vibrant suorange)
+                    orange: '#FF6A00',
+                    'orange-hover': '#E55F00',
+                    'orange-soft': 'rgba(255, 106, 0, 0.10)',
+                    'orange-border': 'rgba(255, 106, 0, 0.20)',
                     // Text
                     'text-primary': '#0B1220',
                     'text-secondary': 'rgba(11,18,32,0.65)',
@@ -44,24 +44,26 @@ export default {
                 }
             },
             backgroundImage: {
-                'orange-gradient': 'linear-gradient(135deg, #FF5100 0%, #E84800 100%)',
+                'orange-gradient': 'linear-gradient(135deg, #FF6A00 0%, #E55F00 100%)',
                 'subtle-gradient': 'linear-gradient(180deg, #FFFFFF 0%, #F7F8FA 100%)',
             },
             boxShadow: {
-                'card': '0 1px 3px rgba(0,0,0,0.06), 0 8px 30px rgba(0,0,0,0.04)',
-                'card-hover': '0 2px 8px rgba(0,0,0,0.08), 0 16px 40px rgba(0,0,0,0.06)',
-                'orange': '0 0 20px rgba(255,81,0,0.20)',
-                'orange-sm': '0 0 10px rgba(255,81,0,0.15)',
-                'glass': '0 1px 3px rgba(0,0,0,0.06), 0 8px 30px rgba(0,0,0,0.04)',
+                'card': '0 20px 50px -12px rgba(0, 0, 0, 0.08)',
+                'card-hover': '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+                'orange': '0 10px 30px -5px rgba(255, 106, 0, 0.3)',
+                'orange-sm': '0 4px 14px 0 rgba(255, 106, 0, 0.39)',
+                'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
                 'dark': '0 4px 24px rgba(0,0,0,0.08)',
                 'nav': '0 1px 0 rgba(15,23,42,0.08)',
                 'dropdown': '0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
             },
             borderRadius: {
-                'card': '16px',
-                'btn': '10px',
+                'card': '24px',
+                'btn': '12px',
                 'chip': '999px',
-                'modal': '20px',
+                'modal': '32px',
+                '3xl': '24px',
+                '4xl': '32px',
             },
             animation: {
                 'fade-in': 'fadeIn 0.2s ease-out',
@@ -89,8 +91,8 @@ export default {
                     '100%': { backgroundPosition: '200% 0' },
                 },
                 pulseOrange: {
-                    '0%, 100%': { boxShadow: '0 0 0 0 rgba(255,81,0,0.3)' },
-                    '50%': { boxShadow: '0 0 0 6px rgba(255,81,0,0)' },
+                    '0%, 100%': { boxShadow: '0 0 0 0 rgba(255, 106, 0, 0.3)' },
+                    '50%': { boxShadow: '0 0 0 6px rgba(255, 106, 0, 0)' },
                 },
                 progressFill: {
                     '0%': { width: '0%' },

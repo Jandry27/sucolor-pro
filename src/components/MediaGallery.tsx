@@ -33,26 +33,27 @@ export function MediaGallery({ media }: MediaGalleryProps) {
 
     return (
         <>
-            <motion.div className="card" style={{ padding: '24px' }}
+            <motion.div className="glass-card"
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.16, ease: 'easeOut' }}>
                 {/* Header */}
                 <div className="flex items-center justify-between mb-5">
-                    <h3 className="font-semibold text-[#0B1220] text-sm">Galería de imágenes</h3>
+                    <h3 className="font-semibold text-slate-800 text-sm">Galería de imágenes</h3>
                     <span className="text-xs text-[rgba(11,18,32,0.40)]">{media.length} foto{media.length !== 1 ? 's' : ''}</span>
                 </div>
 
                 {/* Segmented control tabs */}
                 <div className="segmented-control mb-5">
                     {MEDIA_CATEGORIES.map(cat => (
-                        <button key={cat.key} className={`seg-btn ${activeTab === cat.key ? 'active' : ''}`}
+                        <button key={cat.key} className={`seg-btn flex items-center justify-center gap-1.5 ${activeTab === cat.key ? 'active' : ''}`}
                             onClick={() => setActiveTab(cat.key as CategoryKey)}>
+                            <cat.icon className="w-4 h-4" />
                             {cat.label}
                             {counts[cat.key] > 0 && (
                                 <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                                     style={{
-                                        background: activeTab === cat.key ? 'rgba(255,81,0,0.10)' : 'rgba(15,23,42,0.06)',
-                                        color: activeTab === cat.key ? '#FF5100' : 'rgba(11,18,32,0.45)',
+                                        background: activeTab === cat.key ? 'rgba(255,106,0,0.15)' : 'rgba(15,23,42,0.06)',
+                                        color: activeTab === cat.key ? '#FF6A00' : 'rgba(11,18,32,0.45)',
                                     }}>
                                     {counts[cat.key]}
                                 </span>

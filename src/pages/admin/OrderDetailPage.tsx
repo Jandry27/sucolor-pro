@@ -177,9 +177,11 @@ export function OrderDetailPage() {
 
     if (error || !order) return (
         <AdminLayout>
-            <div className="card flex flex-col items-center justify-center py-16 gap-3 max-w-sm mx-auto">
-                <AlertTriangle className="w-8 h-8 text-[#EF4444]" />
-                <p className="text-sm text-[rgba(11,18,32,0.55)]">{error ?? 'Orden no encontrada'}</p>
+            <div className="glass-card flex flex-col items-center justify-center py-16 gap-3 max-w-sm mx-auto">
+                <AlertTriangle className="w-10 h-10 text-[#EF4444]" />
+                <p className="text-sm text-[rgba(15,23,42,0.60)] text-center">
+                    {error || 'No se encontró la orden solicitada'}
+                </p>
                 <button onClick={() => navigate(-1)} className="btn-secondary text-sm">Volver</button>
             </div>
         </AdminLayout>
@@ -194,8 +196,7 @@ export function OrderDetailPage() {
                     <ArrowLeft className="w-4 h-4" /> Volver al dashboard
                 </button>
 
-                {/* Header card */}
-                <motion.div className="card" style={{ padding: '20px' }}
+                <motion.div className="glass-card" style={{ padding: '20px' }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         {isEditingDetails ? (
@@ -271,7 +272,7 @@ export function OrderDetailPage() {
                 </motion.div>
 
                 {/* Estado */}
-                <motion.div className="card" style={{ padding: '20px' }}
+                <motion.div className="glass-card" style={{ padding: '20px' }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
                     <h2 className="text-sm font-semibold text-[#0B1220] mb-3">Estado de la orden</h2>
                     <div className="flex flex-wrap gap-2">
@@ -289,12 +290,12 @@ export function OrderDetailPage() {
                 </motion.div>
 
                 {/* Portal del cliente */}
-                <motion.div className="card" style={{ padding: '20px' }}
+                <motion.div className="glass-card" style={{ padding: '20px' }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.10 }}>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                             <Share2 className="w-4 h-4 text-[#FF5100]" />
-                            <h2 className="text-sm font-semibold text-[#0B1220]">Portal cliente</h2>
+                            <p className="text-sm font-semibold text-[#0F172A]">Portal cliente</p>
                         </div>
                         <button onClick={toggleShare} disabled={saving}
                             className="flex items-center gap-2 text-sm transition-colors">
@@ -321,8 +322,8 @@ export function OrderDetailPage() {
                                 </Link>
                             </div>
                             {!order.share_enabled && (
-                                <p className="text-xs text-[#F59E0B] font-medium">
-                                    ⚠️ El portal está desactivado — el cliente no puede acceder con el enlace
+                                <p className="text-xs text-[#F59E0B] font-medium flex items-center gap-1.5">
+                                    <AlertTriangle className="w-3.5 h-3.5" /> El portal está desactivado — el cliente no puede acceder con el enlace
                                 </p>
                             )}
                         </div>
@@ -332,7 +333,7 @@ export function OrderDetailPage() {
                 </motion.div>
 
                 {/* Notas */}
-                <motion.div className="card" style={{ padding: '20px' }}
+                <motion.div className="glass-card" style={{ padding: '20px' }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="text-sm font-semibold text-[#0B1220]">Notas para el cliente</h2>

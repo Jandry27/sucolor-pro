@@ -7,14 +7,14 @@ interface TimelineProps { events: TimelineEvent[]; }
 
 export function Timeline({ events }: TimelineProps) {
     return (
-        <motion.div className="card" style={{ padding: '24px' }}
+        <motion.div className="glass-card" style={{ padding: '24px' }}
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.24, ease: 'easeOut' }}>
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-[#FF5100]" />
-                    <h3 className="font-semibold text-[#0B1220] text-sm">Historial de actividad</h3>
+                    <Activity className="w-4 h-4 text-[#FF6A00]" />
+                    <h3 className="font-semibold text-[#0F172A] text-sm">Historial de actividad</h3>
                 </div>
                 {events.length > 0 && (
                     <span className="chip-orange">{events.length} evento{events.length !== 1 ? 's' : ''}</span>
@@ -29,8 +29,8 @@ export function Timeline({ events }: TimelineProps) {
                         <Clock className="w-5 h-5 text-[rgba(11,18,32,0.25)]" />
                     </div>
                     <div className="text-center">
-                        <p className="text-sm font-medium text-[rgba(11,18,32,0.55)]">Sin actividad registrada</p>
-                        <p className="text-xs text-[rgba(11,18,32,0.35)] mt-0.5">
+                        <p className="text-sm font-medium text-[rgba(15,23,42,0.55)]">Sin actividad registrada</p>
+                        <p className="text-xs text-[rgba(15,23,42,0.35)] mt-0.5">
                             Los eventos aparecerán aquí a medida que avance el trabajo
                         </p>
                     </div>
@@ -39,7 +39,7 @@ export function Timeline({ events }: TimelineProps) {
                 <div className="relative">
                     {/* Left line */}
                     <div className="absolute left-[15px] top-3 bottom-3 w-px"
-                        style={{ background: 'linear-gradient(to bottom, rgba(255,81,0,0.35), rgba(255,81,0,0.04))' }} />
+                        style={{ background: 'linear-gradient(to bottom, rgba(255,106,0,0.35), rgba(255,106,0,0.04))' }} />
 
                     <div className="space-y-5">
                         {events.map((event, i) => (
@@ -49,26 +49,26 @@ export function Timeline({ events }: TimelineProps) {
                                 className="relative flex gap-4 pl-1">
                                 {/* Dot */}
                                 <div className="flex-shrink-0 z-10">
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white"
                                         style={{
-                                            background: i === 0 ? 'rgba(255,81,0,0.10)' : 'rgba(15,23,42,0.04)',
-                                            border: i === 0 ? '1.5px solid rgba(255,81,0,0.25)' : '1px solid rgba(15,23,42,0.10)',
+                                            background: i === 0 ? 'rgba(255,106,0,0.10)' : 'rgba(255,255,255,0.6)',
+                                            border: i === 0 ? '1.5px solid rgba(255,106,0,0.25)' : '1px solid rgba(15,23,42,0.10)',
                                         }}>
                                         <Clock className="w-3.5 h-3.5"
-                                            style={{ color: i === 0 ? '#FF5100' : 'rgba(11,18,32,0.35)' }} />
+                                            style={{ color: i === 0 ? '#FF6A00' : 'rgba(15,23,42,0.35)' }} />
                                     </div>
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0 pt-1 pb-1">
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 mb-1">
-                                        <span className="font-semibold text-[#0B1220] text-sm">{event.tipo}</span>
-                                        <span className="text-xs text-[rgba(11,18,32,0.40)]">
+                                        <span className="font-semibold text-[#0F172A] text-sm">{event.tipo}</span>
+                                        <span className="text-xs text-[rgba(15,23,42,0.40)]">
                                             {formatDateTime(event.created_at)}
                                         </span>
                                     </div>
                                     {event.descripcion && (
-                                        <p className="text-sm text-[rgba(11,18,32,0.55)] leading-relaxed">
+                                        <p className="text-sm text-[rgba(15,23,42,0.55)] leading-relaxed">
                                             {event.descripcion}
                                         </p>
                                     )}

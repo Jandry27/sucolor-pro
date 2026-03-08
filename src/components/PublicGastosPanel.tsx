@@ -49,18 +49,18 @@ export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
     const totalGastos = gastos?.reduce((sum, g) => sum + (g.monto || 0), 0) || 0;
 
     return (
-        <motion.div className="card" style={{ padding: '24px' }}
+        <motion.div className="glass-card"
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.24, ease: 'easeOut' }}>
 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2 text-[#FF5100]">
+                <div className="flex items-center gap-2 text-[#FF6A00]">
                     <DollarSign className="w-5 h-5" />
-                    <h3 className="font-semibold text-[#0B1220] text-sm">Repuestos y Gastos</h3>
+                    <h3 className="font-semibold text-[#0F172A] text-sm">Repuestos y Gastos</h3>
                 </div>
                 {totalGastos > 0 && (
-                    <span className="font-bold text-[#FF5100] text-sm">
+                    <span className="font-bold text-[#FF6A00] text-sm">
                         Total: ${(totalGastos).toFixed(2)}
                     </span>
                 )}
@@ -78,7 +78,7 @@ export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
                             <div className="flex items-start sm:items-center gap-4">
                                 {gasto.factura_url && (
                                     <div
-                                        className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer border border-[rgba(15,23,42,0.1)] group-hover:border-[#FF5100]/30 transition-colors"
+                                        className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer border border-slate-200/50 group-hover:border-[#FF6A00]/50 transition-colors"
                                         onClick={() => setSelectedImage(gasto.factura_url!)}
                                         title="Ver factura adjunta"
                                     >

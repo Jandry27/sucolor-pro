@@ -1,4 +1,5 @@
 // track-order Edge Function (FINAL — con signed URLs + cliente/vehiculo)
+// @ts-nocheck
 // Copia este código en Supabase → Edge Functions → track-order → Edit
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";

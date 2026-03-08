@@ -8,14 +8,14 @@ interface ErrorStateProps {
 
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
     return (
-        <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#F7F8FA' }}>
-            <div className="card max-w-sm w-full text-center" style={{ padding: '40px 32px' }}>
+        <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'transparent' }}>
+            <div className="glass-card max-w-sm w-full text-center" style={{ padding: '40px 32px' }}>
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-5"
                     style={{ background: 'rgba(239,68,68,0.08)' }}>
                     <AlertTriangle className="w-6 h-6 text-[#EF4444]" />
                 </div>
-                <h2 className="text-lg font-bold text-[#0B1220] mb-2">No encontrado</h2>
-                <p className="text-sm text-[rgba(11,18,32,0.55)] mb-6 leading-relaxed">{message}</p>
+                <h2 className="text-lg font-bold text-[#0F172A] mb-2">No encontrado</h2>
+                <p className="text-sm text-[rgba(15,23,42,0.55)] mb-6 leading-relaxed">{message}</p>
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                     {onRetry && (
                         <button onClick={onRetry} className="btn-secondary text-sm gap-2">

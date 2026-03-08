@@ -19,14 +19,14 @@ export function OrderHeader({ order }: OrderHeaderProps) {
     const config = STATUS_CONFIG[order.estado] ?? STATUS_CONFIG['RECIBIDO'];
 
     return (
-        <motion.div className="card" style={{ padding: '24px' }}
+        <motion.div className="glass-card"
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}>
             {/* Top: code + status */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                 <div>
                     <p className="section-title mb-1">Código de seguimiento</p>
-                    <h2 className="text-2xl font-bold text-[#0B1220] font-mono-code tracking-tight">
+                    <h2 className="text-2xl font-bold text-[#0F172A] font-mono-code tracking-tight">
                         {order.codigo}
                     </h2>
                     {order.cliente && (
@@ -93,7 +93,7 @@ function Field({ label, value, mono = false, prefix }: {
             <p className="section-title mb-1">{label}</p>
             <div className="flex items-center gap-1.5">
                 {prefix}
-                <p className={`text-sm font-semibold text-[#0B1220] ${mono ? 'font-mono-code' : ''}`}>
+                <p className={`text-sm font-semibold text-[#0F172A] ${mono ? 'font-mono-code' : ''}`}>
                     {value || '—'}
                 </p>
             </div>
@@ -109,7 +109,7 @@ function DateRow({ icon, label, value, highlight = false }: {
             <span className="text-[rgba(11,18,32,0.35)]">{icon}</span>
             <div>
                 <p className="text-xs text-[rgba(11,18,32,0.40)] mb-0.5">{label}</p>
-                <p className={`text-sm font-semibold ${highlight ? 'text-[#FF5100]' : 'text-[#0B1220]'}`}>
+                <p className={`text-sm font-semibold ${highlight ? 'text-[#FF6A00]' : 'text-[#0F172A]'}`}>
                     {value || 'Por confirmar'}
                 </p>
             </div>

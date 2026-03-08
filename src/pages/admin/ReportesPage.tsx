@@ -82,10 +82,10 @@ export function ReportesPage() {
                 {/* Header (No imprimible) */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight flex items-center gap-2">
-                            <FileBarChart className="w-6 h-6 text-[#FF5100]" /> Reporte de Ganancias
+                        <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight flex items-center gap-2">
+                            <FileBarChart className="w-6 h-6 text-[#FF6A00]" /> Reporte de Ganancias
                         </h1>
-                        <p className="text-sm text-[rgba(11,18,32,0.50)] mt-0.5">
+                        <p className="text-sm text-[rgba(15,23,42,0.60)] mt-0.5">
                             Consulta los trabajos entregados y calculados por mes.
                         </p>
                     </div>
@@ -107,7 +107,7 @@ export function ReportesPage() {
                 </div>
 
                 {/* Filtros (No imprimible) */}
-                <div className="card-sm flex flex-col md:flex-row gap-4 items-end print:hidden">
+                <div className="glass-card flex flex-col md:flex-row gap-4 items-end print:hidden !p-5">
                     <div className="w-full md:w-auto">
                         <label className="form-label">Mes</label>
                         <select
@@ -148,7 +148,7 @@ export function ReportesPage() {
                 {/* Key Metrics */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}
-                        className="card-sm flex items-center gap-4 bg-[rgba(22,163,74,0.04)] border-[rgba(22,163,74,0.15)]">
+                        className="glass-card flex items-center gap-4 bg-[rgba(22,163,74,0.04)] border-[rgba(22,163,74,0.15)] !p-5">
                         <div className="w-12 h-12 rounded-xl bg-[#16A34A] flex items-center justify-center text-white shadow-lg shadow-green-500/20">
                             <DollarSign className="w-6 h-6" />
                         </div>
@@ -158,24 +158,24 @@ export function ReportesPage() {
                         </div>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.05 }}
-                        className="card-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-[rgba(15,23,42,0.06)] flex items-center justify-center">
-                            <Car className="w-6 h-6 text-[#0B1220]" />
+                        className="glass-card flex items-center gap-4 !p-5">
+                        <div className="w-12 h-12 rounded-xl bg-slate-200/50 flex items-center justify-center">
+                            <Car className="w-6 h-6 text-[#0F172A]" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-[rgba(11,18,32,0.50)] uppercase tracking-wider">Trabajos Entregados</p>
-                            <p className="text-3xl font-bold text-[#0B1220] leading-none mt-1">{filteredOrders.length}</p>
+                            <p className="text-xs font-bold text-[rgba(15,23,42,0.60)] uppercase tracking-wider">Trabajos Entregados</p>
+                            <p className="text-3xl font-bold text-[#0F172A] leading-none mt-1">{filteredOrders.length}</p>
                         </div>
                     </motion.div>
                 </div>
 
                 {/* Tabla de Resultados */}
-                <div className="card overflow-hidden p-0 print:border-none print:shadow-none">
+                <div className="glass-card overflow-hidden p-0 print:border-none print:shadow-none">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm whitespace-nowrap">
-                            <thead className="bg-[#F7F8FA] border-b border-[rgba(15,23,42,0.07)] print:bg-transparent">
+                            <thead className="bg-[#F8FAFC] border-b border-slate-200/50 print:bg-transparent">
                                 <tr>
-                                    <th className="px-5 py-3.5 font-semibold text-[rgba(11,18,32,0.60)]">Fecha Entrega</th>
+                                    <th className="px-5 py-3.5 font-semibold text-[rgba(15,23,42,0.60)]">Fecha Entrega</th>
                                     <th className="px-5 py-3.5 font-semibold text-[rgba(11,18,32,0.60)]">Código</th>
                                     <th className="px-5 py-3.5 font-semibold text-[rgba(11,18,32,0.60)]">Cliente</th>
                                     <th className="px-5 py-3.5 font-semibold text-[rgba(11,18,32,0.60)]">Vehículo</th>
@@ -204,10 +204,10 @@ export function ReportesPage() {
                                                     {new Date(order.updated_at).toLocaleDateString()}
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-3 font-mono-code font-bold text-[#FF5100]">
+                                            <td className="px-5 py-3 font-mono-code font-bold text-[#FF6A00]">
                                                 {order.codigo}
                                             </td>
-                                            <td className="px-5 py-3 font-medium text-[#0B1220]">
+                                            <td className="px-5 py-3 font-medium text-[#0F172A]">
                                                 {order.cliente?.nombres || '—'}
                                             </td>
                                             <td className="px-5 py-3 text-[rgba(11,18,32,0.70)]">
@@ -221,9 +221,9 @@ export function ReportesPage() {
                                 )}
                             </tbody>
                             {filteredOrders.length > 0 && (
-                                <tfoot className="bg-[#F7F8FA] border-t-2 border-[rgba(15,23,42,0.07)] print:bg-transparent print:border-t-2 print:border-gray-800">
+                                <tfoot className="bg-[#F8FAFC] border-t-2 border-[rgba(15,23,42,0.07)] print:bg-transparent print:border-t-2 print:border-gray-800">
                                     <tr>
-                                        <td colSpan={4} className="px-5 py-4 text-right font-bold text-[#0B1220] uppercase tracking-wider text-xs">
+                                        <td colSpan={4} className="px-5 py-4 text-right font-bold text-[#0F172A] uppercase tracking-wider text-xs">
                                             Total Ingresos
                                         </td>
                                         <td className="px-5 py-4 text-right font-black text-xl text-[#16A34A]">

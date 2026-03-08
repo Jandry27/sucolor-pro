@@ -22,7 +22,7 @@ export function SearchForm() {
         <div className="w-full">
             <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="relative">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(11,18,32,0.30)] pointer-events-none" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(15,23,42,0.30)] pointer-events-none" />
                     <input type="text" value={placa} onChange={e => setPlaca(e.target.value)}
                         placeholder="Ej. LAA-1362" maxLength={10}
                         className="input-field pl-10 font-mono-code text-base tracking-widest uppercase"

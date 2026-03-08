@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Search, Shield, Clock, Eye, CheckCircle, Zap, MessageCircle, MapPin, Star, Phone, ArrowRight } from 'lucide-react';
+import { Search, Shield, Clock, Eye, CheckCircle, CheckCircle2, Zap, MessageCircle, MapPin, Star, Phone, ArrowRight } from 'lucide-react';
 import { SearchForm } from '@/components/SearchForm';
 
 function FadeIn({ children, delay = 0, className = '' }: {
@@ -43,10 +43,15 @@ const STATS = [
 
 export function LandingPage() {
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-transparent relative">
+            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#FF6A00]/10 blur-[120px]"></div>
+                <div className="absolute top-[40%] -right-[15%] w-[60%] h-[60%] rounded-full bg-[#FF6A00]/5 blur-[150px]"></div>
+                <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-[#FF6A00]/10 blur-[100px]"></div>
+            </div>
             {/* ── NAV ─────────────────────────────────────────────── */}
-            <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-[rgba(15,23,42,0.07)]"
-                style={{ boxShadow: '0 1px 24px rgba(0,0,0,0.05)' }}>
+            <nav className="sticky top-0 z-40 bg-white/60 backdrop-blur-md border-b border-white/20"
+                style={{ boxShadow: '0 8px 32px 0 rgba(31,38,135,0.07)' }}>
                 <div className="max-w-5xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
                     {/* Marca — logo + texto */}
                     <Link to="/" className="flex items-center gap-3 group">
@@ -54,10 +59,10 @@ export function LandingPage() {
                             className="h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
                             style={{ maxHeight: '64px', filter: 'drop-shadow(0 2px 8px rgba(255,81,0,0.15))' }} />
                         <div className="hidden sm:flex flex-col leading-tight">
-                            <span className="text-lg font-extrabold tracking-tight text-[#0B1220]">
-                                Su<span className="text-[#FF5100]">Color</span>
+                            <span className="text-lg font-extrabold tracking-tight text-[#0F172A]">
+                                Su<span className="text-[#FF6A00]">Color</span>
                             </span>
-                            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[rgba(11,18,32,0.38)]">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[rgba(15,23,42,0.38)]">
                                 Taller Automotriz
                             </span>
                         </div>
@@ -66,7 +71,7 @@ export function LandingPage() {
                     {/* Acciones */}
                     <div className="flex items-center gap-2">
                         <Link to="/admin/login"
-                            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium text-[rgba(11,18,32,0.55)] hover:text-[#0B1220] hover:bg-[rgba(15,23,42,0.05)] transition-all duration-150">
+                            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium text-[rgba(15,23,42,0.55)] hover:text-[#0F172A] hover:bg-white/50 transition-all duration-150">
                             Panel Admin <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                         <a href="https://wa.me/593989575378" target="_blank" rel="noopener noreferrer"
@@ -81,13 +86,12 @@ export function LandingPage() {
 
             {/* ── HERO ─────────────────────────────────────────────── */}
             <section className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-24 text-center">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-8 rounded-full text-xs font-semibold uppercase tracking-widest"
-                        style={{ background: 'rgba(255,81,0,0.08)', color: '#FF5100', border: '1px solid rgba(255,81,0,0.15)' }}>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative z-10">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-8 rounded-full text-xs font-semibold uppercase tracking-widest bg-white/50 backdrop-blur-sm border border-[#FF6A00]/20 text-[#FF6A00] shadow-[0_4px_14px_0_rgba(255,106,0,0.15)]">
                         <Zap className="w-3 h-3" /> Taller automotriz profesional
                     </div>
 
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#0B1220] mb-5 leading-[1.08] tracking-tight">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#0F172A] mb-5 leading-[1.08] tracking-tight">
                         Tu vehículo en{' '}
                         <span className="text-gradient-orange">manos expertas</span>
                     </h1>
@@ -102,15 +106,15 @@ export function LandingPage() {
                 <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.6, delay: 0.12 }}
-                    className="max-w-md mx-auto card"
-                    style={{ padding: '28px', boxShadow: '0 4px 32px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,81,0,0.06)' }}>
+                    className="max-w-md mx-auto glass-card relative z-10"
+                    style={{ padding: '28px' }}>
                     <div className="flex items-center gap-3 mb-5">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,81,0,0.10)' }}>
-                            <Search className="w-4 h-4 text-[#FF5100]" />
+                        <div className="w-8 h-8 rounded-[10px] flex items-center justify-center bg-[#FF6A00]/10 border border-[#FF6A00]/20">
+                            <Search className="w-4 h-4 text-[#FF6A00]" />
                         </div>
                         <div className="text-left">
-                            <p className="font-semibold text-sm text-[#0B1220]">Consulta tu vehículo</p>
-                            <p className="text-xs text-[rgba(11,18,32,0.45)]">Busca por placa o nombre del titular</p>
+                            <p className="font-semibold text-sm text-[#0F172A]">Consulta tu vehículo</p>
+                            <p className="text-xs text-[rgba(15,23,42,0.45)]">Busca por placa o nombre del titular</p>
                         </div>
                     </div>
                     <SearchForm />
@@ -118,38 +122,37 @@ export function LandingPage() {
 
                 {/* Trust indicators */}
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-                    className="flex flex-wrap items-center justify-center gap-6 mt-10 text-sm text-[rgba(11,18,32,0.50)]">
+                    className="flex flex-wrap items-center justify-center gap-6 mt-10 text-sm text-[rgba(15,23,42,0.50)] relative z-10">
                     {[
                         { icon: <Shield className="w-3.5 h-3.5" />, label: 'Acceso seguro' },
                         { icon: <Clock className="w-3.5 h-3.5" />, label: 'Tiempo real' },
                         { icon: <Eye className="w-3.5 h-3.5" />, label: 'Sin registro requerido' },
                     ].map(b => (
-                        <div key={b.label} className="flex items-center gap-1.5 text-[#FF5100]">
+                        <div key={b.label} className="flex items-center gap-1.5 text-[#FF6A00] bg-white/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
                             {b.icon}
-                            <span className="text-[rgba(11,18,32,0.50)]">{b.label}</span>
+                            <span className="text-[rgba(15,23,42,0.60)] font-medium">{b.label}</span>
                         </div>
                     ))}
                 </motion.div>
             </section>
 
             {/* ── HOW IT WORKS ─────────────────────────────────────── */}
-            <section className="bg-[#F7F8FA] border-y border-[rgba(15,23,42,0.07)]">
-                <div className="max-w-5xl mx-auto px-5 sm:px-8 py-20">
+            <section className="bg-transparent border-y border-white/20 relative z-10 pb-8">
+                <div className="max-w-5xl mx-auto px-5 sm:px-8 py-20 pb-0">
                     <FadeIn className="text-center mb-12">
-                        <p className="section-title mb-2">Cómo funciona</p>
-                        <h2 className="text-3xl font-bold text-[#0B1220]">Tres pasos. Sin complicaciones.</h2>
+                        <p className="section-title mb-2 text-[#FF6A00] font-semibold tracking-widest text-xs uppercase">Cómo funciona</p>
+                        <h2 className="text-3xl font-bold text-[#0F172A]">Tres pasos. Sin complicaciones.</h2>
                     </FadeIn>
                     <div className="grid sm:grid-cols-3 gap-5">
                         {STEPS.map((s, i) => (
                             <FadeIn key={s.num} delay={i * 0.08}>
-                                <div className="card relative" style={{ padding: '24px' }}>
+                                <div className="glass-card relative border border-white/30" style={{ padding: '24px' }}>
                                     <span className="absolute top-5 right-5 font-mono-code text-3xl font-bold text-[rgba(15,23,42,0.05)]">{s.num}</span>
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
-                                        style={{ background: '#FF5100', boxShadow: '0 4px 12px rgba(255,81,0,0.25)' }}>
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br from-[#FF6A00] to-[#E55F00] shadow-[0_4px_14px_0_rgba(255,106,0,0.39)]">
                                         {s.icon}
                                     </div>
-                                    <h3 className="font-semibold text-[#0B1220] mb-1.5">{s.title}</h3>
-                                    <p className="text-sm text-[rgba(11,18,32,0.55)] leading-relaxed">{s.desc}</p>
+                                    <h3 className="font-semibold text-[#0F172A] mb-1.5">{s.title}</h3>
+                                    <p className="text-sm text-[rgba(15,23,42,0.55)] leading-relaxed">{s.desc}</p>
                                 </div>
                             </FadeIn>
                         ))}
@@ -158,22 +161,22 @@ export function LandingPage() {
             </section>
 
             {/* ── BENEFITS ─────────────────────────────────────────── */}
-            <section className="max-w-5xl mx-auto px-5 sm:px-8 py-20">
+            <section className="max-w-5xl mx-auto px-5 sm:px-8 py-20 relative z-10 pt-8">
                 <div className="grid sm:grid-cols-2 gap-12 items-center">
                     <FadeIn>
-                        <p className="section-title mb-3">Ventajas</p>
-                        <h2 className="text-3xl font-bold text-[#0B1220] mb-4 leading-tight">
-                            Transparencia que genera confianza
+                        <p className="section-title mb-3 text-[#FF6A00] font-semibold tracking-widest text-xs uppercase">Ventajas</p>
+                        <h2 className="text-3xl font-bold text-[#0F172A] mb-4">
+                            Sigue el progreso paso a paso
                         </h2>
                         <p className="text-[rgba(11,18,32,0.55)] leading-relaxed">
                             Nuestro portal de seguimiento pone en tus manos la información del estado de tu vehículo, sin llamadas ni esperas.
                         </p>
                     </FadeIn>
                     <FadeIn delay={0.1} className="space-y-2.5">
-                        {BENEFITS.map(b => (
-                            <div key={b} className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-[rgba(15,23,42,0.07)]">
-                                <CheckCircle className="w-4 h-4 text-[#FF5100] flex-shrink-0" />
-                                <span className="text-sm text-[rgba(11,18,32,0.70)] font-medium">{b}</span>
+                        {BENEFITS.map(item => (
+                            <div key={item} className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-[rgba(15,23,42,0.07)]">
+                                <CheckCircle2 className="w-5 h-5 text-[#FF6A00] flex-shrink-0" />
+                                <span className="text-[#0F172A] font-medium">{item}</span>
                             </div>
                         ))}
                     </FadeIn>
@@ -181,14 +184,14 @@ export function LandingPage() {
             </section>
 
             {/* ── STATS ────────────────────────────────────────────── */}
-            <section className="bg-[#F7F8FA] border-y border-[rgba(15,23,42,0.07)]">
+            <section className="bg-transparent relative z-10">
                 <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {STATS.map((s, i) => (
                             <FadeIn key={s.value} delay={i * 0.07}>
-                                <div className="card text-center" style={{ padding: '20px' }}>
+                                <div className="glass-card text-center">
                                     <p className="text-3xl font-extrabold text-gradient-orange mb-1">{s.value}</p>
-                                    <p className="text-xs text-[rgba(11,18,32,0.50)] font-medium">{s.label}</p>
+                                    <p className="text-sm font-medium text-[rgba(15,23,42,0.60)] mt-1">{s.label}</p>
                                 </div>
                             </FadeIn>
                         ))}
@@ -197,31 +200,33 @@ export function LandingPage() {
             </section>
 
             {/* ── CONTACT ──────────────────────────────────────────── */}
-            <section className="max-w-5xl mx-auto px-5 sm:px-8 py-20">
+            <section className="max-w-5xl mx-auto px-5 sm:px-8 py-20 relative z-10">
                 <FadeIn>
-                    <div className="card text-center" style={{ maxWidth: '600px', margin: '0 auto', padding: '48px 40px' }}>
-                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5"
-                            style={{ background: 'rgba(255,81,0,0.08)' }}>
-                            <Star className="w-5 h-5 text-[#FF5100]" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-[#0B1220] mb-3">¿Necesitas traer tu vehículo?</h2>
-                        <p className="text-[rgba(11,18,32,0.55)] mb-8 leading-relaxed">
-                            Contáctanos y agenda tu cita. Nuestro equipo está listo para atenderte con la calidad que mereces.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                            <a href="https://wa.me/593960255898" target="_blank" rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-[10px] font-semibold text-white text-sm transition-all duration-150 hover:-translate-y-0.5"
-                                style={{ background: '#25D366', boxShadow: '0 4px 16px rgba(37,211,102,0.25)' }}>
-                                <MessageCircle className="w-4 h-4" /> WhatsApp
-                            </a>
-                            <a href="tel:+593989575378"
-                                className="btn-secondary inline-flex items-center justify-center gap-2 text-sm px-6 py-3">
-                                <Phone className="w-4 h-4" /> Llamar
-                            </a>
-                        </div>
-                        <div className="flex items-center justify-center gap-1.5 mt-6 text-xs text-[rgba(11,18,32,0.40)]">
-                            <MapPin className="w-3 h-3 text-[#FF5100]" />
-                            Taller SuColor
+                    <div className="glass-card text-center max-w-2xl mx-auto p-12 md:p-16 border border-white/30 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/10 z-0 pointer-events-none"></div>
+                        <div className="relative z-10">
+                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 bg-[#FF6A00]/10 border border-[#FF6A00]/20">
+                                <Star className="w-5 h-5 text-[#FF6A00]" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-[#0F172A] mb-3">¿Necesitas traer tu vehículo?</h2>
+                            <p className="text-[rgba(11,18,32,0.55)] mb-8 leading-relaxed">
+                                Contáctanos y agenda tu cita. Nuestro equipo está listo para atenderte con la calidad que mereces.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                                <a href="https://wa.me/593960255898" target="_blank" rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-[10px] font-semibold text-white text-sm transition-all duration-150 hover:-translate-y-0.5"
+                                    style={{ background: '#25D366', boxShadow: '0 4px 16px rgba(37,211,102,0.25)' }}>
+                                    <MessageCircle className="w-4 h-4" /> WhatsApp
+                                </a>
+                                <a href="tel:+593989575378"
+                                    className="btn-secondary inline-flex items-center justify-center gap-2 text-sm px-6 py-3">
+                                    <Phone className="w-4 h-4" /> Llamar
+                                </a>
+                            </div>
+                            <div className="flex items-center justify-center gap-1.5 mt-6 text-xs text-[rgba(15,23,42,0.40)]">
+                                <MapPin className="w-3 h-3 text-[#FF6A00]" />
+                                Taller SuColor
+                            </div>
                         </div>
                     </div>
                 </FadeIn>
@@ -247,7 +252,7 @@ export function LandingPage() {
                                 </div>
                                 {/* CTA Consultar estado */}
                                 <Link to="/"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#FF5100] hover:gap-2.5 transition-all duration-200 group">
+                                    className="btn-primary w-full sm:w-auto mt-8 px-8 py-3.5 text-base">
                                     <Search className="w-3.5 h-3.5" />
                                     Consultar estado de vehículo
                                     <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />

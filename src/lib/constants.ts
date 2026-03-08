@@ -86,28 +86,31 @@ export const STATUS_CONFIG: Record<OrderStatus, StatusConfig> = {
     },
 };
 
+import { ClipboardList, Hammer, Layers, Paintbrush, Wind, Sparkles, CheckCircle2, Camera, Wrench } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
 // ─── Progress Steps ────────────────────────────────────────────────────────────
 export interface ProgressStep {
     key: OrderStatus;
     label: string;
-    icon: string;
+    icon: LucideIcon;
 }
 
 export const PROGRESS_STEPS: ProgressStep[] = [
-    { key: 'RECIBIDO', label: 'Recibido', icon: '📋' },
-    { key: 'LATONERIA', label: 'Latonería', icon: '🔨' },
-    { key: 'PREPARACION', label: 'Preparación', icon: '🎽' },
-    { key: 'PINTURA', label: 'Pintura', icon: '🎨' },
-    { key: 'SECADO', label: 'Secado', icon: '💨' },
-    { key: 'PULIDO_DETALLES', label: 'Pulido', icon: '✨' },
-    { key: 'TERMINADO', label: 'Terminado', icon: '✅' },
+    { key: 'RECIBIDO', label: 'Recibido', icon: ClipboardList },
+    { key: 'LATONERIA', label: 'Latonería', icon: Hammer },
+    { key: 'PREPARACION', label: 'Preparación', icon: Layers },
+    { key: 'PINTURA', label: 'Pintura', icon: Paintbrush },
+    { key: 'SECADO', label: 'Secado', icon: Wind },
+    { key: 'PULIDO_DETALLES', label: 'Pulido', icon: Sparkles },
+    { key: 'TERMINADO', label: 'Terminado', icon: CheckCircle2 },
 ];
 
 // ─── Media Categories ──────────────────────────────────────────────────────────
 export const MEDIA_CATEGORIES = [
-    { key: 'ANTES', label: 'Antes', icon: '📸' },
-    { key: 'PROCESO', label: 'Proceso', icon: '🔧' },
-    { key: 'DESPUES', label: 'Después', icon: '✨' },
+    { key: 'ANTES', label: 'Antes', icon: Camera },
+    { key: 'PROCESO', label: 'Proceso', icon: Wrench },
+    { key: 'DESPUES', label: 'Después', icon: Sparkles },
 ] as const;
 
 // ─── Date Formatting ───────────────────────────────────────────────────────────

@@ -27,7 +27,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col h-full">
             {/* Logo */}
             <div className="px-5 py-5 border-b border-[rgba(15,23,42,0.07)]">
-                <img src="/logo.png" alt="SuColor" className="h-10 w-auto object-contain" />
+                <img src="/logo.png" alt="SuColor" className="h-10 w-auto object-contain drop-shadow-sm" />
             </div>
 
             {/* Nav */}
@@ -40,14 +40,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             to={to}
                             onClick={() => setMobileOpen(false)}
                             className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${active
-                                ? 'bg-[rgba(255,81,0,0.08)] text-[#FF5100]'
-                                : 'text-[rgba(11,18,32,0.60)] hover:text-[#0B1220] hover:bg-[rgba(15,23,42,0.04)]'
+                                ? 'bg-[#FF6A00]/10 text-[#FF6A00]'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
                                 }`}
                         >
                             {active && (
-                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#FF5100] rounded-full" />
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#FF6A00] rounded-full" />
                             )}
-                            <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#FF5100]' : 'text-[rgba(11,18,32,0.40)] group-hover:text-[rgba(11,18,32,0.60)]'}`} />
+                            <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#FF6A00]' : 'text-slate-400 group-hover:text-slate-600'}`} />
                             {label}
                         </Link>
                     );
@@ -71,9 +71,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     );
 
     return (
-        <div className="min-h-screen flex" style={{ backgroundColor: '#F7F8FA' }}>
+        <div className="min-h-screen flex mesh-gradient">
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 bg-white border-r border-[rgba(15,23,42,0.07)]">
+            <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 bg-white/60 backdrop-blur-xl border-r border-slate-200/50">
                 <SidebarContent />
             </aside>
 
@@ -87,7 +87,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
             {/* Mobile sidebar */}
             <div
-                className={`fixed inset-y-0 left-0 z-50 w-56 bg-white border-r border-[rgba(15,23,42,0.07)] transform transition-transform duration-200 ease-out lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 z-50 w-56 bg-white/90 backdrop-blur-2xl border-r border-slate-200/50 transform transition-transform duration-200 ease-out lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
                 <button
@@ -102,7 +102,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             {/* Main area */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Mobile topbar */}
-                <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-white border-b border-[rgba(15,23,42,0.07)]">
+                <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-white/60 backdrop-blur-xl border-b border-slate-200/50">
                     <button
                         onClick={() => setMobileOpen(true)}
                         className="p-1.5 rounded-lg text-[rgba(11,18,32,0.55)] hover:bg-[rgba(15,23,42,0.05)]"
