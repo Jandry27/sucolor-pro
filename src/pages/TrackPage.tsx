@@ -49,7 +49,7 @@ export function TrackPage() {
             </header>
 
             {/* ── Content ───── */}
-            <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+            <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-16 space-y-5">
                 <OrderHeader order={order} />
                 <OrderProgress estado={order.estado} />
                 <PublicNotes notes={order.notas_publicas} />
@@ -59,7 +59,7 @@ export function TrackPage() {
 
             {/* ── Footer ──── */}
             <footer className="border-t border-white/40 mt-12 bg-white/20 backdrop-blur-md">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 text-center">
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-12 sm:pb-8 text-center">
                     <p className="text-xs text-[rgba(11,18,32,0.35)]">
                         © {new Date().getFullYear()} SuColor — Portal de seguimiento de órdenes
                     </p>

@@ -30,50 +30,52 @@ export function OrderProgress({ estado }: OrderProgressProps) {
             </div>
 
             {/* Steps */}
-            <div className="flex items-start justify-between gap-1">
-                {PROGRESS_STEPS.map((step, index) => {
-                    const isCompleted = index < currentStep;
-                    const isCurrent = index === currentStep;
-                    const isPending = index > currentStep;
+            <div className="relative">
+                <div className="flex items-start justify-between sm:justify-center gap-2 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
+                    {PROGRESS_STEPS.map((step, index) => {
+                        const isCompleted = index < currentStep;
+                        const isCurrent = index === currentStep;
+                        const isPending = index > currentStep;
 
-                    return (
-                        <motion.div key={step.key} className="flex flex-col items-center gap-2 flex-1"
-                            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.15 + index * 0.06, duration: 0.35 }}>
-                            {/* Circle */}
-                            <div className="relative">
-                                {isCurrent && (
-                                    <div className="absolute -inset-1.5 rounded-full animate-pulse-orange"
-                                        style={{ background: 'rgba(255,106,0,0.15)' }} />
-                                )}
-                                <div className="relative w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all duration-300"
-                                    style={
-                                        isCompleted
-                                            ? { background: 'rgba(22,163,74,0.10)', border: '1.5px solid #16A34A' }
-                                            : isCurrent
-                                                ? { background: 'rgba(255,106,0,0.10)', border: '1.5px solid #FF6A00', boxShadow: '0 4px 10px rgba(255,106,0,0.2)' }
-                                                : { background: 'rgba(15,23,42,0.04)', border: '1px solid rgba(15,23,42,0.08)' }
-                                    }>
-                                    {isCompleted ? (
-                                        <Check className="w-3.5 h-3.5 text-[#16A34A]" strokeWidth={2.5} />
-                                    ) : (
-                                        <step.icon className={`w-4 h-4 ${isPending ? 'opacity-30' : 'opacity-80'}`} />
+                        return (
+                            <motion.div key={step.key} className="flex flex-col items-center gap-2 min-w-[70px] sm:min-w-0 sm:flex-1 snap-center"
+                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.15 + index * 0.06, duration: 0.35 }}>
+                                {/* Circle */}
+                                <div className="relative">
+                                    {isCurrent && (
+                                        <div className="absolute -inset-1.5 rounded-full animate-pulse-orange"
+                                            style={{ background: 'rgba(255,106,0,0.15)' }} />
                                     )}
+                                    <div className="relative w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all duration-300"
+                                        style={
+                                            isCompleted
+                                                ? { background: 'rgba(22,163,74,0.10)', border: '1.5px solid #16A34A' }
+                                                : isCurrent
+                                                    ? { background: 'rgba(255,106,0,0.10)', border: '1.5px solid #FF6A00', boxShadow: '0 4px 10px rgba(255,106,0,0.2)' }
+                                                    : { background: 'rgba(15,23,42,0.04)', border: '1px solid rgba(15,23,42,0.08)' }
+                                        }>
+                                        {isCompleted ? (
+                                            <Check className="w-3.5 h-3.5 text-[#16A34A]" strokeWidth={2.5} />
+                                        ) : (
+                                            <step.icon className={`w-4 h-4 ${isPending ? 'opacity-30' : 'opacity-80'}`} />
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Label */}
-                            <span className="text-[9px] sm:text-[10px] font-semibold text-center leading-tight max-w-[48px] uppercase tracking-wide"
-                                style={{
-                                    color: isCompleted ? '#16A34A'
-                                        : isCurrent ? '#FF6A00'
-                                            : 'rgba(11,18,32,0.35)',
-                                }}>
-                                {step.label}
-                            </span>
-                        </motion.div>
-                    );
-                })}
+                                {/* Label */}
+                                <span className="text-[9px] sm:text-[10px] font-semibold text-center leading-[1.1] w-full max-w-[64px] uppercase tracking-wider break-words"
+                                    style={{
+                                        color: isCompleted ? '#16A34A'
+                                            : isCurrent ? '#FF6A00'
+                                                : 'rgba(11,18,32,0.35)',
+                                    }}>
+                                    {step.label}
+                                </span>
+                            </motion.div>
+                        );
+                    })}
+                </div>
             </div>
         </motion.div>
     );
