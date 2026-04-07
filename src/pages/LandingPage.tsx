@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Search, Shield, Clock, Eye, CheckCircle, CheckCircle2, Zap, MessageCircle, MapPin, Star, Phone, ArrowRight } from 'lucide-react';
 import { SearchForm } from '@/components/SearchForm';
 
+
 function FadeIn({ children, delay = 0, className = '' }: {
     children: React.ReactNode; delay?: number; className?: string;
 }) {
@@ -50,7 +51,7 @@ export function LandingPage() {
                 <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-[#FF6A00]/10 blur-[100px]"></div>
             </div>
             {/* ── NAV ─────────────────────────────────────────────── */}
-            <nav className="sticky top-0 z-40 bg-white/60 backdrop-blur-md border-b border-white/20"
+            <nav className="sticky top-0 z-40 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-b border-white/20 dark:border-slate-800/50"
                 style={{ boxShadow: '0 8px 32px 0 rgba(31,38,135,0.07)' }}>
                 <div className="max-w-5xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
                     {/* Marca — logo + texto */}
@@ -70,8 +71,9 @@ export function LandingPage() {
 
                     {/* Acciones */}
                     <div className="flex items-center gap-2">
+
                         <Link to="/admin/login"
-                            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium text-[rgba(15,23,42,0.55)] hover:text-[#0F172A] hover:bg-white/50 transition-all duration-150">
+                            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium text-[rgba(15,23,42,0.55)] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-slate-100 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-150">
                             Panel Admin <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                         <a href="https://wa.me/593989575378" target="_blank" rel="noopener noreferrer"

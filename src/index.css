@@ -28,6 +28,15 @@ body {
   background-image:
     radial-gradient(at 0% 0%, rgba(255, 106, 0, 0.05) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(255, 106, 0, 0.08) 0px, transparent 50%);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+  background-color: #0F172A;
+  color: #F8FAFC;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(255, 106, 0, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(255, 106, 0, 0.1) 0px, transparent 50%);
 }
 
 /* ─────────────────────────────────────────── */
@@ -74,6 +83,13 @@ body {
     border-radius: 24px;
     box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
     padding: 32px;
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .dark .card {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   .card-sm {
@@ -84,6 +100,13 @@ body {
     border-radius: 16px;
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
     padding: 20px;
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .dark .card-sm {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
   }
 
   .card-hover {
@@ -95,6 +118,11 @@ body {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 10px 30px -5px rgba(255, 106, 0, 0.15);
     border-color: rgba(255, 106, 0, 0.25);
     transform: translateY(-2px);
+  }
+
+  .dark .card-hover:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 10px 30px -5px rgba(255, 106, 0, 0.25);
+    border-color: rgba(255, 106, 0, 0.4);
   }
 
   /* Backward compat */
@@ -149,13 +177,24 @@ body {
     border-radius: 12px;
     border: 1px solid rgba(15, 23, 42, 0.08);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .btn-secondary {
+    background: rgba(30, 41, 59, 0.65);
+    color: #F8FAFC;
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
   .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.9);
     border-color: rgba(15, 23, 42, 0.15);
     box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.05);
+  }
+
+  .dark .btn-secondary:hover {
+    background: rgba(40, 50, 70, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .btn-ghost {
@@ -174,9 +213,18 @@ body {
     transition: background 0.15s ease, color 0.15s ease;
   }
 
+  .dark .btn-ghost {
+    color: rgba(248, 250, 252, 0.7);
+  }
+
   .btn-ghost:hover {
     background: rgba(15, 23, 42, 0.05);
     color: #0B1220;
+  }
+
+  .dark .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
   }
 
   /* ── Chips & Badges ──────────────────────── */
@@ -255,6 +303,12 @@ body {
     border: 1px solid rgba(15, 23, 42, 0.10);
   }
 
+  .dark .badge-neutral {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(248, 250, 252, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
   /* ── Form elements ───────────────────────── */
   .input-field {
     width: 100%;
@@ -264,13 +318,23 @@ body {
     padding: 10px 14px;
     font-size: 0.875rem;
     color: #0B1220;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
     outline: none;
     font-family: inherit;
   }
 
+  .dark .input-field {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #F8FAFC;
+  }
+
   .input-field::placeholder {
     color: rgba(11, 18, 32, 0.35);
+  }
+
+  .dark .input-field::placeholder {
+    color: rgba(248, 250, 252, 0.35);
   }
 
   .input-field:focus {
@@ -280,6 +344,10 @@ body {
 
   .input-field:hover:not(:focus) {
     border-color: rgba(15, 23, 42, 0.18);
+  }
+
+  .dark .input-field:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .form-label {
@@ -305,6 +373,10 @@ body {
     gap: 2px;
   }
 
+  .dark .segmented-control {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
   .segmented-control::-webkit-scrollbar {
     display: none;
   }
@@ -323,6 +395,10 @@ body {
     flex-shrink: 0;
   }
 
+  .dark .seg-btn {
+    color: rgba(248, 250, 252, 0.55);
+  }
+
   .seg-btn.active {
     background: #FFFFFF;
     color: #0B1220;
@@ -330,14 +406,29 @@ body {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
   }
 
+  .dark .seg-btn.active {
+    background: #1E293B;
+    color: #F8FAFC;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+
   .seg-btn:hover:not(.active) {
     color: #0B1220;
     background: rgba(255, 255, 255, 0.5);
   }
 
+  .dark .seg-btn:hover:not(.active) {
+    color: #F8FAFC;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
   /* ── Divider ─────────────────────────────── */
   .divider {
     border-top: 1px solid rgba(15, 23, 42, 0.07);
+  }
+
+  .dark .divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
   }
 
   /* ── Section heading ─────────────────────── */
@@ -349,6 +440,10 @@ body {
     color: rgba(11, 18, 32, 0.40);
   }
 
+  .dark .section-title {
+    color: rgba(248, 250, 252, 0.40);
+  }
+
   /* ── Skeleton shimmer ────────────────────── */
   .skeleton {
     background: linear-gradient(90deg,
@@ -358,6 +453,14 @@ body {
     background-size: 200% 100%;
     animation: shimmer 1.6s linear infinite;
     border-radius: 8px;
+  }
+
+  .dark .skeleton {
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.06) 25%,
+        rgba(255, 255, 255, 0.10) 50%,
+        rgba(255, 255, 255, 0.06) 75%);
+    background-size: 200% 100%;
   }
 
   /* ── Status dot ──────────────────────────── */
@@ -383,6 +486,12 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  .dark .glass-surface {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
   }
 }
 

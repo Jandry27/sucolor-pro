@@ -1,15 +1,17 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { LayoutDashboard, Users, Car, FileText, FileBarChart, LogOut, Loader2, PlusCircle, Menu, X, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Users, Car, FileText, FileBarChart, LogOut, Loader2, PlusCircle, Menu, X, ClipboardList, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
+
 const NAV = [
-    { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/orders', icon: ClipboardList, label: 'Órdenes' },
     { to: '/admin/orders/nueva', icon: PlusCircle, label: 'Nueva Orden' },
     { to: '/admin/clientes', icon: Users, label: 'Clientes' },
     { to: '/admin/vehiculos', icon: Car, label: 'Vehículos' },
     { to: '/admin/reportes', icon: FileBarChart, label: 'Reportes' },
+    { to: '/admin/configuracion', icon: Settings, label: 'Configuración' },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -40,8 +42,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             to={to}
                             onClick={() => setMobileOpen(false)}
                             className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${active
-                                ? 'bg-[#FF6A00]/10 text-[#FF6A00]'
-                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                                ? 'bg-[#FF6A00]/10 text-[#FF6A00] dark:text-[#FF8A33] dark:bg-[#FF6A00]/20'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                                 }`}
                         >
                             {active && (
@@ -57,11 +59,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             {/* Footer */}
             <div className="px-3 py-4 border-t border-[rgba(15,23,42,0.07)]">
                 <div className="px-3 mb-2">
-                    <p className="text-xs text-[rgba(11,18,32,0.40)] truncate">{user?.email}</p>
+                    <p className="text-xs text-[rgba(11,18,32,0.40)] dark:text-slate-400 truncate">{user?.email}</p>
                 </div>
+
                 <button
                     onClick={handleLogout}
-                    className="w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[rgba(11,18,32,0.55)] hover:text-[#EF4444] hover:bg-[rgba(239,68,68,0.06)] transition-all duration-150"
+                    className="w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[rgba(11,18,32,0.55)] dark:text-slate-400 hover:text-[#EF4444] dark:hover:text-red-400 hover:bg-[rgba(239,68,68,0.06)] dark:hover:bg-red-500/10 transition-all duration-150"
                 >
                     <LogOut className="w-4 h-4 group-hover:text-[#EF4444]" />
                     Cerrar sesión
@@ -73,7 +76,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     return (
         <div className="min-h-screen flex mesh-gradient">
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 bg-white/60 backdrop-blur-xl border-r border-slate-200/50">
+            <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50">
                 <SidebarContent />
             </aside>
 
@@ -87,7 +90,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
             {/* Mobile sidebar */}
             <div
-                className={`fixed inset-y-0 left-0 z-50 w-56 bg-white/90 backdrop-blur-2xl border-r border-slate-200/50 transform transition-transform duration-200 ease-out lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 z-50 w-56 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 transform transition-transform duration-200 ease-out lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
                 <button
@@ -102,14 +105,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             {/* Main area */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Mobile topbar */}
-                <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-white/60 backdrop-blur-xl border-b border-slate-200/50">
-                    <button
-                        onClick={() => setMobileOpen(true)}
-                        className="p-1.5 rounded-lg text-[rgba(11,18,32,0.55)] hover:bg-[rgba(15,23,42,0.05)]"
-                    >
-                        <Menu className="w-5 h-5" />
-                    </button>
-                    <img src="/logo.png" alt="SuColor" className="h-7 w-auto object-contain" />
+                <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setMobileOpen(true)}
+                            className="p-1.5 rounded-lg text-[rgba(11,18,32,0.55)] hover:bg-[rgba(15,23,42,0.05)] dark:text-slate-400 dark:hover:bg-slate-800"
+                        >
+                            <Menu className="w-5 h-5" />
+                        </button>
+                        <img src="/logo.png" alt="SuColor" className="h-7 w-auto object-contain" />
+                    </div>
+
                 </div>
 
                 <main className="flex-1 p-4 sm:p-6 lg:p-8">

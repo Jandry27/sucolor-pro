@@ -26,11 +26,11 @@ export function OrderHeader({ order }: OrderHeaderProps) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                 <div>
                     <p className="section-title mb-1">Código de seguimiento</p>
-                    <h2 className="text-2xl font-bold text-[#0F172A] font-mono-code tracking-tight">
+                    <h2 className="text-2xl font-bold text-[#0F172A] dark:text-slate-100 font-mono-code tracking-tight">
                         {order.codigo}
                     </h2>
                     {order.cliente && (
-                        <p className="mt-1 text-sm text-[rgba(11,18,32,0.55)]">{order.cliente}</p>
+                        <p className="mt-1 text-sm text-[rgba(11,18,32,0.55)] dark:text-slate-400">{order.cliente}</p>
                     )}
                 </div>
 
@@ -93,7 +93,7 @@ function Field({ label, value, mono = false, prefix }: {
             <p className="section-title mb-1">{label}</p>
             <div className="flex items-center gap-1.5">
                 {prefix}
-                <p className={`text-sm font-semibold text-[#0F172A] ${mono ? 'font-mono-code' : ''}`}>
+                <p className={`text-sm font-semibold text-[#0F172A] dark:text-slate-200 ${mono ? 'font-mono-code' : ''}`}>
                     {value || '—'}
                 </p>
             </div>
@@ -106,10 +106,10 @@ function DateRow({ icon, label, value, highlight = false }: {
 }) {
     return (
         <div className="flex items-center gap-2">
-            <span className="text-[rgba(11,18,32,0.35)]">{icon}</span>
+            <span className="text-[rgba(11,18,32,0.35)] dark:text-slate-500">{icon}</span>
             <div>
-                <p className="text-xs text-[rgba(11,18,32,0.40)] mb-0.5">{label}</p>
-                <p className={`text-sm font-semibold ${highlight ? 'text-[#FF6A00]' : 'text-[#0F172A]'}`}>
+                <p className="text-xs text-[rgba(11,18,32,0.40)] dark:text-slate-400 mb-0.5">{label}</p>
+                <p className={`text-sm font-semibold ${highlight ? 'text-[#FF6A00] dark:text-[#FF8A33]' : 'text-[#0F172A] dark:text-slate-200'}`}>
                     {value || 'Por confirmar'}
                 </p>
             </div>

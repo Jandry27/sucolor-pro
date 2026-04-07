@@ -16,10 +16,10 @@ export function PublicNotes({ notes }: PublicNotesProps) {
                     <StickyNote className="w-3.5 h-3.5 text-[#FF6A00]" />
                 </div>
                 <div>
-                    <p className="text-xs font-semibold text-[rgba(15,23,42,0.45)] uppercase tracking-wider mb-1.5">
+                    <p className="text-xs font-semibold text-[rgba(15,23,42,0.45)] dark:text-slate-400 uppercase tracking-wider mb-1.5">
                         Nota del taller
                     </p>
-                    <p className="text-sm text-[rgba(15,23,42,0.70)] leading-relaxed">{notes}</p>
+                    <p className="text-sm text-[rgba(15,23,42,0.70)] dark:text-slate-300 leading-relaxed">{notes}</p>
                 </div>
             </div>
         </motion.div>

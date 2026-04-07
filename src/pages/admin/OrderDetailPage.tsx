@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Share2, ToggleLeft, ToggleRight, Copy, Check, Loader2, AlertTriangle, ExternalLink, Trash2, Edit2, X, Save } from 'lucide-react';
+import { ArrowLeft, Share2, ToggleLeft, ToggleRight, Copy, Check, Loader2, AlertTriangle, ExternalLink, Trash2, Edit2, X, Save, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { PhotoUploadPanel } from '@/components/admin/PhotoUploadPanel';
 import { PaymentPanel } from '@/components/admin/PaymentPanel';
 import { GastosPanel } from '@/components/admin/GastosPanel';
+import { InvoiceModal } from '@/components/admin/InvoiceModal';
 import type { AdminOrder, OrderStatus } from '@/types';
 
 const ESTADOS: { value: OrderStatus; label: string }[] = [
@@ -43,6 +44,9 @@ export function OrderDetailPage() {
     const [isEditingNotes, setIsEditingNotes] = useState(false);
     const [editNotasPublicas, setEditNotasPublicas] = useState('');
     const [savingNotes, setSavingNotes] = useState(false);
+
+    // Invoice Modal
+    const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -258,6 +262,14 @@ export function OrderDetailPage() {
                                         <Edit2 className="w-4 h-4" />
                                     </button>
                                     <button
+                                        onClick={() => setIsInvoiceModalOpen(true)}
+                                        disabled={saving || !order.cliente_id}
+                                        className="p-2 text-brand-orange bg-[rgba(255,81,0,0.05)] border border-[rgba(255,81,0,0.1)] hover:bg-[rgba(255,81,0,0.1)] hover:border-[rgba(255,81,0,0.2)] rounded-lg transition-colors ml-1"
+                                        title="Emitir Factura Electrónica SRI"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                    </button>
+                                    <button
                                         onClick={handleDeleteOrder}
                                         disabled={saving}
                                         className="p-2 text-[#EF4444] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.1)] hover:bg-[rgba(239,68,68,0.1)] hover:border-[rgba(239,68,68,0.2)] rounded-lg transition-colors ml-1"
@@ -391,6 +403,14 @@ export function OrderDetailPage() {
                     <PhotoUploadPanel ordenId={order.id} ordCodigo={order.codigo} />
                 </motion.div>
             </div>
+
+            {order && (
+                <InvoiceModal 
+                    isOpen={isInvoiceModalOpen} 
+                    onClose={() => setIsInvoiceModalOpen(false)} 
+                    order={order} 
+                />
+            )}
         </AdminLayout>
     );
 }

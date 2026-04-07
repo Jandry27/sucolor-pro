@@ -38,8 +38,8 @@ export function MediaGallery({ media }: MediaGalleryProps) {
                 transition={{ duration: 0.4, delay: 0.16, ease: 'easeOut' }}>
                 {/* Header */}
                 <div className="flex items-center justify-between mb-5">
-                    <h3 className="font-semibold text-slate-800 text-sm">Galería de imágenes</h3>
-                    <span className="text-xs text-[rgba(11,18,32,0.40)]">{media.length} foto{media.length !== 1 ? 's' : ''}</span>
+                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Galería de imágenes</h3>
+                    <span className="text-xs text-[rgba(11,18,32,0.40)] dark:text-slate-500">{media.length} foto{media.length !== 1 ? 's' : ''}</span>
                 </div>
 
                 {/* Segmented control tabs */}
@@ -53,7 +53,7 @@ export function MediaGallery({ media }: MediaGalleryProps) {
                                 <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                                     style={{
                                         background: activeTab === cat.key ? 'rgba(255,106,0,0.15)' : 'rgba(15,23,42,0.06)',
-                                        color: activeTab === cat.key ? '#FF6A00' : 'rgba(11,18,32,0.45)',
+                                        color: activeTab === cat.key ? '#FF6A00' : 'rgba(11,18,32,0.45)', // Note: This gets complex with inline styles. We'll use classes where possible next, but this is fine for now as it's an accent color
                                     }}>
                                     {counts[cat.key]}
                                 </span>
@@ -68,13 +68,12 @@ export function MediaGallery({ media }: MediaGalleryProps) {
                         <motion.div key="empty"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="flex flex-col items-center gap-3 py-14">
-                            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                                style={{ background: 'rgba(15,23,42,0.05)' }}>
-                                <ImageOff className="w-5 h-5 text-[rgba(11,18,32,0.30)]" />
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800">
+                                <ImageOff className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                             </div>
                             <div className="text-center">
-                                <p className="text-sm font-medium text-[rgba(11,18,32,0.50)]">Sin imágenes aún</p>
-                                <p className="text-xs text-[rgba(11,18,32,0.35)] mt-0.5">
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Sin imágenes aún</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                                     Las fotos aparecerán aquí cuando el taller las suba
                                 </p>
                             </div>
@@ -89,7 +88,7 @@ export function MediaGallery({ media }: MediaGalleryProps) {
                                     initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: i * 0.04, duration: 0.25 }}
                                     onClick={() => openLightbox(i)}
-                                    className="group relative aspect-square rounded-xl overflow-hidden bg-[rgba(15,23,42,0.04)] border border-[rgba(15,23,42,0.07)] cursor-pointer"
+                                    className="group relative aspect-square rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 cursor-pointer"
                                     style={{ display: 'block', textAlign: 'left' }}>
                                     <img src={item.signed_url} alt={item.categoria}
                                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -106,38 +105,57 @@ export function MediaGallery({ media }: MediaGalleryProps) {
             {/* Lightbox */}
             <AnimatePresence>
                 {lightboxIndex !== null && filtered[lightboxIndex] && (
-                    <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    <motion.div className="fixed top-0 left-0 w-full z-[100] flex items-center justify-center bg-zinc-950/95"
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         onClick={closeLightbox}
-                        style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}>
-                        <div onClick={e => e.stopPropagation()} className="relative max-w-3xl w-full flex flex-col items-center">
-                            {/* Actions Header */}
-                            <div className="w-full flex justify-between items-center mb-4">
-                                <a href={filtered[lightboxIndex].signed_url} target="_blank" rel="noopener noreferrer"
-                                    className="bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors backdrop-blur-md">
-                                    <ZoomIn className="w-3.5 h-3.5" /> Ver original para hacer zoom
-                                </a>
-                                <button onClick={closeLightbox}
-                                    className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full backdrop-blur-md">
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <img src={filtered[lightboxIndex].signed_url} alt=""
-                                className="w-full h-auto max-h-[80vh] object-contain rounded-2xl" />
-                            <p className="text-center text-xs text-white/50 mt-3">
-                                {lightboxIndex + 1} / {filtered.length}
-                            </p>
+                        style={{ height: '100dvh', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+                        
+                        {/* Top bar (Fixed) */}
+                        <div className="absolute top-0 inset-x-0 p-4 sm:p-6 flex justify-between items-center z-50 pointer-events-none">
+                            <a href={filtered[lightboxIndex].signed_url} target="_blank" rel="noopener noreferrer"
+                                className="pointer-events-auto bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs px-4 py-2.5 sm:py-2 rounded-full flex items-center gap-2 transition-all backdrop-blur-md shadow-lg"
+                                onClick={e => e.stopPropagation()}>
+                                <ZoomIn className="w-4 h-4" /> 
+                                <span className="hidden sm:inline font-medium">Ver original</span>
+                                <span className="sm:hidden font-medium">Zoom</span>
+                            </a>
+                            <button onClick={closeLightbox}
+                                className="pointer-events-auto text-white/70 hover:text-white bg-white/10 hover:bg-white/20 hover:scale-110 p-3 sm:p-2.5 rounded-full backdrop-blur-md transition-all shadow-lg active:scale-95">
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
-                        {/* Nav arrows */}
+
+                        {/* Image Container */}
+                        <div onClick={e => e.stopPropagation()} className="relative w-full h-full flex items-center justify-center p-4 sm:p-16">
+                            <motion.img 
+                                key={lightboxIndex}
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                                src={filtered[lightboxIndex].signed_url} 
+                                alt="Imagen de vehículo"
+                                className="max-w-full object-contain rounded-xl shadow-[0_0_60px_rgba(0,0,0,0.6)]" 
+                                style={{ maxHeight: 'calc(100dvh - 160px)', width: 'auto' }}
+                            />
+                            
+                            {/* Counter at bottom */}
+                            <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-2 rounded-full bg-zinc-900/80 backdrop-blur-md border border-white/10 shadow-2xl pointer-events-none">
+                                <span className="text-xs font-semibold text-white/90 tracking-wide">
+                                    {lightboxIndex + 1} / {filtered.length}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Nav arrows (Fixed sides) */}
                         {filtered.length > 1 && (
                             <>
                                 <button onClick={e => { e.stopPropagation(); goPrev(); }}
-                                    className="absolute left-3 sm:left-6 p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
-                                    <ChevronLeft className="w-6 h-6" />
+                                    className="absolute left-3 sm:left-8 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full text-white/60 hover:text-white bg-zinc-800/40 hover:bg-white/10 backdrop-blur-md border border-white/5 hover:border-white/20 transition-all shadow-xl group active:scale-95">
+                                    <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 group-hover:-translate-x-0.5 transition-transform" />
                                 </button>
                                 <button onClick={e => { e.stopPropagation(); goNext(); }}
-                                    className="absolute right-3 sm:right-6 p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
-                                    <ChevronRight className="w-6 h-6" />
+                                    className="absolute right-3 sm:right-8 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full text-white/60 hover:text-white bg-zinc-800/40 hover:bg-white/10 backdrop-blur-md border border-white/5 hover:border-white/20 transition-all shadow-xl group active:scale-95">
+                                    <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 group-hover:translate-x-0.5 transition-transform" />
                                 </button>
                             </>
                         )}

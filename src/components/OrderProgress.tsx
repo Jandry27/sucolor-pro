@@ -17,12 +17,12 @@ export function OrderProgress({ estado }: OrderProgressProps) {
             transition={{ duration: 0.4, delay: 0.08, ease: 'easeOut' }}>
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-slate-800 text-sm">Progreso del trabajo</h3>
-                <span className="text-xs font-bold text-[#FF6A00] font-mono-code">{pct}%</span>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Progreso del trabajo</h3>
+                <span className="text-xs font-bold text-[#FF6A00] dark:text-[#FF8A33] font-mono-code">{pct}%</span>
             </div>
 
             {/* Progress bar */}
-            <div className="h-1.5 w-full rounded-full bg-slate-100 mb-7 overflow-hidden">
+            <div className="relative h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 mb-7 overflow-hidden">
                 <motion.div className="h-full rounded-full" style={{ background: '#FF6A00', boxShadow: '0 0 10px rgba(255,106,0,0.5)' }}
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
@@ -47,14 +47,10 @@ export function OrderProgress({ estado }: OrderProgressProps) {
                                         <div className="absolute -inset-1.5 rounded-full animate-pulse-orange"
                                             style={{ background: 'rgba(255,106,0,0.15)' }} />
                                     )}
-                                    <div className="relative w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all duration-300"
-                                        style={
-                                            isCompleted
-                                                ? { background: 'rgba(22,163,74,0.10)', border: '1.5px solid #16A34A' }
-                                                : isCurrent
-                                                    ? { background: 'rgba(255,106,0,0.10)', border: '1.5px solid #FF6A00', boxShadow: '0 4px 10px rgba(255,106,0,0.2)' }
-                                                    : { background: 'rgba(15,23,42,0.04)', border: '1px solid rgba(15,23,42,0.08)' }
-                                        }>
+                                    <div className={`relative w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${isCompleted ? 'bg-green-100/50 dark:bg-green-500/10 border-green-500 dark:border-green-400'
+                                            : isCurrent ? 'bg-orange-100/50 dark:bg-orange-500/10 border-[#FF6A00] dark:border-[#FF8A33] shadow-[0_4px_10px_rgba(255,106,0,0.2)]'
+                                                : 'bg-slate-100/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
+                                        }`} style={{ borderWidth: isCompleted || isCurrent ? '1.5px' : '1px' }}>
                                         {isCompleted ? (
                                             <Check className="w-3.5 h-3.5 text-[#16A34A]" strokeWidth={2.5} />
                                         ) : (
@@ -64,12 +60,10 @@ export function OrderProgress({ estado }: OrderProgressProps) {
                                 </div>
 
                                 {/* Label */}
-                                <span className="text-[9px] sm:text-[10px] font-semibold text-center leading-[1.1] w-full max-w-[64px] uppercase tracking-wider break-words"
-                                    style={{
-                                        color: isCompleted ? '#16A34A'
-                                            : isCurrent ? '#FF6A00'
-                                                : 'rgba(11,18,32,0.35)',
-                                    }}>
+                                <span className={`text-[9px] sm:text-[10px] font-semibold text-center leading-[1.1] w-full max-w-[64px] uppercase tracking-wider break-words ${isCompleted ? 'text-green-600 dark:text-green-400'
+                                        : isCurrent ? 'text-[#FF6A00] dark:text-[#FF8A33]'
+                                            : 'text-slate-400 dark:text-slate-500'
+                                    }`}>
                                     {step.label}
                                 </span>
                             </motion.div>

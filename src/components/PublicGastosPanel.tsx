@@ -55,12 +55,12 @@ export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2 text-[#FF6A00]">
+                <div className="flex items-center gap-2 text-[#FF6A00] dark:text-[#FF8A33]">
                     <DollarSign className="w-5 h-5" />
-                    <h3 className="font-semibold text-[#0F172A] text-sm">Repuestos y Gastos</h3>
+                    <h3 className="font-semibold text-[#0F172A] dark:text-slate-100 text-sm">Repuestos y Gastos</h3>
                 </div>
                 {totalGastos > 0 && (
-                    <span className="font-bold text-[#FF6A00] text-sm">
+                    <span className="font-bold text-[#FF6A00] dark:text-[#FF8A33] text-sm">
                         Total: ${(totalGastos).toFixed(2)}
                     </span>
                 )}
@@ -73,7 +73,7 @@ export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
                             key={gasto.id}
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.05 }}
-                            className="p-4 rounded-xl border border-[rgba(15,23,42,0.06)] bg-white/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                            className="p-4 rounded-xl border border-[rgba(15,23,42,0.06)] dark:border-[rgba(255,255,255,0.06)] bg-white/50 dark:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
                         >
                             <div className="flex items-start sm:items-center gap-4">
                                 {gasto.factura_url && (
@@ -97,19 +97,19 @@ export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
                                     </div>
                                 )}
                                 <div>
-                                    <p className="font-medium text-sm text-[rgba(11,18,32,0.9)]">{gasto.descripcion}</p>
-                                    <p className="text-xs text-[rgba(11,18,32,0.4)] mt-0.5">{formatDateTime(gasto.created_at)}</p>
+                                    <p className="font-medium text-sm text-[rgba(11,18,32,0.9)] dark:text-slate-200">{gasto.descripcion}</p>
+                                    <p className="text-xs text-[rgba(11,18,32,0.4)] dark:text-slate-500 mt-0.5">{formatDateTime(gasto.created_at)}</p>
                                 </div>
                             </div>
-                            <div className="font-mono-code font-bold text-[rgba(11,18,32,0.9)]">
+                            <div className="font-mono-code font-bold text-[rgba(11,18,32,0.9)] dark:text-slate-200">
                                 ${(gasto.monto || 0).toFixed(2)}
                             </div>
                         </motion.div>
                     ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-10 px-4 text-center rounded-xl border border-dashed border-[rgba(15,23,42,0.15)] bg-[rgba(15,23,42,0.02)]">
-                    <p className="text-sm text-[rgba(11,18,32,0.4)] mb-3">No hay registros de repuestos ni gastos adicionales en esta orden.</p>
+                <div className="flex flex-col items-center justify-center py-10 px-4 text-center rounded-xl border border-dashed border-[rgba(15,23,42,0.15)] dark:border-[rgba(255,255,255,0.15)] bg-[rgba(15,23,42,0.02)] dark:bg-[rgba(255,255,255,0.02)]">
+                    <p className="text-sm text-[rgba(11,18,32,0.4)] dark:text-slate-500 mb-3">No hay registros de repuestos ni gastos adicionales en esta orden.</p>
                 </div>
             )}
 

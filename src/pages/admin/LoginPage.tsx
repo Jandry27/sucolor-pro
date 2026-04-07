@@ -19,7 +19,7 @@ export function LoginPage() {
         setError(null);
         try {
             await login(email, password);
-            navigate('/admin/orders');
+            navigate('/admin/dashboard');
         } catch {
             setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
         } finally {
