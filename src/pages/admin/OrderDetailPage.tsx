@@ -344,33 +344,33 @@ export function OrderDetailPage() {
                     )}
                 </motion.div>
 
-                {/* Notas */}
+                {/* Notas/Bitácora */}
                 <motion.div className="glass-card" style={{ padding: '20px' }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                    <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-sm font-semibold text-[#0B1220]">Notas para el cliente</h2>
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-semibold text-[#0B1220]">Bitácora del Cliente</h2>
                         {!isEditingNotes && (
                             <button
                                 onClick={handleEditNotes}
-                                className="p-1.5 text-[rgba(11,18,32,0.40)] bg-[rgba(15,23,42,0.03)] hover:bg-[rgba(15,23,42,0.06)] hover:text-[#0B1220] rounded-lg transition-colors border border-transparent hover:border-[rgba(15,23,42,0.1)]"
-                                title="Editar notas"
+                                className="text-xs text-[#FF5100] hover:text-[#0B1220] transition-colors font-medium"
                             >
-                                <Edit2 className="w-3.5 h-3.5" />
+                                Editar historial completo
                             </button>
                         )}
                     </div>
+
                     {isEditingNotes ? (
                         <div className="space-y-3">
                             <textarea
                                 value={editNotasPublicas}
                                 onChange={e => setEditNotasPublicas(e.target.value)}
-                                rows={3}
-                                placeholder="Escribe aquí los detalles del trabajo a realizar..."
-                                className="w-full text-sm p-3 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA] resize-none focus:outline-none focus:border-[#FF5100] focus:ring-1 focus:ring-[#FF5100]"
+                                rows={6}
+                                placeholder="Historial completo de notas..."
+                                className="w-full text-sm p-3 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA] resize-none focus:outline-none focus:border-[#FF5100] focus:ring-1 focus:ring-[#FF5100] font-mono"
                             />
                             <div className="flex items-center gap-2">
                                 <button onClick={handleSaveNotes} disabled={savingNotes} className="btn-primary flex items-center gap-1.5 px-3 py-1.5 text-xs">
-                                    {savingNotes ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Guardar notas
+                                    {savingNotes ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Guardar todo
                                 </button>
                                 <button onClick={() => setIsEditingNotes(false)} disabled={savingNotes} className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs border-transparent hover:bg-[rgba(15,23,42,0.06)]">
                                     <X className="w-3.5 h-3.5" /> Cancelar
@@ -378,9 +378,65 @@ export function OrderDetailPage() {
                             </div>
                         </div>
                     ) : (
-                        <p className={`text-sm leading-relaxed ${order.notas_publicas ? 'text-[rgba(11,18,32,0.65)]' : 'text-[rgba(11,18,32,0.30)] italic'}`}>
-                            {order.notas_publicas ?? 'Sin notas públicas'}
-                        </p>
+                        <div className="space-y-4">
+                            {/* Form to add a new note */}
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={editNotasPublicas}
+                                    onChange={e => setEditNotasPublicas(e.target.value)}
+                                    onKeyDown={async e => {
+                                        if (e.key === 'Enter' && editNotasPublicas.trim()) {
+                                            if (!order) return;
+                                            setSavingNotes(true);
+                                            const date = new Intl.DateTimeFormat('es-EC', { day: '2-digit', month: 'short' }).format(new Date());
+                                            const newLine = `• [${date}] ${editNotasPublicas.trim()}`;
+                                            const updatedNotes = order.notas_publicas ? `${newLine}\n${order.notas_publicas}` : newLine;
+                                            await supabase.from('ordenes').update({ notas_publicas: updatedNotes }).eq('id', order.id);
+                                            setOrder({ ...order, notas_publicas: updatedNotes } as any);
+                                            setEditNotasPublicas('');
+                                            setSavingNotes(false);
+                                        }
+                                    }}
+                                    placeholder="Añadir actualización a la bitácora..."
+                                    className="flex-1 text-sm px-3 py-2 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA] focus:outline-none focus:border-[#FF5100] focus:ring-1 focus:ring-[#FF5100]"
+                                />
+                                <button 
+                                    onClick={async () => {
+                                        if (!editNotasPublicas.trim() || !order) return;
+                                        setSavingNotes(true);
+                                        const date = new Intl.DateTimeFormat('es-EC', { day: '2-digit', month: 'short' }).format(new Date());
+                                        const newLine = `• [${date}] ${editNotasPublicas.trim()}`;
+                                        const updatedNotes = order.notas_publicas ? `${newLine}\n${order.notas_publicas}` : newLine;
+                                        await supabase.from('ordenes').update({ notas_publicas: updatedNotes }).eq('id', order.id);
+                                        setOrder({ ...order, notas_publicas: updatedNotes } as any);
+                                        setEditNotasPublicas('');
+                                        setSavingNotes(false);
+                                    }}
+                                    disabled={savingNotes || !editNotasPublicas.trim()} 
+                                    className="btn-primary px-4 py-2"
+                                >
+                                    {savingNotes ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Añadir'}
+                                </button>
+                            </div>
+
+                            {/* Render notes preview */}
+                            <div className="bg-[rgba(15,23,42,0.02)] border border-[rgba(15,23,42,0.06)] rounded-xl p-3">
+                                {order.notas_publicas ? (
+                                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                                        {order.notas_publicas.split('\n').filter(l => l.trim().length > 0).map((line, i) => (
+                                            <p key={i} className="text-xs text-[rgba(11,18,32,0.70)]">
+                                                {line}
+                                            </p>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-[rgba(11,18,32,0.30)] italic text-center py-2">
+                                        No hay actualizaciones registradas.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </motion.div>
 
