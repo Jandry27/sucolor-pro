@@ -325,8 +325,8 @@ export function NuevaOrdenPage() {
                             const active = p.id === step;
                             return (
                                 <div key={p.id} className="flex items-center gap-2 flex-1">
-                                    <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all ${active ? 'text-white' : done ? 'text-[#FF6A00]' : 'text-[rgba(15,23,42,0.50)] bg-[rgba(15,23,42,0.05)]'}`}
-                                        style={active ? { background: '#FF6A00' } : done ? { background: 'rgba(255,106,0,0.10)' } : {}}>
+                                    <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all ${active ? 'text-white' : done ? 'text-[#F97316]' : 'text-[rgba(15,23,42,0.50)] bg-[rgba(15,23,42,0.05)]'}`}
+                                        style={active ? { background: '#F97316' } : done ? { background: 'rgba(249, 115, 22,0.10)' } : {}}>
                                         <p.icon className="w-3 h-3" />
                                         {p.label}
                                     </div>
@@ -352,7 +352,7 @@ export function NuevaOrdenPage() {
                         {/* Búsqueda por nombre, teléfono o placa */}
                         <div className="space-y-2">
                             <label className="form-label">¿Cliente existente?</label>
-                            <p className="text-[11px] text-[rgba(15,23,42,0.60)] -mt-1">Búsqueda por nombre, teléfono <span className="font-semibold text-[#FF6A00]">o número de placa</span></p>
+                            <p className="text-[11px] text-[rgba(15,23,42,0.60)] -mt-1">Búsqueda por nombre, teléfono <span className="font-semibold text-[#F97316]">o número de placa</span></p>
                             <div className="flex gap-2">
                                 <input
                                     value={clienteBusqueda}
@@ -405,9 +405,9 @@ export function NuevaOrdenPage() {
                 {step === 'vehiculo' && (
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="glass-card space-y-5" style={{ padding: '24px' }}>
                         {clienteSeleccionado ? (
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(255,106,0,0.06)] border border-[rgba(255,106,0,0.12)]">
-                                <User className="w-3.5 h-3.5 text-[#FF6A00] flex-shrink-0" />
-                                <span className="text-xs font-medium text-[#FF6A00]">{clienteSeleccionado.nombres}</span>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(249, 115, 22,0.06)] border border-[rgba(249, 115, 22,0.12)]">
+                                <User className="w-3.5 h-3.5 text-[#F97316] flex-shrink-0" />
+                                <span className="text-xs font-medium text-[#F97316]">{clienteSeleccionado.nombres}</span>
                                 {clienteSeleccionado.telefono && <span className="text-xs text-[rgba(11,18,32,0.40)] ml-auto">{clienteSeleccionado.telefono}</span>}
                             </div>
                         ) : (
@@ -478,21 +478,21 @@ export function NuevaOrdenPage() {
                         {/* Fotos del ANTES */}
                         <div className="space-y-3 border-t border-slate-200/50 pt-4">
                             <div className="flex items-center gap-2">
-                                <Camera className="w-4 h-4 text-[#FF6A00]" />
+                                <Camera className="w-4 h-4 text-[#F97316]" />
                                 <p className="text-sm font-semibold text-[#0F172A]">Fotos del vehículo (ANTES)</p>
                                 <span className="ml-auto text-xs text-[rgba(11,18,32,0.40)]">{photos.length} foto{photos.length !== 1 ? 's' : ''}</span>
                             </div>
                             <div
                                 className="border-2 border-dashed rounded-xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all duration-150"
                                 style={{ borderColor: 'rgba(15,23,42,0.12)' }}
-                                onMouseEnter={e => (e.currentTarget.style.borderColor = '#FF6A00')}
+                                onMouseEnter={e => (e.currentTarget.style.borderColor = '#F97316')}
                                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(15,23,42,0.12)')}
                                 onClick={() => fileRef.current?.click()}
                             >
                                 <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
                                 <Upload className="w-5 h-5 text-[rgba(15,23,42,0.40)]" />
                                 <p className="text-sm text-[rgba(15,23,42,0.60)] text-center">
-                                    Click o arrastra fotos del <span className="font-semibold text-[#FF6A00]">antes</span>
+                                    Click o arrastra fotos del <span className="font-semibold text-[#F97316]">antes</span>
                                 </p>
                                 <p className="text-xs text-[rgba(11,18,32,0.30)]">Se subirán al guardar la orden</p>
                             </div>
@@ -607,14 +607,14 @@ export function NuevaOrdenPage() {
                             </div>
                             <h2 className="text-2xl font-bold text-[#0F172A]">¡Orden creada!</h2>
                             <p className="text-sm text-[rgba(15,23,42,0.60)]">Código de seguimiento:</p>
-                            <p className="font-mono-code text-4xl font-bold text-[#FF6A00]">{nuevaOrdenCodigo}</p>
+                            <p className="font-mono-code text-4xl font-bold text-[#F97316]">{nuevaOrdenCodigo}</p>
                         </div>
 
                         {/* Estado de carga de fotos */}
                         {uploadingPhotos && (
-                            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[rgba(255,106,0,0.06)] border border-[rgba(255,106,0,0.12)]">
-                                <Loader2 className="w-4 h-4 text-[#FF6A00] animate-spin flex-shrink-0" />
-                                <span className="text-sm text-[#FF6A00] font-medium">Subiendo fotos del antes...</span>
+                            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[rgba(249, 115, 22,0.06)] border border-[rgba(249, 115, 22,0.12)]">
+                                <Loader2 className="w-4 h-4 text-[#F97316] animate-spin flex-shrink-0" />
+                                <span className="text-sm text-[#F97316] font-medium">Subiendo fotos del antes...</span>
                             </div>
                         )}
                         {!uploadingPhotos && photos.length > 0 && !photoError && (

@@ -18,12 +18,12 @@ export function OrderProgress({ estado }: OrderProgressProps) {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Progreso del trabajo</h3>
-                <span className="text-xs font-bold text-[#FF6A00] dark:text-[#FF8A33] font-mono-code">{pct}%</span>
+                <span className="text-xs font-bold text-[#F97316] dark:text-[#FB923C] font-mono-code">{pct}%</span>
             </div>
 
             {/* Progress bar */}
             <div className="relative h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 mb-7 overflow-hidden">
-                <motion.div className="h-full rounded-full" style={{ background: '#FF6A00', boxShadow: '0 0 10px rgba(255,106,0,0.5)' }}
+                <motion.div className="h-full rounded-full" style={{ background: '#F97316', boxShadow: '0 0 10px rgba(249, 115, 22,0.5)' }}
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
                     transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }} />
@@ -45,10 +45,10 @@ export function OrderProgress({ estado }: OrderProgressProps) {
                                 <div className="relative">
                                     {isCurrent && (
                                         <div className="absolute -inset-1.5 rounded-full animate-pulse-orange"
-                                            style={{ background: 'rgba(255,106,0,0.15)' }} />
+                                            style={{ background: 'rgba(249, 115, 22,0.15)' }} />
                                     )}
                                     <div className={`relative w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${isCompleted ? 'bg-green-100/50 dark:bg-green-500/10 border-green-500 dark:border-green-400'
-                                            : isCurrent ? 'bg-orange-100/50 dark:bg-orange-500/10 border-[#FF6A00] dark:border-[#FF8A33] shadow-[0_4px_10px_rgba(255,106,0,0.2)]'
+                                            : isCurrent ? 'bg-orange-100/50 dark:bg-orange-500/10 border-[#F97316] dark:border-[#FB923C] shadow-[0_4px_10px_rgba(249,115,22,0.2)]'
                                                 : 'bg-slate-100/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
                                         }`} style={{ borderWidth: isCompleted || isCurrent ? '1.5px' : '1px' }}>
                                         {isCompleted ? (
@@ -61,7 +61,7 @@ export function OrderProgress({ estado }: OrderProgressProps) {
 
                                 {/* Label */}
                                 <span className={`text-[9px] sm:text-[10px] font-semibold text-center leading-[1.1] w-full max-w-[64px] uppercase tracking-wider break-words ${isCompleted ? 'text-green-600 dark:text-green-400'
-                                        : isCurrent ? 'text-[#FF6A00] dark:text-[#FF8A33]'
+                                        : isCurrent ? 'text-[#F97316] dark:text-[#FB923C]'
                                             : 'text-slate-400 dark:text-slate-500'
                                     }`}>
                                     {step.label}

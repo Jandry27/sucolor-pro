@@ -119,7 +119,7 @@ export function OrdersListPage() {
                                                     {/* Text content */}
                                                     <div className="min-w-0 flex-1 pl-1 pt-0.5">
                                                         <div className="flex items-center gap-2 mb-1">
-                                                            <span className="font-mono-code text-xs text-[#FF6A00] font-bold">{order.codigo}</span>
+                                                            <span className="font-mono-code text-xs text-[#F72F42] font-bold">{order.codigo}</span>
                                                         </div>
                                                         <p className="font-semibold text-[#0F172A] text-sm mt-0.5 leading-tight truncate">
                                                             {(order.cliente as any).nombres}

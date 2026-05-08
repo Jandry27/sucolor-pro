@@ -35,6 +35,7 @@ export function OrderDetailPage() {
     // Edit states (Client & Vehicle)
     const [isEditingDetails, setIsEditingDetails] = useState(false);
     const [editNombres, setEditNombres] = useState('');
+    const [editTelefono, setEditTelefono] = useState('');
     const [editPlaca, setEditPlaca] = useState('');
     const [editMarca, setEditMarca] = useState('');
     const [editModelo, setEditModelo] = useState('');
@@ -110,6 +111,7 @@ export function OrderDetailPage() {
     const handleEditDetails = () => {
         if (!order) return;
         setEditNombres((order.cliente as any).nombres === 'Cliente anónimo (No registrado)' || (order.cliente as any).nombres === '—' ? '' : (order.cliente as any).nombres);
+        setEditTelefono((order.cliente as any).telefono || '');
         setEditPlaca(order.vehiculo.placa === '—' ? '' : order.vehiculo.placa);
         setEditMarca(order.vehiculo.marca === '—' ? '' : order.vehiculo.marca);
         setEditModelo(order.vehiculo.modelo || '');
@@ -121,7 +123,7 @@ export function OrderDetailPage() {
         setSavingDetails(true);
         try {
             if (order.cliente_id) {
-                await supabase.from('clientes').update({ nombres: editNombres }).eq('id', order.cliente_id);
+                await supabase.from('clientes').update({ nombres: editNombres, telefono: editTelefono }).eq('id', order.cliente_id);
             }
             if (order.vehiculo_id) {
                 await supabase.from('vehiculos').update({
@@ -133,7 +135,7 @@ export function OrderDetailPage() {
 
             setOrder({
                 ...order,
-                cliente: { ...(order.cliente as any), nombres: editNombres || 'Cliente anónimo (No registrado)' },
+                cliente: { ...(order.cliente as any), nombres: editNombres || 'Cliente anónimo (No registrado)', telefono: editTelefono },
                 vehiculo: { ...order.vehiculo, placa: editPlaca.toUpperCase() || '—', marca: editMarca || '—', modelo: editModelo }
             } as any);
             setIsEditingDetails(false);
@@ -216,6 +218,10 @@ export function OrderDetailPage() {
                                         <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Cliente</label>
                                         <input value={editNombres} onChange={e => setEditNombres(e.target.value)} placeholder="Nombre del cliente" className="w-full text-sm px-3 py-1.5 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA]" disabled={!order.cliente_id} />
                                         {!order.cliente_id && <p className="text-[10px] text-orange-500 mt-1">Orden registrada sin cliente (Anónimo)</p>}
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Teléfono</label>
+                                        <input value={editTelefono} onChange={e => setEditTelefono(e.target.value)} placeholder="0999999999" className="w-full text-sm px-3 py-1.5 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA]" disabled={!order.cliente_id} />
                                     </div>
                                     <div>
                                         <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Placa</label>
@@ -447,10 +453,13 @@ export function OrderDetailPage() {
 
                 {/* Pagos */}
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.20 }}>
-                    <PaymentPanel ordenId={order.id} precioTotal={precioTotal} montoPagado={montoPagado}
+                    <PaymentPanel ordenId={order.id} precioTotal={precioTotal} montoPagado={montoPagado} notasInternas={order.notas_internas}
                         onUpdate={(fields) => {
                             if (fields.precio_total !== undefined) setPrecioTotal(fields.precio_total);
                             if (fields.monto_pagado !== undefined) setMontoPagado(fields.monto_pagado);
+                            if (fields.notas_internas !== undefined) {
+                                setOrder(prev => prev ? { ...prev, notas_internas: fields.notas_internas } as any : prev);
+                            }
                         }} />
                 </motion.div>
 

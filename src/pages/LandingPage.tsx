@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { Search, Shield, Clock, Eye, CheckCircle, CheckCircle2, Zap, MessageCircle, MapPin, Star, Phone, ArrowRight } from 'lucide-react';
 import { SearchForm } from '@/components/SearchForm';
 
-
 function FadeIn({ children, delay = 0, className = '' }: {
     children: React.ReactNode; delay?: number; className?: string;
 }) {
@@ -45,10 +44,18 @@ const STATS = [
 export function LandingPage() {
     return (
         <div className="min-h-screen bg-transparent relative">
-            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#FF6A00]/10 blur-[120px]"></div>
-                <div className="absolute top-[40%] -right-[15%] w-[60%] h-[60%] rounded-full bg-[#FF6A00]/5 blur-[150px]"></div>
-                <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-[#FF6A00]/10 blur-[100px]"></div>
+            {/* ── PROFESSIONAL HERO BACKGROUND ──────────────────── */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#FAFAFA] dark:bg-[#0B1220]">
+                {/* Subtle technical grid pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+                
+                {/* Soft glowing accents matching brand color */}
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#F97316]/10 blur-[120px]"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#F97316]/10 blur-[120px]"></div>
+                <div className="absolute top-[20%] right-[15%] w-[30%] h-[30%] rounded-full bg-[#0F172A]/5 blur-[100px]"></div>
+                
+                {/* Overlay gradient to fade the grid smoothly */}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white dark:via-[#0B1220]/40 dark:to-[#0B1220]"></div>
             </div>
             {/* ── NAV ─────────────────────────────────────────────── */}
             <nav className="sticky top-0 z-40 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-b border-white/20 dark:border-slate-800/50"
@@ -61,7 +68,7 @@ export function LandingPage() {
                             style={{ maxHeight: '64px', filter: 'drop-shadow(0 2px 8px rgba(255,81,0,0.15))' }} />
                         <div className="hidden sm:flex flex-col leading-tight">
                             <span className="text-lg font-extrabold tracking-tight text-[#0F172A]">
-                                Su<span className="text-[#FF6A00]">Color</span>
+                                Su<span className="text-[#F97316]">Color</span>
                             </span>
                             <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[rgba(15,23,42,0.38)]">
                                 Taller Automotriz
@@ -89,7 +96,7 @@ export function LandingPage() {
             {/* ── HERO ─────────────────────────────────────────────── */}
             <section className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-24 text-center">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative z-10">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-8 rounded-full text-xs font-semibold uppercase tracking-widest bg-white/50 backdrop-blur-sm border border-[#FF6A00]/20 text-[#FF6A00] shadow-[0_4px_14px_0_rgba(255,106,0,0.15)]">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-8 rounded-full text-xs font-semibold uppercase tracking-widest bg-white/50 backdrop-blur-sm border border-[#F97316]/20 text-[#F97316] shadow-[0_4px_14px_0_rgba(249,115,22,0.15)]">
                         <Zap className="w-3 h-3" /> Taller automotriz profesional
                     </div>
 
@@ -111,8 +118,8 @@ export function LandingPage() {
                     className="max-w-md mx-auto glass-card relative z-10"
                     style={{ padding: '28px' }}>
                     <div className="flex items-center gap-3 mb-5">
-                        <div className="w-8 h-8 rounded-[10px] flex items-center justify-center bg-[#FF6A00]/10 border border-[#FF6A00]/20">
-                            <Search className="w-4 h-4 text-[#FF6A00]" />
+                        <div className="w-8 h-8 rounded-[10px] flex items-center justify-center bg-[#F97316]/10 border border-[#F97316]/20">
+                            <Search className="w-4 h-4 text-[#F97316]" />
                         </div>
                         <div className="text-left">
                             <p className="font-semibold text-sm text-[#0F172A]">Consulta tu vehículo</p>
@@ -130,7 +137,7 @@ export function LandingPage() {
                         { icon: <Clock className="w-3.5 h-3.5" />, label: 'Tiempo real' },
                         { icon: <Eye className="w-3.5 h-3.5" />, label: 'Sin registro requerido' },
                     ].map(b => (
-                        <div key={b.label} className="flex items-center gap-1.5 text-[#FF6A00] bg-white/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                        <div key={b.label} className="flex items-center gap-1.5 text-[#F97316] bg-white/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
                             {b.icon}
                             <span className="text-[rgba(15,23,42,0.60)] font-medium">{b.label}</span>
                         </div>
@@ -142,7 +149,7 @@ export function LandingPage() {
             <section className="bg-transparent border-y border-white/20 relative z-10 pb-8">
                 <div className="max-w-5xl mx-auto px-5 sm:px-8 py-20 pb-0">
                     <FadeIn className="text-center mb-12">
-                        <p className="section-title mb-2 text-[#FF6A00] font-semibold tracking-widest text-xs uppercase">Cómo funciona</p>
+                        <p className="section-title mb-2 text-[#F97316] font-semibold tracking-widest text-xs uppercase">Cómo funciona</p>
                         <h2 className="text-3xl font-bold text-[#0F172A]">Tres pasos. Sin complicaciones.</h2>
                     </FadeIn>
                     <div className="grid sm:grid-cols-3 gap-5">
@@ -150,7 +157,7 @@ export function LandingPage() {
                             <FadeIn key={s.num} delay={i * 0.08}>
                                 <div className="glass-card relative border border-white/30" style={{ padding: '24px' }}>
                                     <span className="absolute top-5 right-5 font-mono-code text-3xl font-bold text-[rgba(15,23,42,0.05)]">{s.num}</span>
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br from-[#FF6A00] to-[#E55F00] shadow-[0_4px_14px_0_rgba(255,106,0,0.39)]">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br from-[#F97316] to-[#EA6C0A] shadow-[0_4px_14px_0_rgba(249,115,22,0.39)]">
                                         {s.icon}
                                     </div>
                                     <h3 className="font-semibold text-[#0F172A] mb-1.5">{s.title}</h3>
@@ -166,7 +173,7 @@ export function LandingPage() {
             <section className="max-w-5xl mx-auto px-5 sm:px-8 py-20 relative z-10 pt-8">
                 <div className="grid sm:grid-cols-2 gap-12 items-center">
                     <FadeIn>
-                        <p className="section-title mb-3 text-[#FF6A00] font-semibold tracking-widest text-xs uppercase">Ventajas</p>
+                        <p className="section-title mb-3 text-[#F97316] font-semibold tracking-widest text-xs uppercase">Ventajas</p>
                         <h2 className="text-3xl font-bold text-[#0F172A] mb-4">
                             Sigue el progreso paso a paso
                         </h2>
@@ -177,7 +184,7 @@ export function LandingPage() {
                     <FadeIn delay={0.1} className="space-y-2.5">
                         {BENEFITS.map(item => (
                             <div key={item} className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-[rgba(15,23,42,0.07)]">
-                                <CheckCircle2 className="w-5 h-5 text-[#FF6A00] flex-shrink-0" />
+                                <CheckCircle2 className="w-5 h-5 text-[#F97316] flex-shrink-0" />
                                 <span className="text-[#0F172A] font-medium">{item}</span>
                             </div>
                         ))}
@@ -207,8 +214,8 @@ export function LandingPage() {
                     <div className="glass-card text-center max-w-2xl mx-auto p-12 md:p-16 border border-white/30 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/10 z-0 pointer-events-none"></div>
                         <div className="relative z-10">
-                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 bg-[#FF6A00]/10 border border-[#FF6A00]/20">
-                                <Star className="w-5 h-5 text-[#FF6A00]" />
+                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 bg-[#F97316]/10 border border-[#F97316]/20">
+                                <Star className="w-5 h-5 text-[#F97316]" />
                             </div>
                             <h2 className="text-2xl font-bold text-[#0F172A] mb-3">¿Necesitas traer tu vehículo?</h2>
                             <p className="text-[rgba(11,18,32,0.55)] mb-8 leading-relaxed">
@@ -226,7 +233,7 @@ export function LandingPage() {
                                 </a>
                             </div>
                             <div className="flex items-center justify-center gap-1.5 mt-6 text-xs text-[rgba(15,23,42,0.40)]">
-                                <MapPin className="w-3 h-3 text-[#FF6A00]" />
+                                <MapPin className="w-3 h-3 text-[#F97316]" />
                                 Taller SuColor
                             </div>
                         </div>
@@ -235,7 +242,7 @@ export function LandingPage() {
             </section>
 
             {/* ── FOOTER PREMIUM ───────────────────────────────────── */}
-            <footer className="bg-white border-t border-[rgba(15,23,42,0.07)]">
+            <footer className="relative z-10 bg-white border-t border-[rgba(15,23,42,0.07)]">
                 <FadeIn>
                     <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-10">
 

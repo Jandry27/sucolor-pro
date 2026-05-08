@@ -42,14 +42,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             to={to}
                             onClick={() => setMobileOpen(false)}
                             className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${active
-                                ? 'bg-[#FF6A00]/10 text-[#FF6A00] dark:text-[#FF8A33] dark:bg-[#FF6A00]/20'
+                                ? 'bg-[#F97316]/10 text-[#F97316] dark:text-[#FB923C] dark:bg-[#F97316]/20'
                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
                                 }`}
                         >
                             {active && (
-                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#FF6A00] rounded-full" />
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#F97316] rounded-full" />
                             )}
-                            <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#FF6A00]' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                            <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#F97316]' : 'text-slate-400 group-hover:text-slate-600'}`} />
                             {label}
                         </Link>
                     );

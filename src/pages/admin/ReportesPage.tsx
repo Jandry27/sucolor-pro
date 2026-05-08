@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Printer, Search, FileBarChart, Calendar, DollarSign, Car } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Download, Printer, Search, FileBarChart, Calendar, DollarSign, Car, ExternalLink } from 'lucide-react';
 import { useOrders } from '@/hooks/useOrders';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { AdminOrder } from '@/types';
@@ -83,7 +84,7 @@ export function ReportesPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
                     <div>
                         <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight flex items-center gap-2">
-                            <FileBarChart className="w-6 h-6 text-[#FF6A00]" /> Reporte de Ganancias
+                            <FileBarChart className="w-6 h-6 text-[#F97316]" /> Reporte de Ganancias
                         </h1>
                         <p className="text-sm text-[rgba(15,23,42,0.60)] mt-0.5">
                             Consulta los trabajos entregados y calculados por mes.
@@ -197,15 +198,22 @@ export function ReportesPage() {
                                     </tr>
                                 ) : (
                                     filteredOrders.map(order => (
-                                        <tr key={order.id} className="border-b border-[rgba(15,23,42,0.04)] hover:bg-[rgba(15,23,42,0.02)] transition-colors print:border-b-gray-200">
+                                        <tr key={order.id} className="border-b border-[rgba(15,23,42,0.04)] hover:bg-[rgba(247,47,66,0.02)] transition-colors print:border-b-gray-200 group">
                                             <td className="px-5 py-3">
                                                 <div className="flex items-center gap-1.5 text-[rgba(11,18,32,0.70)]">
                                                     <Calendar className="w-3.5 h-3.5" />
                                                     {new Date(order.updated_at).toLocaleDateString()}
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-3 font-mono-code font-bold text-[#FF6A00]">
-                                                {order.codigo}
+                                            <td className="px-5 py-3">
+                                                <Link
+                                                    to={`/admin/orders/${order.id}`}
+                                                    className="inline-flex items-center gap-1.5 font-mono-code font-bold text-[#F97316] hover:text-[#C2550D] transition-colors group/link"
+                                                    title="Abrir orden"
+                                                >
+                                                    {order.codigo}
+                                                    <ExternalLink className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                                                </Link>
                                             </td>
                                             <td className="px-5 py-3 font-medium text-[#0F172A]">
                                                 {order.cliente?.nombres || '—'}

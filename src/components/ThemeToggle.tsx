@@ -19,7 +19,7 @@ export function ThemeToggle() {
                     onClick={() => setTheme(t)}
                     title={`Tema: ${t === 'system_auto' ? 'Automático (Ecuador)' : t === 'light' ? 'Claro' : 'Oscuro'}`}
                     className={`relative p-1.5 rounded-full flex items-center justify-center transition-colors ${theme === t
-                            ? 'text-[#FF6A00] dark:text-[#FF8A33]'
+                            ? 'text-[#F97316] dark:text-[#FB923C]'
                             : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                         }`}
                 >

@@ -109,7 +109,7 @@ function DateRow({ icon, label, value, highlight = false }: {
             <span className="text-[rgba(11,18,32,0.35)] dark:text-slate-500">{icon}</span>
             <div>
                 <p className="text-xs text-[rgba(11,18,32,0.40)] dark:text-slate-400 mb-0.5">{label}</p>
-                <p className={`text-sm font-semibold ${highlight ? 'text-[#FF6A00] dark:text-[#FF8A33]' : 'text-[#0F172A] dark:text-slate-200'}`}>
+                <p className={`text-sm font-semibold ${highlight ? 'text-[#F97316] dark:text-[#FB923C]' : 'text-[#0F172A] dark:text-slate-200'}`}>
                     {value || 'Por confirmar'}
                 </p>
             </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Loader2, AlertTriangle, Phone, Users, Trash2 } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, Phone, Users, Trash2, Edit2, X, Save } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import type { Cliente } from '@/types';
@@ -10,6 +10,39 @@ export function ClientesPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [q, setQ] = useState('');
+
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editNombres, setEditNombres] = useState('');
+    const [editTelefono, setEditTelefono] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    const startEdit = (c: Cliente) => {
+        setEditingId(c.id);
+        setEditNombres((c as any).nombres || '');
+        setEditTelefono(c.telefono || '');
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditNombres('');
+        setEditTelefono('');
+    };
+
+    const handleSave = async (id: string) => {
+        setSaving(true);
+        try {
+            const { error } = await supabase.from('clientes')
+                .update({ nombres: editNombres, telefono: editTelefono })
+                .eq('id', id);
+            if (error) throw error;
+            setClientes(prev => prev.map(c => c.id === id ? { ...c, nombres: editNombres, telefono: editTelefono } as any : c));
+            setEditingId(null);
+        } catch (err: any) {
+            alert('Error al guardar: ' + (err.message || 'Error desconocido'));
+        } finally {
+            setSaving(false);
+        }
+    };
 
     useEffect(() => {
         supabase.from('clientes').select('*').order('created_at', { ascending: false })
@@ -70,32 +103,64 @@ export function ClientesPage() {
                             <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.03 }}
                                 className="glass-card-hover !p-4 !rounded-xl !border-slate-200/50">
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center gap-3 w-full">
-                                        {/* Avatar */}
-                                        <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-sm flex-shrink-0"
-                                            style={{ background: '#FF6A00' }}>
-                                            {(c as any).nombres?.[0]?.toUpperCase() ?? '?'}
+                                {editingId === c.id ? (
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Nombre</label>
+                                            <input value={editNombres} onChange={e => setEditNombres(e.target.value)} placeholder="Nombre del cliente" className="w-full text-sm px-3 py-1.5 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA]" disabled={saving} />
                                         </div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="font-semibold text-[#0F172A] text-sm truncate">{(c as any).nombres}</p>
-                                            <p className="text-xs text-[rgba(15,23,42,0.60)]">
-                                                {new Date(c.created_at).toLocaleDateString('es')}
-                                            </p>
+                                        <div>
+                                            <label className="text-[10px] uppercase font-bold text-[rgba(11,18,32,0.40)] tracking-wider mb-1 block">Teléfono</label>
+                                            <input value={editTelefono} onChange={e => setEditTelefono(e.target.value)} placeholder="0999999999" className="w-full text-sm px-3 py-1.5 rounded-lg border border-[rgba(15,23,42,0.15)] bg-[#F7F8FA]" disabled={saving} />
                                         </div>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(c.id, (c as any).nombres); }}
-                                            className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                            title="Eliminar Cliente"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex items-center gap-2 pt-2 border-t border-[rgba(15,23,42,0.06)]">
+                                            <button onClick={() => handleSave(c.id)} disabled={saving} className="btn-primary flex items-center gap-1.5 px-3 py-1.5 text-xs">
+                                                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Guardar
+                                            </button>
+                                            <button onClick={cancelEdit} disabled={saving} className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs border-transparent hover:bg-[rgba(15,23,42,0.06)]">
+                                                <X className="w-3 h-3" /> Cancelar
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                                {c.telefono && (
-                                    <div className="flex items-center gap-2 text-xs text-[rgba(15,23,42,0.60)]">
-                                        <Phone className="w-3 h-3 text-[#FF6A00]" /> {c.telefono}
-                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex items-center gap-3 w-full">
+                                                {/* Avatar */}
+                                                <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-sm flex-shrink-0"
+                                                    style={{ background: '#F97316' }}>
+                                                    {(c as any).nombres?.[0]?.toUpperCase() ?? '?'}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="font-semibold text-[#0F172A] text-sm truncate">{(c as any).nombres}</p>
+                                                    <p className="text-xs text-[rgba(15,23,42,0.60)]">
+                                                        {new Date(c.created_at).toLocaleDateString('es')}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); startEdit(c); }}
+                                                        className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-[#0B1220] hover:bg-[rgba(15,23,42,0.05)] rounded-lg transition-colors"
+                                                        title="Editar Cliente"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(c.id, (c as any).nombres); }}
+                                                        className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Eliminar Cliente"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {c.telefono && (
+                                            <div className="flex items-center gap-2 text-xs text-[rgba(15,23,42,0.60)]">
+                                                <Phone className="w-3 h-3 text-[#F97316]" /> {c.telefono}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </motion.div>
                         ))}

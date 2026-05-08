@@ -26,8 +26,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background-image:
-    radial-gradient(at 0% 0%, rgba(255, 106, 0, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(255, 106, 0, 0.08) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(249, 115, 22, 0.08) 0px, transparent 50%);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -35,8 +35,8 @@ body {
   background-color: #0F172A;
   color: #F8FAFC;
   background-image:
-    radial-gradient(at 0% 0%, rgba(255, 106, 0, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(255, 106, 0, 0.1) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(249, 115, 22, 0.1) 0px, transparent 50%);
 }
 
 /* ─────────────────────────────────────────── */
@@ -57,7 +57,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF6A00;
+  background: #F97316;
 }
 
 /* ─────────────────────────────────────────── */
@@ -115,14 +115,14 @@ body {
   }
 
   .card-hover:hover {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 10px 30px -5px rgba(255, 106, 0, 0.15);
-    border-color: rgba(255, 106, 0, 0.25);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 10px 30px -5px rgba(249, 115, 22, 0.15);
+    border-color: rgba(249, 115, 22, 0.25);
     transform: translateY(-2px);
   }
 
   .dark .card-hover:hover {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 10px 30px -5px rgba(255, 106, 0, 0.25);
-    border-color: rgba(255, 106, 0, 0.4);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 10px 30px -5px rgba(249, 115, 22, 0.25);
+    border-color: rgba(249, 115, 22, 0.4);
   }
 
   /* Backward compat */
@@ -140,7 +140,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background: #FF6A00;
+    background: #F97316;
     color: white;
     font-weight: 600;
     font-size: 0.875rem;
@@ -149,18 +149,18 @@ body {
     border: none;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 30px -5px rgba(255, 106, 0, 0.3);
+    box-shadow: 0 10px 30px -5px rgba(249, 115, 22, 0.3);
   }
 
   .btn-primary:hover {
-    background: #FF771A;
-    box-shadow: 0 15px 35px -5px rgba(255, 106, 0, 0.4);
+    background: #EA6C0A;
+    box-shadow: 0 15px 35px -5px rgba(249, 115, 22, 0.4);
     transform: translateY(-2px) scale(1.02);
   }
 
   .btn-primary:active {
     transform: translateY(0) scale(0.98);
-    background: #E55F00;
+    background: #C2550D;
   }
 
   .btn-secondary {
@@ -232,13 +232,13 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255, 106, 0, 0.10);
-    color: #FF6A00;
+    background: rgba(249, 115, 22, 0.10);
+    color: #F97316;
     font-weight: 600;
     font-size: 0.75rem;
     padding: 6px 14px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 106, 0, 0.15);
+    border: 1px solid rgba(249, 115, 22, 0.15);
     letter-spacing: 0.02em;
   }
 
@@ -291,9 +291,9 @@ body {
 
   .badge-orange {
     @apply badge-status;
-    background: rgba(255, 106, 0, 0.08);
-    color: #FF6A00;
-    border: 1px solid rgba(255, 106, 0, 0.15);
+    background: rgba(249, 115, 22, 0.08);
+    color: #F97316;
+    border: 1px solid rgba(249, 115, 22, 0.15);
   }
 
   .badge-neutral {
@@ -338,8 +338,8 @@ body {
   }
 
   .input-field:focus {
-    border-color: #FF6A00;
-    box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.12);
+    border-color: #F97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
   }
 
   .input-field:hover:not(:focus) {
@@ -473,7 +473,7 @@ body {
 
   /* ── Orange gradient text ────────────────── */
   .text-gradient-orange {
-    background: linear-gradient(135deg, #FF6A00 0%, #FF8A33 100%);
+    background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -546,11 +546,11 @@ body {
 
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 106, 0, 0.3);
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.3);
   }
 
   50% {
-    box-shadow: 0 0 0 10px rgba(255, 106, 0, 0);
+    box-shadow: 0 0 0 10px rgba(249, 115, 22, 0);
   }
 }
 

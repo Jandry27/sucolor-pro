@@ -109,7 +109,7 @@ export function PhotoUploadPanel({ ordenId }: PhotoUploadPanelProps) {
         <div className="glass-card space-y-4" style={{ padding: '20px' }}>
             {/* Header */}
             <div className="flex items-center gap-2">
-                <Camera className="w-4 h-4 text-[#FF6A00]" />
+                <Camera className="w-4 h-4 text-[#F97316]" />
                 <h3 className="font-semibold text-[#0F172A] text-sm">Galería de fotos</h3>
                 <span className="ml-auto text-xs text-[rgba(15,23,42,0.40)]">{media.length} foto{media.length !== 1 ? 's' : ''}</span>
             </div>
@@ -132,8 +132,8 @@ export function PhotoUploadPanel({ ordenId }: PhotoUploadPanelProps) {
                         {media.filter(m => m.categoria === c.key).length > 0 && (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1"
                                 style={{
-                                    background: activeTab === c.key ? 'rgba(255,106,0,0.12)' : 'rgba(15,23,42,0.07)',
-                                    color: activeTab === c.key ? '#FF6A00' : 'rgba(15,23,42,0.50)',
+                                    background: activeTab === c.key ? 'rgba(249, 115, 22,0.12)' : 'rgba(15,23,42,0.07)',
+                                    color: activeTab === c.key ? '#F97316' : 'rgba(15,23,42,0.50)',
                                 }}>
                                 {media.filter(m => m.categoria === c.key).length}
                             </span>
@@ -146,19 +146,19 @@ export function PhotoUploadPanel({ ordenId }: PhotoUploadPanelProps) {
             <div
                 className="border-2 border-dashed rounded-xl p-5 flex flex-col items-center gap-2 cursor-pointer transition-all duration-150"
                 style={{ borderColor: 'rgba(15,23,42,0.12)' }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#FF6A00')}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = '#F97316')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(15,23,42,0.12)')}
                 onClick={() => fileRef.current?.click()}
             >
                 <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
                     onChange={e => handleFiles(e.target.files)} />
                 {uploading ? (
-                    <><Loader2 className="w-5 h-5 text-[#FF6A00] animate-spin" /><p className="text-sm text-[rgba(15,23,42,0.50)]">Subiendo...</p></>
+                    <><Loader2 className="w-5 h-5 text-[#F97316] animate-spin" /><p className="text-sm text-[rgba(15,23,42,0.50)]">Subiendo...</p></>
                 ) : (
                     <>
                         <Upload className="w-5 h-5 text-[rgba(15,23,42,0.30)]" />
                         <p className="text-sm text-[rgba(15,23,42,0.50)] text-center">
-                            Click o arrastra fotos de <span className="font-semibold text-[#FF6A00]">{activeTab.toLowerCase()}</span>
+                            Click o arrastra fotos de <span className="font-semibold text-[#F97316]">{activeTab.toLowerCase()}</span>
                         </p>
                     </>
                 )}
@@ -167,7 +167,7 @@ export function PhotoUploadPanel({ ordenId }: PhotoUploadPanelProps) {
             {/* Grid */}
             {loading ? (
                 <div className="flex justify-center py-6">
-                    <Loader2 className="w-5 h-5 text-[#FF6A00] animate-spin" />
+                    <Loader2 className="w-5 h-5 text-[#F97316] animate-spin" />
                 </div>
             ) : filtered.length === 0 ? (
                 <div className="flex flex-col items-center py-8 gap-2">

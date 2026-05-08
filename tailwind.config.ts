@@ -14,11 +14,11 @@ export default {
             },
             colors: {
                 brand: {
-                    // Primary orange (Neo-Lux vibrant suorange)
-                    orange: '#FF6A00',
-                    'orange-hover': '#E55F00',
-                    'orange-soft': 'rgba(255, 106, 0, 0.10)',
-                    'orange-border': 'rgba(255, 106, 0, 0.20)',
+                    // Primary orange (color de marca SuColor)
+                    orange: '#F97316',
+                    'orange-hover': '#EA6C0A',
+                    'orange-soft': 'rgba(249, 115, 22, 0.10)',
+                    'orange-border': 'rgba(249, 115, 22, 0.20)',
                     // Text
                     'text-primary': '#0B1220',
                     'text-secondary': 'rgba(11,18,32,0.65)',
@@ -45,14 +45,14 @@ export default {
                 }
             },
             backgroundImage: {
-                'orange-gradient': 'linear-gradient(135deg, #FF6A00 0%, #E55F00 100%)',
+                'orange-gradient': 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)',
                 'subtle-gradient': 'linear-gradient(180deg, #FFFFFF 0%, #F7F8FA 100%)',
             },
             boxShadow: {
                 'card': '0 20px 50px -12px rgba(0, 0, 0, 0.08)',
                 'card-hover': '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
-                'orange': '0 10px 30px -5px rgba(255, 106, 0, 0.3)',
-                'orange-sm': '0 4px 14px 0 rgba(255, 106, 0, 0.39)',
+                'orange': '0 10px 30px -5px rgba(249, 115, 22, 0.3)',
+                'orange-sm': '0 4px 14px 0 rgba(249, 115, 22, 0.39)',
                 'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
                 'dark': '0 4px 24px rgba(0,0,0,0.08)',
                 'nav': '0 1px 0 rgba(15,23,42,0.08)',
@@ -92,8 +92,8 @@ export default {
                     '100%': { backgroundPosition: '200% 0' },
                 },
                 pulseOrange: {
-                    '0%, 100%': { boxShadow: '0 0 0 0 rgba(255, 106, 0, 0.3)' },
-                    '50%': { boxShadow: '0 0 0 6px rgba(255, 106, 0, 0)' },
+                    '0%, 100%': { boxShadow: '0 0 0 0 rgba(249, 115, 22, 0.3)' },
+                    '50%': { boxShadow: '0 0 0 6px rgba(249, 115, 22, 0)' },
                 },
                 progressFill: {
                     '0%': { width: '0%' },

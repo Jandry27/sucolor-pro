@@ -52,8 +52,8 @@ export function MediaGallery({ media }: MediaGalleryProps) {
                             {counts[cat.key] > 0 && (
                                 <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                                     style={{
-                                        background: activeTab === cat.key ? 'rgba(255,106,0,0.15)' : 'rgba(15,23,42,0.06)',
-                                        color: activeTab === cat.key ? '#FF6A00' : 'rgba(11,18,32,0.45)', // Note: This gets complex with inline styles. We'll use classes where possible next, but this is fine for now as it's an accent color
+                                        background: activeTab === cat.key ? 'rgba(249, 115, 22,0.15)' : 'rgba(15,23,42,0.06)',
+                                        color: activeTab === cat.key ? '#F97316' : 'rgba(11,18,32,0.45)',
                                     }}>
                                     {counts[cat.key]}
                                 </span>

@@ -27,13 +27,13 @@ export function OrderCard({ order, onDelete }: OrderCardProps) {
     return (
         <motion.div layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
-            className="bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-xl overflow-hidden transition-all duration-150 hover:border-[#FF6A00]/30 hover:shadow-[0_4px_16px_-4px_rgba(255,106,0,0.15)] hover:-translate-y-0.5 cursor-pointer"
+            className="bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-xl overflow-hidden transition-all duration-150 hover:border-[#F97316]/30 hover:shadow-[0_4px_16px_-4px_rgba(249,115,22,0.15)] hover:-translate-y-0.5 cursor-pointer"
             style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
             <Link to={`/admin/orders/${order.id}`} className="block p-4">
                 {/* Top row */}
                 <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="min-w-0">
-                        <p className="font-mono-code text-xs text-[#FF6A00] font-bold">{order.codigo}</p>
+                        <p className="font-mono-code text-xs text-[#F97316] font-bold">{order.codigo}</p>
                         <p className="font-semibold text-[#0F172A] text-sm mt-0.5 leading-tight truncate">
                             {(order.cliente as any).nombres}
                         </p>
@@ -55,7 +55,7 @@ export function OrderCard({ order, onDelete }: OrderCardProps) {
                             </span>
                         </div>
                         {order.share_enabled && (
-                            <Share2 className="w-3 h-3 text-[#FF6A00]" />
+                            <Share2 className="w-3 h-3 text-[#F97316]" />
                         )}
                     </div>
                 </div>

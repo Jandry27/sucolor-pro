@@ -55,12 +55,12 @@ export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2 text-[#FF6A00] dark:text-[#FF8A33]">
+                <div className="flex items-center gap-2 text-[#F97316] dark:text-[#FB923C]">
                     <DollarSign className="w-5 h-5" />
                     <h3 className="font-semibold text-[#0F172A] dark:text-slate-100 text-sm">Repuestos y Gastos</h3>
                 </div>
                 {totalGastos > 0 && (
-                    <span className="font-bold text-[#FF6A00] dark:text-[#FF8A33] text-sm">
+                    <span className="font-bold text-[#F97316] dark:text-[#FB923C] text-sm">
                         Total: ${(totalGastos).toFixed(2)}
                     </span>
                 )}
@@ -78,7 +78,7 @@ export function PublicGastosPanel({ gastos }: PublicGastosPanelProps) {
                             <div className="flex items-start sm:items-center gap-4">
                                 {gasto.factura_url && (
                                     <div
-                                        className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer border border-slate-200/50 group-hover:border-[#FF6A00]/50 transition-colors"
+                                        className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer border border-slate-200/50 group-hover:border-[#F97316]/50 transition-colors"
                                         onClick={() => setSelectedImage(gasto.factura_url!)}
                                         title="Ver factura adjunta"
                                     >

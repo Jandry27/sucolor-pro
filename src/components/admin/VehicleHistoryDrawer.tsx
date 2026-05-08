@@ -107,11 +107,11 @@ export function VehicleHistoryDrawer({ vehiculo, onClose }: Props) {
                         {/* Header */}
                         <div className="flex items-start justify-between p-5 border-b border-[rgba(15,23,42,0.07)]">
                             <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-[rgba(255,106,0,0.10)] flex items-center justify-center flex-shrink-0">
-                                    <Car className="w-4.5 h-4.5 text-[#FF6A00]" style={{ width: 18, height: 18 }} />
+                                <div className="w-9 h-9 rounded-xl bg-[rgba(249, 115, 22,0.10)] flex items-center justify-center flex-shrink-0">
+                                    <Car className="w-4.5 h-4.5 text-[#F97316]" style={{ width: 18, height: 18 }} />
                                 </div>
                                 <div>
-                                    <p className="font-mono text-xs font-bold text-[#FF6A00] uppercase tracking-widest">{vehiculo.placa}</p>
+                                    <p className="font-mono text-xs font-bold text-[#F97316] uppercase tracking-widest">{vehiculo.placa}</p>
                                     <h2 className="text-base font-bold text-[#0F172A] leading-tight">
                                         {vehiculo.marca} {vehiculo.modelo}
                                     </h2>
@@ -143,7 +143,7 @@ export function VehicleHistoryDrawer({ vehiculo, onClose }: Props) {
                         <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-3">
                             {loading ? (
                                 <div className="flex justify-center items-center h-40">
-                                    <Loader2 className="w-6 h-6 text-[#FF6A00] animate-spin" />
+                                    <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
                                 </div>
                             ) : error ? (
                                 <div className="flex flex-col items-center gap-2 py-12">
@@ -168,7 +168,7 @@ export function VehicleHistoryDrawer({ vehiculo, onClose }: Props) {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * 0.05 }}
-                                            className="bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-2xl p-4 hover:border-[rgba(255,106,0,0.25)] hover:shadow-premium transition-all group"
+                                            className="bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-2xl p-4 hover:border-[rgba(249,115,22,0.25)] hover:shadow-premium transition-all group"
                                         >
                                             {/* Top row: código + badge estado */}
                                             <div className="flex items-center justify-between mb-3">
@@ -208,7 +208,7 @@ export function VehicleHistoryDrawer({ vehiculo, onClose }: Props) {
                                             {/* CTA */}
                                             <button
                                                 onClick={() => { onClose(); navigate(`/admin/orders/${orden.id}`); }}
-                                                className="flex items-center gap-1.5 text-xs font-semibold text-[#FF6A00] hover:text-[#e54800] transition-colors group-hover:gap-2.5"
+                                                className="flex items-center gap-1.5 text-xs font-semibold text-[#F97316] hover:text-[#C2550D] transition-colors group-hover:gap-2.5"
                                             >
                                                 Ver detalle
                                                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
