@@ -1,46 +1,46 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { TrackPage } from '@/pages/TrackPage';
-import { LandingPage } from '@/pages/LandingPage';
-import { LoginPage } from '@/pages/admin/LoginPage';
-import { DashboardPage } from '@/pages/admin/DashboardPage';
-import { OrderDetailPage } from '@/pages/admin/OrderDetailPage';
-import { OrdersListPage } from '@/pages/admin/OrdersListPage';
-import { ClientesPage } from '@/pages/admin/ClientesPage';
-import { VehiculosPage } from '@/pages/admin/VehiculosPage';
-import { NuevaOrdenPage } from '@/pages/admin/NuevaOrdenPage';
-import { ReportesPage } from '@/pages/admin/ReportesPage';
-import { SettingsPage } from '@/pages/admin/SettingsPage';
+import { PaginaSeguimiento } from '@/paginas/PaginaSeguimiento';
+import { PaginaInicio } from '@/paginas/PaginaInicio';
+import { PaginaInicioSesion } from '@/paginas/administracion/PaginaInicioSesion';
+import { PaginaPanel } from '@/paginas/administracion/PaginaPanel';
+import { PaginaDetalleOrden } from '@/paginas/administracion/PaginaDetalleOrden';
+import { PaginaListaOrdenes } from '@/paginas/administracion/PaginaListaOrdenes';
+import { PaginaClientes } from '@/paginas/administracion/PaginaClientes';
+import { PaginaVehiculos } from '@/paginas/administracion/PaginaVehiculos';
+import { PaginaNuevaOrden } from '@/paginas/administracion/PaginaNuevaOrden';
+import { PaginaReportes } from '@/paginas/administracion/PaginaReportes';
+import { PaginaConfiguracion } from '@/paginas/administracion/PaginaConfiguracion';
 
-import { ThemeProvider } from '@/components/ThemeProvider';
+import { ProveedorTema } from '@/componentes/ProveedorTema';
 
 export default function App() {
     return (
-        <ThemeProvider>
+        <ProveedorTema>
             <HashRouter>
                 <Routes>
                     {/* ── Public ──────────────────────────────────────────────── */}
-                    <Route path="/" element={<LandingPage />} />
-                    <Route path="/track/:codigo" element={<TrackPage />} />
+                    <Route path="/" element={<PaginaInicio />} />
+                    <Route path="/track/:codigo" element={<PaginaSeguimiento />} />
 
                     {/* ── Admin ───────────────────────────────────────────────── */}
-                    <Route path="/admin/login" element={<LoginPage />} />
-                    <Route path="/admin/dashboard" element={<DashboardPage />} />
-                    <Route path="/admin/orders" element={<OrdersListPage />} />
-                    <Route path="/admin/orders/nueva" element={<NuevaOrdenPage />} />
-                    <Route path="/admin/orders/:id" element={<OrderDetailPage />} />
-                    <Route path="/admin/clientes" element={<ClientesPage />} />
-                    <Route path="/admin/vehiculos" element={<VehiculosPage />} />
-                    <Route path="/admin/reportes" element={<ReportesPage />} />
-                    <Route path="/admin/configuracion" element={<SettingsPage />} />
+                    <Route path="/administracion/login" element={<PaginaInicioSesion />} />
+                    <Route path="/administracion/dashboard" element={<PaginaPanel />} />
+                    <Route path="/administracion/orders" element={<PaginaListaOrdenes />} />
+                    <Route path="/administracion/orders/nueva" element={<PaginaNuevaOrden />} />
+                    <Route path="/administracion/orders/:id" element={<PaginaDetalleOrden />} />
+                    <Route path="/administracion/clientes" element={<PaginaClientes />} />
+                    <Route path="/administracion/vehiculos" element={<PaginaVehiculos />} />
+                    <Route path="/administracion/reportes" element={<PaginaReportes />} />
+                    <Route path="/administracion/configuracion" element={<PaginaConfiguracion />} />
 
                     {/* ── Legacy redirect ─────────────────────────────────────── */}
-                    <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="/admin" element={<Navigate to="/administracion/dashboard" replace />} />
 
                     {/* ── Catch-all ───────────────────────────────────────────── */}
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </HashRouter>
-        </ThemeProvider>
+        </ProveedorTema>
     );
 }
 
