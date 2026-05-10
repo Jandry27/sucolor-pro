@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { X, FileText, Loader2, Send, CheckCircle2, AlertTriangle, Download, Search } from 'lucide-react';
+import {
+    X,
+    FileText,
+    Loader2,
+    Send,
+    CheckCircle2,
+    AlertTriangle,
+    Download,
+    Search,
+} from 'lucide-react';
 import type { AdminOrder, Invoice, OrdenGasto } from '@/types';
 
 interface InvoiceModalProps {
@@ -19,7 +28,14 @@ function generateRideHtml(data: {
         fechaEmision: string;
         fechaAutorizacion: string;
         numeroAutorizacion: string;
-        items: Array<{ codigo: string; descripcion: string; cantidad: string; precioUnitario: string; descuento: string; precioTotal: string }>;
+        items: Array<{
+            codigo: string;
+            descripcion: string;
+            cantidad: string;
+            precioUnitario: string;
+            descuento: string;
+            precioTotal: string;
+        }>;
         subtotal0: string;
         subtotal15: string;
         subtotalNoObjeto: string;
@@ -36,9 +52,12 @@ function generateRideHtml(data: {
     notas?: string;
     logoUrl?: string;
 }): string {
-    const esc = (s: string | undefined | null) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const esc = (s: string | undefined | null) =>
+        (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    const itemsRows = data.factura.items.map(item => `
+    const itemsRows = data.factura.items
+        .map(
+            item => `
         <tr>
             <td class="tc">${esc(item.codigo)}</td>
             <td class="tc">${item.cantidad}</td>
@@ -48,16 +67,29 @@ function generateRideHtml(data: {
             <td class="tr">0.00</td>
             <td class="tr">${item.descuento}</td>
             <td class="tr">${item.precioTotal}</td>
-        </tr>`).join('');
+        </tr>`
+        )
+        .join('');
 
     const infoAdicionalRows: string[] = [];
-    if (data.comprador.telefono) infoAdicionalRows.push(`<tr><td class="ia-lbl">Teléfono:</td><td>${esc(data.comprador.telefono)}</td></tr>`);
-    if (data.comprador.email) infoAdicionalRows.push(`<tr><td class="ia-lbl">Email:</td><td>${esc(data.comprador.email)}</td></tr>`);
+    if (data.comprador.telefono)
+        infoAdicionalRows.push(
+            `<tr><td class="ia-lbl">Teléfono:</td><td>${esc(data.comprador.telefono)}</td></tr>`
+        );
+    if (data.comprador.email)
+        infoAdicionalRows.push(
+            `<tr><td class="ia-lbl">Email:</td><td>${esc(data.comprador.email)}</td></tr>`
+        );
     if (data.vehiculo?.placa) {
         const vehicleInfo = [data.vehiculo.marca, data.vehiculo.modelo].filter(Boolean).join(' ');
-        infoAdicionalRows.push(`<tr><td class="ia-lbl">Vehículo:</td><td>Placa ${data.vehiculo.placa}${vehicleInfo ? ` - ${vehicleInfo}` : ''}</td></tr>`);
+        infoAdicionalRows.push(
+            `<tr><td class="ia-lbl">Vehículo:</td><td>Placa ${data.vehiculo.placa}${vehicleInfo ? ` - ${vehicleInfo}` : ''}</td></tr>`
+        );
     }
-    if (data.notas) infoAdicionalRows.push(`<tr><td class="ia-lbl">Observación:</td><td>${esc(data.notas)}</td></tr>`);
+    if (data.notas)
+        infoAdicionalRows.push(
+            `<tr><td class="ia-lbl">Observación:</td><td>${esc(data.notas)}</td></tr>`
+        );
 
     // SVG barcode for Code 128B
     const barcodeChars = data.factura.claveAcceso;
@@ -69,7 +101,7 @@ function generateRideHtml(data: {
         for (let i = 0; i < barcodeChars.length; i++) {
             const charCode = barcodeChars.charCodeAt(i);
             const w1 = (charCode % 3) + 1;
-            const w2 = ((charCode % 2) + 1);
+            const w2 = (charCode % 2) + 1;
             bars.push(`<rect x="${x}" y="0" width="${w1}" height="50" fill="black"/>`);
             x += w1 + w2;
         }
@@ -77,7 +109,9 @@ function generateRideHtml(data: {
         barcodeSvg = `<svg viewBox="0 0 ${totalW} 50" style="width:100%;max-width:380px;height:50px" xmlns="http://www.w3.org/2000/svg">${bars.join('')}</svg>`;
     }
 
-    const logoImg = data.logoUrl ? `<img src="${data.logoUrl}" alt="Logo" style="max-height:80px;max-width:200px;object-fit:contain">` : `<div style="font-size:32px;font-weight:900;color:#ea580c;font-family:Arial,sans-serif">SuColor</div>`;
+    const logoImg = data.logoUrl
+        ? `<img src="${data.logoUrl}" alt="Logo" style="max-height:80px;max-width:200px;object-fit:contain">`
+        : `<div style="font-size:32px;font-weight:900;color:#ea580c;font-family:Arial,sans-serif">SuColor</div>`;
 
     return `<!DOCTYPE html>
 <html lang="es">
@@ -282,9 +316,13 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
     const [error, setError] = useState<string | null>(null);
 
     const clienteInitial = order.cliente as any;
-    const [clienteDocTipo, setClienteDocTipo] = useState(clienteInitial?.tipo_identificacion || '05');
+    const [clienteDocTipo, setClienteDocTipo] = useState(
+        clienteInitial?.tipo_identificacion || '05'
+    );
     const [clienteDoc, setClienteDoc] = useState(clienteInitial?.cedula || '');
-    const [clienteNombre, setClienteNombre] = useState(clienteInitial?.nombres || clienteInitial?.nombre || '');
+    const [clienteNombre, setClienteNombre] = useState(
+        clienteInitial?.nombres || clienteInitial?.nombre || ''
+    );
     const [clienteDireccion, setClienteDireccion] = useState(clienteInitial?.direccion || '');
     const [clienteTelefono, setClienteTelefono] = useState(clienteInitial?.telefono || '');
     const [clienteEmail, setClienteEmail] = useState(clienteInitial?.email || '');
@@ -316,9 +354,12 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
-            
+
         if (error) {
-            console.warn('Tabla invoices no existe localmente, asumiendo que no hay factura:', error.message);
+            console.warn(
+                'Tabla invoices no existe localmente, asumiendo que no hay factura:',
+                error.message
+            );
         }
         if (data) setExistingInvoice(data);
         setLoading(false);
@@ -371,7 +412,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
 
         // Debounce: buscar después de 500ms de no tipear
         if (searchTimeout.current) clearTimeout(searchTimeout.current);
-        
+
         if (value.length >= 10) {
             searchTimeout.current = setTimeout(() => {
                 buscarClientePorCedula(value);
@@ -383,14 +424,30 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
     const handleDownloadRIDE = async () => {
         if (!existingInvoice) return;
 
-        const { data: settings } = await supabase.from('company_settings').select('*').limit(1).maybeSingle();
-        const empresa = settings || { razon_social: 'Empresa', ruc: '', direccion_matriz: '', nombre_comercial: '' };
+        const { data: settings } = await supabase
+            .from('company_settings')
+            .select('*')
+            .limit(1)
+            .maybeSingle();
+        const empresa = settings || {
+            razon_social: 'Empresa',
+            ruc: '',
+            direccion_matriz: '',
+            nombre_comercial: '',
+        };
         const cliente = order.cliente as any;
 
         // Build items
         const totalMO = order.precio_total || 0;
-        const invoiceItems: Array<{ codigo: string; descripcion: string; cantidad: string; precioUnitario: string; descuento: string; precioTotal: string }> = [];
-        
+        const invoiceItems: Array<{
+            codigo: string;
+            descripcion: string;
+            cantidad: string;
+            precioUnitario: string;
+            descuento: string;
+            precioTotal: string;
+        }> = [];
+
         if (totalMO > 0) {
             invoiceItems.push({
                 codigo: 'MANO_OBRA',
@@ -441,7 +498,9 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
             factura: {
                 secuencial: existingInvoice.secuencial || '',
                 claveAcceso: existingInvoice.clave_acceso || '',
-                fechaEmision: existingInvoice.fecha_emision ? new Date(existingInvoice.fecha_emision).toLocaleDateString('es-EC') : '',
+                fechaEmision: existingInvoice.fecha_emision
+                    ? new Date(existingInvoice.fecha_emision).toLocaleDateString('es-EC')
+                    : '',
                 fechaAutorizacion: fechaAuth,
                 numeroAutorizacion: existingInvoice.clave_acceso || '',
                 items: invoiceItems,
@@ -457,7 +516,13 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                 formaPago: '01',
                 formaPagoDescripcion: 'SIN UTILIZACIÓN DEL SISTEMA FINANCIERO',
             },
-            vehiculo: order.vehiculo ? { placa: order.vehiculo.placa, marca: order.vehiculo.marca, modelo: order.vehiculo.modelo } : undefined,
+            vehiculo: order.vehiculo
+                ? {
+                      placa: order.vehiculo.placa,
+                      marca: order.vehiculo.marca,
+                      modelo: order.vehiculo.modelo,
+                  }
+                : undefined,
             notas: notasVenta || undefined,
             logoUrl: '/logo.png',
         });
@@ -497,14 +562,17 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
         try {
             // Update client data in BD before invoicing
             if (order.cliente_id) {
-                await supabase.from('clientes').update({
-                    cedula: clienteDoc,
-                    nombres: clienteNombre,
-                    direccion: clienteDireccion,
-                    email: clienteEmail,
-                    telefono: clienteTelefono,
-                    tipo_identificacion: clienteDocTipo,
-                }).eq('id', order.cliente_id);
+                await supabase
+                    .from('clientes')
+                    .update({
+                        cedula: clienteDoc,
+                        nombres: clienteNombre,
+                        direccion: clienteDireccion,
+                        email: clienteEmail,
+                        telefono: clienteTelefono,
+                        tipo_identificacion: clienteDocTipo,
+                    })
+                    .eq('id', order.cliente_id);
             }
 
             const payload = {
@@ -541,7 +609,9 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
 
             if (functionError) {
                 console.error('Edge function call error:', functionError);
-                throw new Error(functionError.message || 'Error de conexión con el servidor de facturación');
+                throw new Error(
+                    functionError.message || 'Error de conexión con el servidor de facturación'
+                );
             }
             if (!data || !data.success) {
                 throw new Error(data?.message || 'Error desconocido del SRI');
@@ -566,14 +636,16 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
             <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
-                
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                         <FileText className="w-5 h-5 text-brand-orange" />
                         Facturación Electrónica SRI
                     </h2>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <button
+                        onClick={onClose}
+                        className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -581,7 +653,9 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                 {/* Body */}
                 <div className="p-6 overflow-y-auto">
                     {loading ? (
-                        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>
+                        <div className="flex justify-center py-12">
+                            <Loader2 className="w-8 h-8 animate-spin text-brand-orange" />
+                        </div>
                     ) : existingInvoice ? (
                         <div className="space-y-6">
                             <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
@@ -598,18 +672,23 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                                 <p className="text-sm text-slate-500 dark:text-slate-400">
                                     Secuencial: {existingInvoice.secuencial || 'En proceso...'}
                                 </p>
-                                
+
                                 {existingInvoice.estado === 'RECIBIDA' && (
                                     <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
-                                        El SRI recibió la factura y la está procesando. La autorización puede tardar unos minutos.
+                                        El SRI recibió la factura y la está procesando. La
+                                        autorización puede tardar unos minutos.
                                     </p>
                                 )}
 
-                                {existingInvoice.estado === 'AUTORIZADA' && existingInvoice.autorizacion_fecha && (
-                                    <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-                                        Autorizada: {new Date(existingInvoice.autorizacion_fecha).toLocaleString('es-EC')}
-                                    </p>
-                                )}
+                                {existingInvoice.estado === 'AUTORIZADA' &&
+                                    existingInvoice.autorizacion_fecha && (
+                                        <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                                            Autorizada:{' '}
+                                            {new Date(
+                                                existingInvoice.autorizacion_fecha
+                                            ).toLocaleString('es-EC')}
+                                        </p>
+                                    )}
 
                                 {existingInvoice.clave_acceso && (
                                     <div className="mt-4 break-all bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-600 dark:text-slate-300">
@@ -617,24 +696,38 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                                     </div>
                                 )}
 
-                                {existingInvoice.estado === 'RECHAZADA' && existingInvoice.mensajes_sri && (
-                                    <div className="mt-4 text-left bg-red-50 dark:bg-red-500/10 p-3 rounded-lg border border-red-200 dark:border-red-500/20">
-                                        <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-1">Detalle del SRI:</p>
-                                        {(existingInvoice.mensajes_sri as any)?.mensajes?.map((msg: any, i: number) => (
-                                            <p key={i} className="text-xs text-red-600 dark:text-red-300">
-                                                [{msg.tipo}] {msg.mensaje} {msg.informacionAdicional ? `— ${msg.informacionAdicional}` : ''}
+                                {existingInvoice.estado === 'RECHAZADA' &&
+                                    existingInvoice.mensajes_sri && (
+                                        <div className="mt-4 text-left bg-red-50 dark:bg-red-500/10 p-3 rounded-lg border border-red-200 dark:border-red-500/20">
+                                            <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-1">
+                                                Detalle del SRI:
                                             </p>
-                                        )) || (
-                                            <p className="text-xs text-red-600 dark:text-red-300">
-                                                {(existingInvoice.mensajes_sri as any)?.error || JSON.stringify(existingInvoice.mensajes_sri)}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
+                                            {(existingInvoice.mensajes_sri as any)?.mensajes?.map(
+                                                (msg: any, i: number) => (
+                                                    <p
+                                                        key={i}
+                                                        className="text-xs text-red-600 dark:text-red-300"
+                                                    >
+                                                        [{msg.tipo}] {msg.mensaje}{' '}
+                                                        {msg.informacionAdicional
+                                                            ? `— ${msg.informacionAdicional}`
+                                                            : ''}
+                                                    </p>
+                                                )
+                                            ) || (
+                                                <p className="text-xs text-red-600 dark:text-red-300">
+                                                    {(existingInvoice.mensajes_sri as any)?.error ||
+                                                        JSON.stringify(
+                                                            existingInvoice.mensajes_sri
+                                                        )}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
                             </div>
 
                             {existingInvoice.estado === 'AUTORIZADA' && (
-                                <button 
+                                <button
                                     onClick={() => handleDownloadRIDE()}
                                     className="w-full btn-primary py-3 flex items-center justify-center gap-2"
                                 >
@@ -644,8 +737,10 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                             )}
 
                             {existingInvoice.estado === 'RECHAZADA' && (
-                                <button 
-                                    onClick={() => { setExistingInvoice(null); }}
+                                <button
+                                    onClick={() => {
+                                        setExistingInvoice(null);
+                                    }}
                                     className="w-full py-3 flex items-center justify-center gap-2 text-base font-medium rounded-xl border-2 border-brand-orange text-brand-orange hover:bg-brand-orange/10 transition-colors"
                                 >
                                     <Send className="w-5 h-5" />
@@ -657,13 +752,18 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                         <div className="space-y-6">
                             {/* Formulario Cliente */}
                             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                                <h3 className="text-sm font-semibold mb-3 dark:text-white">Datos del Cliente para el SRI</h3>
+                                <h3 className="text-sm font-semibold mb-3 dark:text-white">
+                                    Datos del Cliente para el SRI
+                                </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="col-span-1 md:col-span-2 flex gap-3">
                                         <div className="w-1/3">
-                                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">Tipo Doc.</label>
-                                            <select 
-                                                value={clienteDocTipo} onChange={e => setClienteDocTipo(e.target.value)}
+                                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
+                                                Tipo Doc.
+                                            </label>
+                                            <select
+                                                value={clienteDocTipo}
+                                                onChange={e => setClienteDocTipo(e.target.value)}
                                                 className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                             >
                                                 <option value="05">Cédula (05)</option>
@@ -672,14 +772,18 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                                             </select>
                                         </div>
                                         <div className="w-2/3">
-                                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">Identificación *</label>
+                                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
+                                                Identificación *
+                                            </label>
                                             <div className="relative">
-                                                <input 
-                                                    type="text" 
-                                                    value={clienteDoc} 
-                                                    onChange={e => handleCedulaChange(e.target.value)}
+                                                <input
+                                                    type="text"
+                                                    value={clienteDoc}
+                                                    onChange={e =>
+                                                        handleCedulaChange(e.target.value)
+                                                    }
                                                     placeholder="Ingresa la cédula para buscar..."
-                                                    className="w-full text-sm p-2 pr-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white" 
+                                                    className="w-full text-sm p-2 pr-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                                 />
                                                 <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
                                                     {searchingCliente ? (
@@ -700,67 +804,101 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                                             )}
                                             {clienteFound === false && clienteDoc.length >= 10 && (
                                                 <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
-                                                    Cliente no registrado — ingresa los datos manualmente
+                                                    Cliente no registrado — ingresa los datos
+                                                    manualmente
                                                 </p>
                                             )}
                                         </div>
                                     </div>
                                     <div className="col-span-1 md:col-span-2">
-                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">Razón Social / Nombres y Apellidos *</label>
-                                        <input 
-                                            type="text" value={clienteNombre} onChange={e => setClienteNombre(e.target.value)}
-                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white" 
+                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
+                                            Razón Social / Nombres y Apellidos *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={clienteNombre}
+                                            onChange={e => setClienteNombre(e.target.value)}
+                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                         />
                                     </div>
                                     <div className="col-span-1 md:col-span-2">
-                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">Dirección *</label>
-                                        <input 
-                                            type="text" value={clienteDireccion} onChange={e => setClienteDireccion(e.target.value)}
-                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white" 
+                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
+                                            Dirección *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={clienteDireccion}
+                                            onChange={e => setClienteDireccion(e.target.value)}
+                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                         />
                                     </div>
                                     <div className="col-span-1">
-                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">Correo Electrónico *</label>
-                                        <input 
-                                            type="email" value={clienteEmail} onChange={e => setClienteEmail(e.target.value)}
-                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white" 
+                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
+                                            Correo Electrónico *
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={clienteEmail}
+                                            onChange={e => setClienteEmail(e.target.value)}
+                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                         />
                                     </div>
                                     <div className="col-span-1">
-                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">Teléfono</label>
-                                        <input 
-                                            type="text" value={clienteTelefono} onChange={e => setClienteTelefono(e.target.value)}
-                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white" 
+                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
+                                            Teléfono
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={clienteTelefono}
+                                            onChange={e => setClienteTelefono(e.target.value)}
+                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                                <h3 className="text-sm font-semibold mb-3 dark:text-white">Detalles a Facturar</h3>
+                                <h3 className="text-sm font-semibold mb-3 dark:text-white">
+                                    Detalles a Facturar
+                                </h3>
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-sm">
-                                        <span className="text-slate-600 dark:text-slate-300">Mano de Obra (Orden {order.codigo})</span>
+                                        <span className="text-slate-600 dark:text-slate-300">
+                                            Mano de Obra (Orden {order.codigo})
+                                        </span>
                                         <div className="flex items-center gap-3">
-                                            <select 
-                                                value={ivaManoObra} 
-                                                onChange={e => setIvaManoObra(Number(e.target.value))}
+                                            <select
+                                                value={ivaManoObra}
+                                                onChange={e =>
+                                                    setIvaManoObra(Number(e.target.value))
+                                                }
                                                 className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-xs outline-none"
                                             >
                                                 <option value={0}>IVA 0%</option>
                                                 <option value={15}>IVA 15%</option>
                                             </select>
-                                            <span className="font-medium dark:text-white">${totalManoObra.toFixed(2)}</span>
+                                            <span className="font-medium dark:text-white">
+                                                ${totalManoObra.toFixed(2)}
+                                            </span>
                                         </div>
                                     </div>
-                                    
+
                                     {gastos.length > 0 && (
                                         <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                                            <span className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Repuestos / Adicionales</span>
+                                            <span className="text-xs font-semibold text-slate-500 uppercase mb-2 block">
+                                                Repuestos / Adicionales
+                                            </span>
                                             {gastos.map(g => (
-                                                <div key={g.id} className="flex justify-between items-center text-sm mb-1.5">
-                                                    <span className="text-slate-600 dark:text-slate-300 truncate pr-4">{g.descripcion}</span>
-                                                    <span className="font-medium dark:text-white flex-shrink-0">${Number(g.monto).toFixed(2)}</span>
+                                                <div
+                                                    key={g.id}
+                                                    className="flex justify-between items-center text-sm mb-1.5"
+                                                >
+                                                    <span className="text-slate-600 dark:text-slate-300 truncate pr-4">
+                                                        {g.descripcion}
+                                                    </span>
+                                                    <span className="font-medium dark:text-white flex-shrink-0">
+                                                        ${Number(g.monto).toFixed(2)}
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>
@@ -775,14 +913,18 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
 
                             {/* Forma de Pago */}
                             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                                <label className="text-sm font-semibold text-slate-900 dark:text-white mb-2 block">Forma de Pago</label>
-                                <select 
-                                    value={formaPago} 
+                                <label className="text-sm font-semibold text-slate-900 dark:text-white mb-2 block">
+                                    Forma de Pago
+                                </label>
+                                <select
+                                    value={formaPago}
                                     onChange={e => setFormaPago(e.target.value)}
                                     className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                 >
                                     {Object.entries(FORMAS_PAGO).map(([code, desc]) => (
-                                        <option key={code} value={code}>{code} - {desc}</option>
+                                        <option key={code} value={code}>
+                                            {code} - {desc}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
@@ -795,7 +937,9 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                             )}
 
                             <div>
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">Notas adicionales en la factura (Opcional)</label>
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+                                    Notas adicionales en la factura (Opcional)
+                                </label>
                                 <textarea
                                     className="w-full text-sm p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 resize-none focus:ring-1 focus:ring-brand-orange outline-none dark:text-white"
                                     rows={2}
@@ -805,15 +949,20 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
                                 />
                             </div>
 
-                            <button 
+                            <button
                                 onClick={handleGenerateInvoice}
                                 disabled={processing}
                                 className="w-full btn-primary py-3 flex items-center justify-center gap-2 text-base"
                             >
                                 {processing ? (
-                                    <><Loader2 className="w-5 h-5 animate-spin"/> Generando XML y Firmando...</>
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" /> Generando XML y
+                                        Firmando...
+                                    </>
                                 ) : (
-                                    <><Send className="w-5 h-5"/> Emitir Factura al SRI</>
+                                    <>
+                                        <Send className="w-5 h-5" /> Emitir Factura al SRI
+                                    </>
                                 )}
                             </button>
                         </div>
