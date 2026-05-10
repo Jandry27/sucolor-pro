@@ -1,7 +1,4 @@
 {
-    "extends": "./config/typescript/tsconfig.node.json"
-}
-{
     "compilerOptions": {
         "composite": true,
         "skipLibCheck": true,
@@ -11,8 +8,8 @@
         "strict": true
     },
     "include": [
-        "config/vite.config.ts",
-        "config/vitest.config.ts",
-        "config/tailwind.config.ts"
+        "../vite.config.ts",
+        "../vitest.config.ts",
+        "../tailwind.config.ts"
     ]
 }
