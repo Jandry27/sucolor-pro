@@ -93,7 +93,8 @@ export default function App() {
                     {/* ── Legacy redirect ─────────────────────────────────────── */}
                     <Route
                         path="/admin"
-                        element={<Navigate to="/administracion/dashboard" replace />}
+                        element={
+                            <Navigate to="/administracion/orders" replace />}
                     />
 
                     {/* ── Catch-all ───────────────────────────────────────────── */}

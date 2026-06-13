@@ -20,7 +20,7 @@ export function PaginaInicioSesion() {
         try {
             const exito = await login(email, password);
             if (exito) {
-                navigate('/administracion/orders');
+                navigate('/administracion/dashboard');
             } else {
                 setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
             }
