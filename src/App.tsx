@@ -10,6 +10,7 @@ import { PaginaVehiculos } from '@/paginas/administracion/PaginaVehiculos';
 import { PaginaNuevaOrden } from '@/paginas/administracion/PaginaNuevaOrden';
 import { PaginaReportes } from '@/paginas/administracion/PaginaReportes';
 import { PaginaConfiguracion } from '@/paginas/administracion/PaginaConfiguracion';
+import { RutaProtegida } from '@/componentes/administracion/RutaProtegida';
 
 import { ProveedorTema } from '@/componentes/ProveedorTema';
 
@@ -24,14 +25,14 @@ export default function App() {
 
                     {/* ── Admin ───────────────────────────────────────────────── */}
                     <Route path="/administracion/login" element={<PaginaInicioSesion />} />
-                    <Route path="/administracion/dashboard" element={<PaginaPanel />} />
-                    <Route path="/administracion/orders" element={<PaginaListaOrdenes />} />
-                    <Route path="/administracion/orders/nueva" element={<PaginaNuevaOrden />} />
-                    <Route path="/administracion/orders/:id" element={<PaginaDetalleOrden />} />
-                    <Route path="/administracion/clientes" element={<PaginaClientes />} />
-                    <Route path="/administracion/vehiculos" element={<PaginaVehiculos />} />
-                    <Route path="/administracion/reportes" element={<PaginaReportes />} />
-                    <Route path="/administracion/configuracion" element={<PaginaConfiguracion />} />
+                    <Route path="/administracion/dashboard" element={<RutaProtegida><PaginaPanel /></RutaProtegida>} />
+                    <Route path="/administracion/orders" element={<RutaProtegida><PaginaListaOrdenes /></RutaProtegida>} />
+                    <Route path="/administracion/orders/nueva" element={<RutaProtegida><PaginaNuevaOrden /></RutaProtegida>} />
+                    <Route path="/administracion/orders/:id" element={<RutaProtegida><PaginaDetalleOrden /></RutaProtegida>} />
+                    <Route path="/administracion/clientes" element={<RutaProtegida><PaginaClientes /></RutaProtegida>} />
+                    <Route path="/administracion/vehiculos" element={<RutaProtegida><PaginaVehiculos /></RutaProtegida>} />
+                    <Route path="/administracion/reportes" element={<RutaProtegida><PaginaReportes /></RutaProtegida>} />
+                    <Route path="/administracion/configuracion" element={<RutaProtegida><PaginaConfiguracion /></RutaProtegida>} />
 
                     {/* ── Legacy redirect ─────────────────────────────────────── */}
                     <Route path="/admin" element={<Navigate to="/administracion/dashboard" replace />} />

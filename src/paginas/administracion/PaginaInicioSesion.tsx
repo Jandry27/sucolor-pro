@@ -18,10 +18,14 @@ export function PaginaInicioSesion() {
         setLoading(true);
         setError(null);
         try {
-            await login(email, password);
-            navigate('/administracion/dashboard');
+            const exito = await login(email, password);
+            if (exito) {
+                navigate('/administracion/dashboard');
+            } else {
+                setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
+            }
         } catch {
-            setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
+            setError('Ocurrió un error inesperado. Por favor, intenta de nuevo.');
         } finally {
             setLoading(false);
         }

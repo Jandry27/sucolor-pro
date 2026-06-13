@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import { CompanySettings } from '@/tipos';
 import { Save, Upload, Loader2, CheckCircle2, Building, ShieldCheck } from 'lucide-react';
+import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 
 export function PaginaConfiguracion() {
     const [settings, setSettings] = useState<Partial<CompanySettings>>({
@@ -98,13 +99,16 @@ export function PaginaConfiguracion() {
     };
 
     if (loading) return (
-        <div className="flex justify-center items-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-brand-orange" />
-        </div>
+        <DisenoAdministracion>
+            <div className="flex justify-center items-center h-64">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FF5100]" />
+            </div>
+        </DisenoAdministracion>
     );
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <DisenoAdministracion>
+            <div className="max-w-4xl mx-auto space-y-6">
             <div>
                 <h1 className="text-2xl font-display font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                     <Building className="w-6 h-6 text-brand-orange" />
@@ -329,6 +333,7 @@ export function PaginaConfiguracion() {
                     </button>
                 </div>
             </form>
-        </div>
+            </div>
+        </DisenoAdministracion>
     );
 }
