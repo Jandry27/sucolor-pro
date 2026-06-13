@@ -39,7 +39,10 @@ function setCached(key: string, data: SeguimientoOrdenState['data']): void {
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
-export function useSeguimientoOrden({ codigo, token }: UseSeguimientoOrdenOptions): SeguimientoOrdenState & {
+export function useSeguimientoOrden({
+    codigo,
+    token,
+}: UseSeguimientoOrdenOptions): SeguimientoOrdenState & {
     refetch: () => void;
 } {
     // Stable cache key stored in a ref
@@ -79,7 +82,9 @@ export function useSeguimientoOrden({ codigo, token }: UseSeguimientoOrdenOption
             setState({ data, loading: false, error: null });
         } catch (err) {
             const message =
-                err instanceof SeguimientoOrdenError ? err.message : 'Ha ocurrido un error inesperado.';
+                err instanceof SeguimientoOrdenError
+                    ? err.message
+                    : 'Ha ocurrido un error inesperado.';
             setState({ data: null, loading: false, error: message });
         }
     }, [codigo, token, cacheKey]);

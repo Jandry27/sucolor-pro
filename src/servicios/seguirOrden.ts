@@ -6,7 +6,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 if (!SUPABASE_URL) {
     console.warn(
         '[SuColor] VITE_SUPABASE_URL no está configurado. ' +
-        'Crea un archivo .env con VITE_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co'
+            'Crea un archivo .env con VITE_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co'
     );
 }
 
@@ -48,9 +48,7 @@ export async function fetchSeguimientoOrden(
 
         if (axiosErr.response) {
             const status = axiosErr.response.status;
-            const serverMsg =
-                axiosErr.response.data?.error ||
-                axiosErr.response.data?.message;
+            const serverMsg = axiosErr.response.data?.error || axiosErr.response.data?.message;
 
             if (status === 404) {
                 throw new SeguimientoOrdenError(

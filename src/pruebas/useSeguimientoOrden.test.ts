@@ -78,7 +78,8 @@ describe('useSeguimientoOrden', () => {
     });
 
     it('muestra error de SeguimientoOrdenError con su mensaje exacto', async () => {
-        const { fetchSeguimientoOrden, SeguimientoOrdenError } = await import('@/servicios/seguirOrden');
+        const { fetchSeguimientoOrden, SeguimientoOrdenError } =
+            await import('@/servicios/seguirOrden');
         (fetchSeguimientoOrden as ReturnType<typeof vi.fn>).mockRejectedValue(
             new (SeguimientoOrdenError as any)('Orden no encontrada.', 404)
         );
@@ -95,7 +96,9 @@ describe('useSeguimientoOrden', () => {
 
     it('muestra mensaje genérico en errores desconocidos', async () => {
         const { fetchSeguimientoOrden } = await import('@/servicios/seguirOrden');
-        (fetchSeguimientoOrden as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
+        (fetchSeguimientoOrden as ReturnType<typeof vi.fn>).mockRejectedValue(
+            new Error('Network error')
+        );
 
         const { result } = renderHook(() =>
             useSeguimientoOrden({ codigo: 'SC-0001', token: VALID_TOKEN })

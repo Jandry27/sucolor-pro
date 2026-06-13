@@ -14,14 +14,16 @@ export function useOrdenes(filterEstado?: OrderStatus) {
             // Step 1: fetch orders (no join — avoids FK constraint requirement)
             let ordQ = supabase
                 .from('ordenes')
-                .select('id, codigo, estado, prioridad, fecha_ingreso, fecha_estimada, notas_publicas, notas_internas, share_enabled, share_token, precio_total, monto_pagado, updated_at, cliente_id, vehiculo_id')
+                .select(
+                    'id, codigo, estado, prioridad, fecha_ingreso, fecha_estimada, notas_publicas, notas_internas, share_enabled, share_token, precio_total, monto_pagado, updated_at, cliente_id, vehiculo_id'
+                )
                 .order('fecha_ingreso', { ascending: false });
 
             if (filterEstado) ordQ = ordQ.eq('estado', filterEstado);
 
             const { data: ordenes, error: ordErr } = await ordQ;
             if (ordErr) {
-                console.error("SUPABASE ERROR FETCHING ORDENES:", ordErr);
+                console.error('SUPABASE ERROR FETCHING ORDENES:', ordErr);
                 throw ordErr;
             }
             if (!ordenes || ordenes.length === 0) {
@@ -34,8 +36,18 @@ export function useOrdenes(filterEstado?: OrderStatus) {
             const vehiculoIds = [...new Set(ordenes.map(o => o.vehiculo_id).filter(Boolean))];
 
             const [{ data: clientes }, { data: vehiculos }] = await Promise.all([
-                clienteIds.length > 0 ? supabase.from('clientes').select('id, nombres, telefono, email, cedula, created_at').in('id', clienteIds) : { data: [] },
-                vehiculoIds.length > 0 ? supabase.from('vehiculos').select('id, anio, color, marca, placa, modelo').in('id', vehiculoIds) : { data: [] },
+                clienteIds.length > 0
+                    ? supabase
+                          .from('clientes')
+                          .select('id, nombres, telefono, email, cedula, created_at')
+                          .in('id', clienteIds)
+                    : { data: [] },
+                vehiculoIds.length > 0
+                    ? supabase
+                          .from('vehiculos')
+                          .select('id, anio, color, marca, placa, modelo')
+                          .in('id', vehiculoIds)
+                    : { data: [] },
             ]);
 
             const clienteMap = Object.fromEntries((clientes ?? []).map(c => [c.id, c]));
@@ -62,19 +74,23 @@ export function useOrdenes(filterEstado?: OrderStatus) {
                 });
 
                 // Request URLs
-                const urlsToFetch = Array.from(firstMediaMap.entries()).map(async ([ordId, file]) => {
-                    try {
-                        if (file.url) {
-                            coverPhotos[ordId] = file.url; // Nueva lógica (Cloudinary)
-                        } else if (file.storage_bucket && file.storage_path) {
-                            // Lógica legacy (Supabase Storage)
-                            const { data } = await supabase.storage.from(file.storage_bucket).createSignedUrl(file.storage_path, 3600);
-                            if (data?.signedUrl) coverPhotos[ordId] = data.signedUrl;
+                const urlsToFetch = Array.from(firstMediaMap.entries()).map(
+                    async ([ordId, file]) => {
+                        try {
+                            if (file.url) {
+                                coverPhotos[ordId] = file.url; // Nueva lógica (Cloudinary)
+                            } else if (file.storage_bucket && file.storage_path) {
+                                // Lógica legacy (Supabase Storage)
+                                const { data } = await supabase.storage
+                                    .from(file.storage_bucket)
+                                    .createSignedUrl(file.storage_path, 3600);
+                                if (data?.signedUrl) coverPhotos[ordId] = data.signedUrl;
+                            }
+                        } catch (e) {
+                            console.error('Error fetching cover photo URL', e);
                         }
-                    } catch (e) {
-                        console.error('Error fetching cover photo URL', e);
                     }
-                });
+                );
                 await Promise.all(urlsToFetch);
             }
 
@@ -82,7 +98,14 @@ export function useOrdenes(filterEstado?: OrderStatus) {
             const merged: AdminOrder[] = ordenes.map(o => ({
                 ...o,
                 cliente: clienteMap[o.cliente_id] ?? { id: o.cliente_id, nombres: '—' },
-                vehiculo: vehiculoMap[o.vehiculo_id] ?? { id: o.vehiculo_id, marca: '—', modelo: '', placa: '—', color: '', anio: '' },
+                vehiculo: vehiculoMap[o.vehiculo_id] ?? {
+                    id: o.vehiculo_id,
+                    marca: '—',
+                    modelo: '',
+                    placa: '—',
+                    color: '',
+                    anio: '',
+                },
                 coverPhoto: coverPhotos[o.id] ?? null,
             })) as AdminOrder[];
 
@@ -95,17 +118,23 @@ export function useOrdenes(filterEstado?: OrderStatus) {
         }
     }, [filterEstado]);
 
-    useEffect(() => { fetchOrders(); }, [fetchOrders]);
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
 
     const updateEstado = useCallback(async (id: string, estado: OrderStatus) => {
         const { error } = await supabase.from('ordenes').update({ estado }).eq('id', id);
-        if (!error) setOrders(prev => prev.map(o => o.id === id ? { ...o, estado } : o));
+        if (!error) setOrders(prev => prev.map(o => (o.id === id ? { ...o, estado } : o)));
         return !error;
     }, []);
 
     const toggleShare = useCallback(async (id: string, enabled: boolean) => {
-        const { error } = await supabase.from('ordenes').update({ share_enabled: enabled }).eq('id', id);
-        if (!error) setOrders(prev => prev.map(o => o.id === id ? { ...o, share_enabled: enabled } : o));
+        const { error } = await supabase
+            .from('ordenes')
+            .update({ share_enabled: enabled })
+            .eq('id', id);
+        if (!error)
+            setOrders(prev => prev.map(o => (o.id === id ? { ...o, share_enabled: enabled } : o)));
         return !error;
     }, []);
 

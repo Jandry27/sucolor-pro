@@ -17,7 +17,12 @@ interface FormularioEdicionDetalleOrdenProps {
     onCancel: () => void;
 }
 
-export function FormularioEdicionDetalleOrden({ order, saving, onSave, onCancel }: FormularioEdicionDetalleOrdenProps) {
+export function FormularioEdicionDetalleOrden({
+    order,
+    saving,
+    onSave,
+    onCancel,
+}: FormularioEdicionDetalleOrdenProps) {
     const [nombres, setNombres] = useState('');
     const [telefono, setTelefono] = useState('');
     const [placa, setPlaca] = useState('');

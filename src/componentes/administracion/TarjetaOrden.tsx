@@ -10,11 +10,17 @@ const PRIORITY_STYLE: Record<string, { color: string; bg: string }> = {
     URGENTE: { color: '#EF4444', bg: 'rgba(239,68,68,0.10)' },
 };
 
-interface TarjetaOrdenProps { order: AdminOrder; onDelete?: (id: string) => void; }
+interface TarjetaOrdenProps {
+    order: AdminOrder;
+    onDelete?: (id: string) => void;
+}
 
 export function TarjetaOrden({ order, onDelete }: TarjetaOrdenProps) {
     const pStyle = PRIORITY_STYLE[order.prioridad] ?? PRIORITY_STYLE.NORMAL;
-    const fecha = new Date(order.fecha_ingreso).toLocaleDateString('es', { day: '2-digit', month: 'short' });
+    const fecha = new Date(order.fecha_ingreso).toLocaleDateString('es', {
+        day: '2-digit',
+        month: 'short',
+    });
 
     const handleDelete = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -25,15 +31,21 @@ export function TarjetaOrden({ order, onDelete }: TarjetaOrdenProps) {
     };
 
     return (
-        <motion.div layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+        <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             className="bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-xl overflow-hidden transition-all duration-150 hover:border-[#F97316]/30 hover:shadow-[0_4px_16px_-4px_rgba(249,115,22,0.15)] hover:-translate-y-0.5 cursor-pointer"
-            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+        >
             <Link to={`/administracion/orders/${order.id}`} className="block p-4">
                 {/* Top row */}
                 <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="min-w-0">
-                        <p className="font-mono-code text-xs text-[#F97316] font-bold">{order.codigo}</p>
+                        <p className="font-mono-code text-xs text-[#F97316] font-bold">
+                            {order.codigo}
+                        </p>
                         <p className="font-semibold text-[#0F172A] text-sm mt-0.5 leading-tight truncate">
                             {(order.cliente as any).nombres}
                         </p>
@@ -49,14 +61,14 @@ export function TarjetaOrden({ order, onDelete }: TarjetaOrdenProps) {
                                     <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                             )}
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                style={{ color: pStyle.color, background: pStyle.bg }}>
+                            <span
+                                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                style={{ color: pStyle.color, background: pStyle.bg }}
+                            >
                                 {order.prioridad}
                             </span>
                         </div>
-                        {order.share_enabled && (
-                            <Share2 className="w-3 h-3 text-[#F97316]" />
-                        )}
+                        {order.share_enabled && <Share2 className="w-3 h-3 text-[#F97316]" />}
                     </div>
                 </div>
 
@@ -65,13 +77,17 @@ export function TarjetaOrden({ order, onDelete }: TarjetaOrdenProps) {
                     <span className="font-mono-code bg-[rgba(15,23,42,0.06)] px-2 py-0.5 rounded-md text-[rgba(11,18,32,0.65)]">
                         {order.vehiculo.placa}
                     </span>
-                    <span className="truncate">{order.vehiculo.marca} {order.vehiculo.modelo}</span>
+                    <span className="truncate">
+                        {order.vehiculo.marca} {order.vehiculo.modelo}
+                    </span>
                 </div>
 
                 {/* Footer */}
                 <div className="flex items-center justify-between pt-2.5 border-t border-[rgba(15,23,42,0.06)]">
                     <div className="flex items-center gap-1 text-xs text-[rgba(11,18,32,0.40)]">
-                        {order.prioridad === 'URGENTE' && <AlertTriangle className="w-3 h-3 text-[#EF4444]" />}
+                        {order.prioridad === 'URGENTE' && (
+                            <AlertTriangle className="w-3 h-3 text-[#EF4444]" />
+                        )}
                         <Clock className="w-3 h-3" />
                         {fecha}
                     </div>

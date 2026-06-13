@@ -86,7 +86,17 @@ export const STATUS_CONFIG: Record<OrderStatus, StatusConfig> = {
     },
 };
 
-import { ClipboardList, Hammer, Layers, Paintbrush, Wind, Sparkles, CheckCircle2, Camera, Wrench } from 'lucide-react';
+import {
+    ClipboardList,
+    Hammer,
+    Layers,
+    Paintbrush,
+    Wind,
+    Sparkles,
+    CheckCircle2,
+    Camera,
+    Wrench,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 // ─── Progress Steps ────────────────────────────────────────────────────────────

@@ -36,7 +36,15 @@ describe('ProgresoOrden', () => {
 
     it('renderiza los 7 pasos del progreso', () => {
         render(<ProgresoOrden estado="PREPARACION" />);
-        const expectedLabels = ['Recibido', 'Latonería', 'Preparación', 'Pintura', 'Secado', 'Pulido', 'Terminado'];
+        const expectedLabels = [
+            'Recibido',
+            'Latonería',
+            'Preparación',
+            'Pintura',
+            'Secado',
+            'Pulido',
+            'Terminado',
+        ];
         expectedLabels.forEach(label => {
             expect(screen.getByText(label)).toBeInTheDocument();
         });

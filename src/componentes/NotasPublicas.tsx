@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { StickyNote } from 'lucide-react';
 
-interface NotasPublicasProps { notes?: string | null; }
+interface NotasPublicasProps {
+    notes?: string | null;
+}
 
 export function NotasPublicas({ notes }: NotasPublicasProps) {
     if (!notes) return null;
@@ -9,19 +11,25 @@ export function NotasPublicas({ notes }: NotasPublicasProps) {
     const lines = notes.split('\n').filter(line => line.trim().length > 0);
 
     return (
-        <motion.div className="glass-card" style={{ padding: '20px' }}
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: 0.10 }}>
+        <motion.div
+            className="glass-card"
+            style={{ padding: '20px' }}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.1 }}
+        >
             <div className="flex items-center gap-2.5 mb-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: 'rgba(249, 115, 22,0.08)' }}>
+                <div
+                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ background: 'rgba(249, 115, 22,0.08)' }}
+                >
                     <StickyNote className="w-4 h-4 text-[#F97316]" />
                 </div>
                 <h3 className="text-sm font-bold text-[#0B1220] dark:text-slate-200">
                     Bitácora y Notas del Taller
                 </h3>
             </div>
-            
+
             <div className="space-y-3 pl-1">
                 {lines.map((line, i) => {
                     // Try to highlight dates if they match the [DD MMM] format we will inject

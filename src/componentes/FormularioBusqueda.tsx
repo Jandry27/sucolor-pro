@@ -23,19 +23,30 @@ export function FormularioBusqueda() {
             <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="relative">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(15,23,42,0.30)] pointer-events-none" />
-                    <input type="text" value={placa} onChange={e => setPlaca(e.target.value)}
-                        placeholder="Ej. LAA-1362" maxLength={10}
+                    <input
+                        type="text"
+                        value={placa}
+                        onChange={e => setPlaca(e.target.value)}
+                        placeholder="Ej. LAA-1362"
+                        maxLength={10}
                         className="input-field pl-10 font-mono-code text-base tracking-widest uppercase"
-                        style={{ letterSpacing: '0.12em' }} />
+                        style={{ letterSpacing: '0.12em' }}
+                    />
                 </div>
 
                 {/* Error */}
                 <AnimatePresence>
                     {error && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm text-[#EF4444]"
-                            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                            style={{
+                                background: 'rgba(239,68,68,0.08)',
+                                border: '1px solid rgba(239,68,68,0.15)',
+                            }}
+                        >
                             <AlertCircle className="w-4 h-4 flex-shrink-0" />
                             {error}
                         </motion.div>
@@ -43,11 +54,20 @@ export function FormularioBusqueda() {
                 </AnimatePresence>
 
                 {/* Submit */}
-                <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed" style={{ padding: '12px 18px' }}>
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ padding: '12px 18px' }}
+                >
                     {loading ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> Buscando...</>
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Buscando...
+                        </>
                     ) : (
-                        <><Search className="w-4 h-4" /> Consultar estado</>
+                        <>
+                            <Search className="w-4 h-4" /> Consultar estado
+                        </>
                     )}
                 </button>
             </form>

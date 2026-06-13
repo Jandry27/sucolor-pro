@@ -49,9 +49,7 @@ export async function buscarOrden(params: SearchParams): Promise<BusquedaOrdenRe
 
         if (axiosErr.response) {
             const status = axiosErr.response.status;
-            const msg =
-                axiosErr.response.data?.error ||
-                axiosErr.response.data?.message;
+            const msg = axiosErr.response.data?.error || axiosErr.response.data?.message;
             throw new BusquedaOrdenError(msg || 'No se encontró ninguna orden.', status);
         }
 

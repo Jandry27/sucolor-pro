@@ -48,7 +48,9 @@ export function PaginaPanel() {
                 {/* Page header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">Dashboard</h1>
+                        <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">
+                            Dashboard
+                        </h1>
                         <p className="text-sm text-[rgba(15,23,42,0.60)] mt-0.5">
                             {activeOrders.length} órdenes activas
                             {urgentes > 0 && (
@@ -61,8 +63,12 @@ export function PaginaPanel() {
 
                     {/* Reporte de ganancias del mes */}
                     <div className="hidden md:flex flex-col items-end mr-auto ml-8 px-5 py-2 rounded-xl bg-[rgba(22,163,74,0.08)] border border-[rgba(22,163,74,0.15)]">
-                        <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider mb-0.5">Ingresos {monthName}</span>
-                        <span className="text-lg font-black text-[#16A34A] leading-none">${monthlyRevenue.toFixed(2)}</span>
+                        <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider mb-0.5">
+                            Ingresos {monthName}
+                        </span>
+                        <span className="text-lg font-black text-[#16A34A] leading-none">
+                            ${monthlyRevenue.toFixed(2)}
+                        </span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Link to="/administracion/orders/nueva" className="btn-primary text-sm">
@@ -76,18 +82,30 @@ export function PaginaPanel() {
 
                 {/* KPI cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                        className="glass-card text-center !p-5">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glass-card text-center !p-5"
+                    >
                         <p className="text-3xl font-bold text-[#0F172A]">{activeOrders.length}</p>
-                        <p className="text-xs text-[rgba(15,23,42,0.60)] mt-1 font-medium">Total Activas</p>
+                        <p className="text-xs text-[rgba(15,23,42,0.60)] mt-1 font-medium">
+                            Total Activas
+                        </p>
                     </motion.div>
                     {statsData.map((s, i) => (
-                        <motion.div key={s.estado}
-                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                        <motion.div
+                            key={s.estado}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: (i + 1) * 0.05 }}
-                            className="glass-card text-center !p-5">
-                            <p className="text-3xl font-bold" style={{ color: s.color }}>{s.count}</p>
-                            <p className="text-xs text-[rgba(15,23,42,0.60)] mt-1 font-medium">{s.label}</p>
+                            className="glass-card text-center !p-5"
+                        >
+                            <p className="text-3xl font-bold" style={{ color: s.color }}>
+                                {s.count}
+                            </p>
+                            <p className="text-xs text-[rgba(15,23,42,0.60)] mt-1 font-medium">
+                                {s.label}
+                            </p>
                         </motion.div>
                     ))}
                 </div>
@@ -101,13 +119,19 @@ export function PaginaPanel() {
                     <div className="glass-card flex flex-col items-center justify-center py-12 gap-3">
                         <AlertTriangle className="w-8 h-8 text-[#EF4444]" />
                         <p className="text-sm text-[rgba(15,23,42,0.60)]">{error}</p>
-                        <button onClick={refetch} className="btn-secondary text-sm">Reintentar</button>
+                        <button onClick={refetch} className="btn-secondary text-sm">
+                            Reintentar
+                        </button>
                     </div>
                 ) : (
                     <>
                         <div className="md:hidden flex flex-col items-center justify-center p-4 mb-4 rounded-xl bg-[rgba(22,163,74,0.08)] border border-[rgba(22,163,74,0.15)]">
-                            <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider mb-1">Ingresos {monthName}</span>
-                            <span className="text-2xl font-black text-[#16A34A] leading-none">${monthlyRevenue.toFixed(2)}</span>
+                            <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider mb-1">
+                                Ingresos {monthName}
+                            </span>
+                            <span className="text-2xl font-black text-[#16A34A] leading-none">
+                                ${monthlyRevenue.toFixed(2)}
+                            </span>
                         </div>
                         <TableroKanban orders={activeOrders} onDelete={deleteOrder} />
                     </>

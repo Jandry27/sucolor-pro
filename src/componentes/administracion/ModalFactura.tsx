@@ -20,8 +20,22 @@ interface ModalFacturaProps {
 
 // ── RIDE HTML generator (Formato SRI Oficial) ──────────────────────────────────
 function generateRideHtml(data: {
-    empresa: { razon_social: string; ruc: string; direccion_matriz: string; nombre_comercial?: string; obligado_contabilidad?: boolean; contribuyente_especial?: string; rimpe?: boolean };
-    comprador: { nombre: string; identificacion: string; direccion: string; email: string; telefono?: string };
+    empresa: {
+        razon_social: string;
+        ruc: string;
+        direccion_matriz: string;
+        nombre_comercial?: string;
+        obligado_contabilidad?: boolean;
+        contribuyente_especial?: string;
+        rimpe?: boolean;
+    };
+    comprador: {
+        nombre: string;
+        identificacion: string;
+        direccion: string;
+        email: string;
+        telefono?: string;
+    };
     factura: {
         secuencial: string;
         claveAcceso: string;

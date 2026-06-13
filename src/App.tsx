@@ -25,17 +25,76 @@ export default function App() {
 
                     {/* ── Admin ───────────────────────────────────────────────── */}
                     <Route path="/administracion/login" element={<PaginaInicioSesion />} />
-                    <Route path="/administracion/dashboard" element={<RutaProtegida><PaginaPanel /></RutaProtegida>} />
-                    <Route path="/administracion/orders" element={<RutaProtegida><PaginaListaOrdenes /></RutaProtegida>} />
-                    <Route path="/administracion/orders/nueva" element={<RutaProtegida><PaginaNuevaOrden /></RutaProtegida>} />
-                    <Route path="/administracion/orders/:id" element={<RutaProtegida><PaginaDetalleOrden /></RutaProtegida>} />
-                    <Route path="/administracion/clientes" element={<RutaProtegida><PaginaClientes /></RutaProtegida>} />
-                    <Route path="/administracion/vehiculos" element={<RutaProtegida><PaginaVehiculos /></RutaProtegida>} />
-                    <Route path="/administracion/reportes" element={<RutaProtegida><PaginaReportes /></RutaProtegida>} />
-                    <Route path="/administracion/configuracion" element={<RutaProtegida><PaginaConfiguracion /></RutaProtegida>} />
+                    <Route
+                        path="/administracion/dashboard"
+                        element={
+                            <RutaProtegida>
+                                <PaginaPanel />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/administracion/orders"
+                        element={
+                            <RutaProtegida>
+                                <PaginaListaOrdenes />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/administracion/orders/nueva"
+                        element={
+                            <RutaProtegida>
+                                <PaginaNuevaOrden />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/administracion/orders/:id"
+                        element={
+                            <RutaProtegida>
+                                <PaginaDetalleOrden />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/administracion/clientes"
+                        element={
+                            <RutaProtegida>
+                                <PaginaClientes />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/administracion/vehiculos"
+                        element={
+                            <RutaProtegida>
+                                <PaginaVehiculos />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/administracion/reportes"
+                        element={
+                            <RutaProtegida>
+                                <PaginaReportes />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/administracion/configuracion"
+                        element={
+                            <RutaProtegida>
+                                <PaginaConfiguracion />
+                            </RutaProtegida>
+                        }
+                    />
 
                     {/* ── Legacy redirect ─────────────────────────────────────── */}
-                    <Route path="/admin" element={<Navigate to="/administracion/dashboard" replace />} />
+                    <Route
+                        path="/admin"
+                        element={<Navigate to="/administracion/dashboard" replace />}
+                    />
 
                     {/* ── Catch-all ───────────────────────────────────────────── */}
                     <Route path="*" element={<NotFound />} />
@@ -56,10 +115,7 @@ function NotFound() {
                 <p className="text-brand-gray-lighter text-sm">
                     Usa el enlace de seguimiento que te proporcionó el taller.
                 </p>
-                <a
-                    href="#/"
-                    className="inline-block btn-primary mt-2"
-                >
+                <a href="#/" className="inline-block btn-primary mt-2">
                     Volver al inicio
                 </a>
             </div>

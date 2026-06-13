@@ -81,7 +81,7 @@ export interface BusquedaOrdenState {
 // ─── Admin Types ───────────────────────────────────────────────────────────────
 export interface Cliente {
     id: string;
-    nombres: string;        // Full name in one field (per real DB schema)
+    nombres: string; // Full name in one field (per real DB schema)
     telefono?: string;
     email?: string;
     cedula?: string;
@@ -178,7 +178,7 @@ export interface InvoiceItem {
     descuento: number;
     precio_total_sin_impuestos: number;
     codigo_porcentaje_iva: number; // 0 = 0%, 2 = 12%, 3 = 14%, 4 = 15%
-    tarifa_iva: number;   
+    tarifa_iva: number;
     valor_iva: number;
     created_at: string;
 }

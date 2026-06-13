@@ -14,9 +14,7 @@ export function useAutenticacion() {
         supabase.auth.getSession().then(({ data }) => {
             const session = data.session;
             setState({
-                user: session?.user
-                    ? { id: session.user.id, email: session.user.email }
-                    : null,
+                user: session?.user ? { id: session.user.id, email: session.user.email } : null,
                 loading: false,
                 error: null,
             });
@@ -25,9 +23,7 @@ export function useAutenticacion() {
         // Subscribe to auth changes
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             setState({
-                user: session?.user
-                    ? { id: session.user.id, email: session.user.email }
-                    : null,
+                user: session?.user ? { id: session.user.id, email: session.user.email } : null,
                 loading: false,
                 error: null,
             });

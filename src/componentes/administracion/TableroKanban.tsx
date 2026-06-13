@@ -13,26 +13,43 @@ const COLUMNS: { estado: OrderStatus; label: string; color: string }[] = [
     { estado: 'ENTREGADO', label: 'Entregado', color: '#0EA5E9' },
 ];
 
-interface TableroKanbanProps { orders: AdminOrder[]; onDelete?: (id: string) => void; }
+interface TableroKanbanProps {
+    orders: AdminOrder[];
+    onDelete?: (id: string) => void;
+}
 
 export function TableroKanban({ orders, onDelete }: TableroKanbanProps) {
     return (
-        <div className="flex gap-3.5 overflow-x-auto pb-4" style={{ scrollSnapType: 'x mandatory' }}>
+        <div
+            className="flex gap-3.5 overflow-x-auto pb-4"
+            style={{ scrollSnapType: 'x mandatory' }}
+        >
             {COLUMNS.map(col => {
                 const colOrders = orders.filter(o => o.estado === col.estado);
                 return (
-                    <div key={col.estado} className="flex-shrink-0 w-[260px] flex flex-col gap-2.5"
-                        style={{ scrollSnapAlign: 'start' }}>
+                    <div
+                        key={col.estado}
+                        className="flex-shrink-0 w-[260px] flex flex-col gap-2.5"
+                        style={{ scrollSnapAlign: 'start' }}
+                    >
                         {/* Column header */}
-                        <div className="flex items-center justify-between px-3 py-2 bg-white/60 backdrop-blur-md rounded-xl border border-slate-200/50"
-                            style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                        <div
+                            className="flex items-center justify-between px-3 py-2 bg-white/60 backdrop-blur-md rounded-xl border border-slate-200/50"
+                            style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}
+                        >
                             <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full flex-shrink-0"
-                                    style={{ backgroundColor: col.color }} />
-                                <span className="text-xs font-semibold text-[#0F172A]">{col.label}</span>
+                                <div
+                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: col.color }}
+                                />
+                                <span className="text-xs font-semibold text-[#0F172A]">
+                                    {col.label}
+                                </span>
                             </div>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                style={{ color: col.color, background: `${col.color}18` }}>
+                            <span
+                                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                style={{ color: col.color, background: `${col.color}18` }}
+                            >
                                 {colOrders.length}
                             </span>
                         </div>
@@ -41,7 +58,11 @@ export function TableroKanban({ orders, onDelete }: TableroKanbanProps) {
                         <div className="flex flex-col gap-2 min-h-[80px]">
                             <AnimatePresence>
                                 {colOrders.map(order => (
-                                    <TarjetaOrden key={order.id} order={order} onDelete={onDelete} />
+                                    <TarjetaOrden
+                                        key={order.id}
+                                        order={order}
+                                        onDelete={onDelete}
+                                    />
                                 ))}
                             </AnimatePresence>
                             {colOrders.length === 0 && (

@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, AlertTriangle, ClipboardList, ArrowRight, Car, Calendar, CalendarCheck } from 'lucide-react';
+import {
+    X,
+    Loader2,
+    AlertTriangle,
+    ClipboardList,
+    ArrowRight,
+    Car,
+    Calendar,
+    CalendarCheck,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import type { OrderStatus } from '@/tipos';
@@ -108,14 +117,21 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
                         <div className="flex items-start justify-between p-5 border-b border-[rgba(15,23,42,0.07)]">
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-xl bg-[rgba(249, 115, 22,0.10)] flex items-center justify-center flex-shrink-0">
-                                    <Car className="w-4.5 h-4.5 text-[#F97316]" style={{ width: 18, height: 18 }} />
+                                    <Car
+                                        className="w-4.5 h-4.5 text-[#F97316]"
+                                        style={{ width: 18, height: 18 }}
+                                    />
                                 </div>
                                 <div>
-                                    <p className="font-mono text-xs font-bold text-[#F97316] uppercase tracking-widest">{vehiculo.placa}</p>
+                                    <p className="font-mono text-xs font-bold text-[#F97316] uppercase tracking-widest">
+                                        {vehiculo.placa}
+                                    </p>
                                     <h2 className="text-base font-bold text-[#0F172A] leading-tight">
                                         {vehiculo.marca} {vehiculo.modelo}
                                     </h2>
-                                    <p className="text-xs text-[rgba(15,23,42,0.45)]">{vehiculo.anio} · {vehiculo.color}</p>
+                                    <p className="text-xs text-[rgba(15,23,42,0.45)]">
+                                        {vehiculo.anio} · {vehiculo.color}
+                                    </p>
                                 </div>
                             </div>
                             <button
@@ -161,7 +177,10 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
                                 </div>
                             ) : (
                                 ordenes.map((orden, i) => {
-                                    const colors = ESTADO_COLORS[orden.estado] ?? { bg: 'bg-gray-100', text: 'text-gray-600' };
+                                    const colors = ESTADO_COLORS[orden.estado] ?? {
+                                        bg: 'bg-gray-100',
+                                        text: 'text-gray-600',
+                                    };
                                     return (
                                         <motion.div
                                             key={orden.id}
@@ -175,7 +194,9 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
                                                 <span className="font-mono text-xs font-bold text-[#0F172A] tracking-widest">
                                                     {orden.codigo}
                                                 </span>
-                                                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${colors.bg} ${colors.text}`}>
+                                                <span
+                                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${colors.bg} ${colors.text}`}
+                                                >
                                                     {ESTADO_LABELS[orden.estado] ?? orden.estado}
                                                 </span>
                                             </div>
@@ -185,14 +206,20 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
                                                 <div className="flex items-center gap-1.5">
                                                     <Calendar className="w-3.5 h-3.5 text-[rgba(15,23,42,0.35)]" />
                                                     <span className="text-xs text-[rgba(15,23,42,0.55)]">
-                                                        Ingreso: <strong className="text-[#0F172A]">{fmt(orden.fecha_ingreso)}</strong>
+                                                        Ingreso:{' '}
+                                                        <strong className="text-[#0F172A]">
+                                                            {fmt(orden.fecha_ingreso)}
+                                                        </strong>
                                                     </span>
                                                 </div>
                                                 {orden.fecha_estimada && (
                                                     <div className="flex items-center gap-1.5">
                                                         <CalendarCheck className="w-3.5 h-3.5 text-[rgba(15,23,42,0.35)]" />
                                                         <span className="text-xs text-[rgba(15,23,42,0.55)]">
-                                                            Salida: <strong className="text-[#0F172A]">{fmt(orden.fecha_estimada)}</strong>
+                                                            Salida:{' '}
+                                                            <strong className="text-[#0F172A]">
+                                                                {fmt(orden.fecha_estimada)}
+                                                            </strong>
                                                         </span>
                                                     </div>
                                                 )}
@@ -207,7 +234,10 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
 
                                             {/* CTA */}
                                             <button
-                                                onClick={() => { onClose(); navigate(`/administracion/orders/${orden.id}`); }}
+                                                onClick={() => {
+                                                    onClose();
+                                                    navigate(`/administracion/orders/${orden.id}`);
+                                                }}
                                                 className="flex items-center gap-1.5 text-xs font-semibold text-[#F97316] hover:text-[#C2550D] transition-colors group-hover:gap-2.5"
                                             >
                                                 Ver detalle

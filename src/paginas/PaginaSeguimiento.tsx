@@ -9,7 +9,6 @@ import { GaleriaMedia } from '@/componentes/GaleriaMedia';
 import { PanelGastosPublico } from '@/componentes/PanelGastosPublico';
 import { NotasPublicas } from '@/componentes/NotasPublicas';
 
-
 export function PaginaSeguimiento() {
     const { codigo } = useParams<{ codigo: string }>();
     const [searchParams] = useSearchParams();
@@ -18,7 +17,8 @@ export function PaginaSeguimiento() {
     const { data, loading, error, refetch } = useSeguimientoOrden({ codigo: codigo ?? '', token });
 
     if (loading) return <EsqueletoCarga />;
-    if (error || !data) return <EstadoError message={error ?? 'No se pudo cargar la orden.'} onRetry={refetch} />;
+    if (error || !data)
+        return <EstadoError message={error ?? 'No se pudo cargar la orden.'} onRetry={refetch} />;
 
     const { order, gastos, media } = data;
 
@@ -28,14 +28,16 @@ export function PaginaSeguimiento() {
             <header className="sticky top-0 z-30 bg-white/65 dark:bg-slate-900/65 backdrop-blur-2xl border-b border-white/40 dark:border-slate-800/50 shadow-sm">
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Link to="/" className="text-[rgba(11,18,32,0.40)] hover:text-[#FF5100] transition-colors">
+                        <Link
+                            to="/"
+                            className="text-[rgba(11,18,32,0.40)] hover:text-[#FF5100] transition-colors"
+                        >
                             <Home className="w-4 h-4" />
                         </Link>
                         <span className="text-[rgba(15,23,42,0.15)]">/</span>
                         <img src="/logo.png" alt="SuColor" className="h-7 w-auto object-contain" />
                     </div>
                     <div className="flex items-center gap-2.5">
-
                         <span className="hidden sm:flex items-center chip-orange font-mono-code text-xs">
                             {order.codigo}
                         </span>

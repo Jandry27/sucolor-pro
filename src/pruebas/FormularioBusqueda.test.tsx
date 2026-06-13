@@ -24,7 +24,12 @@ vi.mock('react-router-dom', async importOriginal => {
 });
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
-const renderForm = () => render(<MemoryRouter><FormularioBusqueda /></MemoryRouter>);
+const renderForm = () =>
+    render(
+        <MemoryRouter>
+            <FormularioBusqueda />
+        </MemoryRouter>
+    );
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 describe('FormularioBusqueda', () => {
@@ -64,9 +69,7 @@ describe('FormularioBusqueda', () => {
 
         fireEvent.submit(input.closest('form')!);
 
-        await waitFor(() =>
-            expect(mockSearch).toHaveBeenCalledWith({ placa: 'LAA1362' })
-        );
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledWith({ placa: 'LAA1362' }));
     });
 
     it('navega a /track/:codigo?token=... cuando la búsqueda tiene éxito', async () => {

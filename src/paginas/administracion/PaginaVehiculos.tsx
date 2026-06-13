@@ -6,7 +6,10 @@ import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdminis
 import { HistorialVehiculoLateral } from '@/componentes/administracion/HistorialVehiculoLateral';
 import type { Vehiculo } from '@/tipos';
 
-interface VehiculoRow extends Vehiculo { id: string; created_at?: string; }
+interface VehiculoRow extends Vehiculo {
+    id: string;
+    created_at?: string;
+}
 
 export function PaginaVehiculos() {
     const [vehiculos, setVehiculos] = useState<VehiculoRow[]>([]);
@@ -16,7 +19,10 @@ export function PaginaVehiculos() {
     const [selected, setSelected] = useState<VehiculoRow | null>(null);
 
     useEffect(() => {
-        supabase.from('vehiculos').select('*').order('created_at', { ascending: false })
+        supabase
+            .from('vehiculos')
+            .select('*')
+            .order('created_at', { ascending: false })
             .then(({ data, error: err }) => {
                 if (err) setError('No se pudo cargar los vehículos.');
                 else setVehiculos(data ?? []);
@@ -26,11 +32,19 @@ export function PaginaVehiculos() {
 
     const filtered = vehiculos.filter(v => {
         const s = q.toLowerCase();
-        return v.placa?.toLowerCase().includes(s) || v.marca?.toLowerCase().includes(s) || v.modelo?.toLowerCase().includes(s);
+        return (
+            v.placa?.toLowerCase().includes(s) ||
+            v.marca?.toLowerCase().includes(s) ||
+            v.modelo?.toLowerCase().includes(s)
+        );
     });
 
     const handleDelete = async (id: string, placa: string) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar el vehículo con placa "${placa}"?\nEsta acción es irreversible y eliminará sus órdenes asociadas.`)) {
+        if (
+            !window.confirm(
+                `¿Estás seguro de que deseas eliminar el vehículo con placa "${placa}"?\nEsta acción es irreversible y eliminará sus órdenes asociadas.`
+            )
+        ) {
             return;
         }
 
@@ -50,13 +64,21 @@ export function PaginaVehiculos() {
                 {/* Page header */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Vehículos</h1>
-                        <p className="text-sm text-[rgba(11,18,32,0.50)] mt-0.5">{vehiculos.length} registrados</p>
+                        <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">
+                            Vehículos
+                        </h1>
+                        <p className="text-sm text-[rgba(11,18,32,0.50)] mt-0.5">
+                            {vehiculos.length} registrados
+                        </p>
                     </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(11,18,32,0.30)] pointer-events-none" />
-                        <input value={q} onChange={e => setQ(e.target.value)}
-                            placeholder="Placa, marca, modelo..." className="input-field pl-9 text-sm w-full sm:w-64" />
+                        <input
+                            value={q}
+                            onChange={e => setQ(e.target.value)}
+                            placeholder="Placa, marca, modelo..."
+                            className="input-field pl-9 text-sm w-full sm:w-64"
+                        />
                     </div>
                 </div>
 
@@ -72,12 +94,18 @@ export function PaginaVehiculos() {
                 ) : (
                     <>
                         {/* ── Vista Desktop (Tabla) ── */}
-                        <div className="card hidden sm:block" style={{ padding: 0, overflow: 'hidden' }}>
+                        <div
+                            className="card hidden sm:block"
+                            style={{ padding: 0, overflow: 'hidden' }}
+                        >
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-[rgba(15,23,42,0.07)] bg-[#F7F8FA]">
                                         {['Placa', 'Marca', 'Modelo', 'Año', 'Color', ''].map(h => (
-                                            <th key={h} className="text-left px-4 py-3 text-xs font-bold text-[rgba(11,18,32,0.45)] uppercase tracking-wider">
+                                            <th
+                                                key={h}
+                                                className="text-left px-4 py-3 text-xs font-bold text-[rgba(11,18,32,0.45)] uppercase tracking-wider"
+                                            >
                                                 {h}
                                             </th>
                                         ))}
@@ -96,24 +124,46 @@ export function PaginaVehiculos() {
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
                                                     <Car className="w-3.5 h-3.5 text-[#FF5100]" />
-                                                    <span className="font-mono-code font-semibold text-[#0B1220] text-xs">{v.placa}</span>
+                                                    <span className="font-mono-code font-semibold text-[#0B1220] text-xs">
+                                                        {v.placa}
+                                                    </span>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-3 font-medium text-[rgba(11,18,32,0.70)]">{v.marca}</td>
-                                            <td className="px-4 py-3 text-[rgba(11,18,32,0.55)]">{v.modelo}</td>
-                                            <td className="px-4 py-3 text-[rgba(11,18,32,0.55)]">{v.anio}</td>
+                                            <td className="px-4 py-3 font-medium text-[rgba(11,18,32,0.70)]">
+                                                {v.marca}
+                                            </td>
+                                            <td className="px-4 py-3 text-[rgba(11,18,32,0.55)]">
+                                                {v.modelo}
+                                            </td>
+                                            <td className="px-4 py-3 text-[rgba(11,18,32,0.55)]">
+                                                {v.anio}
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 rounded-full border border-[rgba(15,23,42,0.15)]"
+                                                    <div
+                                                        className="w-3 h-3 rounded-full border border-[rgba(15,23,42,0.15)]"
                                                         style={{
-                                                            background: v.color?.toLowerCase() === 'blanco' ? '#f9fafb'
-                                                                : v.color?.toLowerCase() === 'negro' ? '#111827'
-                                                                    : v.color?.toLowerCase() === 'rojo' ? '#ef4444'
-                                                                        : v.color?.toLowerCase() === 'azul' ? '#3b82f6'
-                                                                            : v.color?.toLowerCase() === 'verde' ? '#22c55e'
-                                                                                : '#9ca3af'
-                                                        }} />
-                                                    <span className="text-[rgba(11,18,32,0.55)]">{v.color}</span>
+                                                            background:
+                                                                v.color?.toLowerCase() === 'blanco'
+                                                                    ? '#f9fafb'
+                                                                    : v.color?.toLowerCase() ===
+                                                                        'negro'
+                                                                      ? '#111827'
+                                                                      : v.color?.toLowerCase() ===
+                                                                          'rojo'
+                                                                        ? '#ef4444'
+                                                                        : v.color?.toLowerCase() ===
+                                                                            'azul'
+                                                                          ? '#3b82f6'
+                                                                          : v.color?.toLowerCase() ===
+                                                                              'verde'
+                                                                            ? '#22c55e'
+                                                                            : '#9ca3af',
+                                                        }}
+                                                    />
+                                                    <span className="text-[rgba(11,18,32,0.55)]">
+                                                        {v.color}
+                                                    </span>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 text-right">
@@ -123,7 +173,10 @@ export function PaginaVehiculos() {
                                                         <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                                                     </span>
                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.placa); }}
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            handleDelete(v.id, v.placa);
+                                                        }}
                                                         className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                                                         title="Eliminar Vehículo"
                                                     >
@@ -152,10 +205,15 @@ export function PaginaVehiculos() {
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2">
                                             <Car className="w-4 h-4 text-[#FF5100]" />
-                                            <span className="font-mono-code font-bold text-[#FF5100] text-sm">{v.placa}</span>
+                                            <span className="font-mono-code font-bold text-[#FF5100] text-sm">
+                                                {v.placa}
+                                            </span>
                                         </div>
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.placa); }}
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                handleDelete(v.id, v.placa);
+                                            }}
                                             className="p-1.5 text-[rgba(11,18,32,0.30)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                             title="Eliminar Vehículo"
                                         >
@@ -165,7 +223,10 @@ export function PaginaVehiculos() {
 
                                     <div className="mb-3">
                                         <p className="font-semibold text-[#0B1220] text-base leading-tight">
-                                            {v.marca} <span className="text-[rgba(11,18,32,0.60)] font-medium">{v.modelo}</span>
+                                            {v.marca}{' '}
+                                            <span className="text-[rgba(11,18,32,0.60)] font-medium">
+                                                {v.modelo}
+                                            </span>
                                         </p>
                                     </div>
 
@@ -173,15 +234,26 @@ export function PaginaVehiculos() {
                                         <div className="flex items-center gap-3 text-xs text-[rgba(11,18,32,0.55)]">
                                             <span>{v.anio}</span>
                                             <div className="flex items-center gap-1.5">
-                                                <div className="w-2.5 h-2.5 rounded-full border border-[rgba(15,23,42,0.15)]"
+                                                <div
+                                                    className="w-2.5 h-2.5 rounded-full border border-[rgba(15,23,42,0.15)]"
                                                     style={{
-                                                        background: v.color?.toLowerCase() === 'blanco' ? '#f9fafb'
-                                                            : v.color?.toLowerCase() === 'negro' ? '#111827'
-                                                                : v.color?.toLowerCase() === 'rojo' ? '#ef4444'
-                                                                    : v.color?.toLowerCase() === 'azul' ? '#3b82f6'
-                                                                        : v.color?.toLowerCase() === 'verde' ? '#22c55e'
-                                                                            : '#9ca3af'
-                                                    }} />
+                                                        background:
+                                                            v.color?.toLowerCase() === 'blanco'
+                                                                ? '#f9fafb'
+                                                                : v.color?.toLowerCase() === 'negro'
+                                                                  ? '#111827'
+                                                                  : v.color?.toLowerCase() ===
+                                                                      'rojo'
+                                                                    ? '#ef4444'
+                                                                    : v.color?.toLowerCase() ===
+                                                                        'azul'
+                                                                      ? '#3b82f6'
+                                                                      : v.color?.toLowerCase() ===
+                                                                          'verde'
+                                                                        ? '#22c55e'
+                                                                        : '#9ca3af',
+                                                    }}
+                                                />
                                             </div>
                                         </div>
                                         <span className="inline-flex items-center gap-1 text-xs text-[#FF5100] font-medium">
@@ -197,7 +269,9 @@ export function PaginaVehiculos() {
                         {filtered.length === 0 && (
                             <div className="card flex flex-col items-center py-14 gap-3 border-0 shadow-none bg-transparent">
                                 <Car className="w-8 h-8 text-[rgba(11,18,32,0.20)]" />
-                                <p className="text-sm text-[rgba(11,18,32,0.40)]">No se encontraron vehículos</p>
+                                <p className="text-sm text-[rgba(11,18,32,0.40)]">
+                                    No se encontraron vehículos
+                                </p>
                             </div>
                         )}
                     </>
@@ -205,10 +279,7 @@ export function PaginaVehiculos() {
             </div>
 
             {/* Drawer de historial */}
-            <HistorialVehiculoLateral
-                vehiculo={selected}
-                onClose={() => setSelected(null)}
-            />
+            <HistorialVehiculoLateral vehiculo={selected} onClose={() => setSelected(null)} />
         </DisenoAdministracion>
     );
 }
