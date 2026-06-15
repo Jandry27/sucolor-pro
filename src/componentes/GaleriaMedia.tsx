@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, ImageOff, ZoomIn } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ImageOff, ZoomIn, Camera } from 'lucide-react';
 import type { MediaItem } from '@/tipos';
 import { MEDIA_CATEGORIES } from '@/biblioteca/constantes';
 
@@ -47,9 +47,17 @@ export function GaleriaMedia({ media }: GaleriaMediaProps) {
             >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-5">
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-                        Galería de imágenes
-                    </h3>
+                    <div className="flex items-center gap-2.5">
+                        <div
+                            className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ background: 'rgba(249, 115, 22,0.08)' }}
+                        >
+                            <Camera className="w-4 h-4 text-[#F97316]" />
+                        </div>
+                        <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+                            Galería de imágenes
+                        </h3>
+                    </div>
                     <span className="text-xs text-[rgba(11,18,32,0.40)] dark:text-slate-500">
                         {media.length} foto{media.length !== 1 ? 's' : ''}
                     </span>
@@ -115,7 +123,7 @@ export function GaleriaMedia({ media }: GaleriaMediaProps) {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+                            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
                         >
                             {filtered.map((item, i) => (
                                 <motion.button

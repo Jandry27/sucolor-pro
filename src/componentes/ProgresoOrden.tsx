@@ -15,26 +15,30 @@ export function ProgresoOrden({ estado }: ProgresoOrdenProps) {
 
     return (
         <motion.div
-            className="glass-card"
+            className="glass-card h-full flex flex-col"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.08, ease: 'easeOut' }}
         >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-                    Progreso del trabajo
-                </h3>
-                <span className="text-xs font-bold text-[#F97316] dark:text-[#FB923C] font-mono-code">
+            <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm mb-5">
+                Progreso del trabajo
+            </h3>
+
+            {/* Percentage & Message */}
+            <div className="flex items-end gap-3 mb-3">
+                <span className="text-5xl sm:text-6xl font-black text-[#FF5100] leading-none tracking-tighter">
                     {pct}%
                 </span>
+                <p className="text-sm font-medium text-[rgba(11,18,32,0.50)] leading-snug pb-1 max-w-[160px]">
+                    Tu vehículo avanza según lo planificado.
+                </p>
             </div>
 
             {/* Progress bar */}
-            <div className="relative h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 mb-7 overflow-hidden">
+            <div className="relative h-2.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 mb-8 overflow-hidden">
                 <motion.div
                     className="h-full rounded-full"
-                    style={{ background: '#F97316', boxShadow: '0 0 10px rgba(249, 115, 22,0.5)' }}
+                    style={{ background: 'linear-gradient(90deg, #FF5100, #fb923c)', boxShadow: '0 0 10px rgba(249, 115, 22,0.4)' }}
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
                     transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
@@ -42,17 +46,19 @@ export function ProgresoOrden({ estado }: ProgresoOrdenProps) {
             </div>
 
             {/* Steps */}
-            <div className="relative">
-                <div className="flex items-start justify-between sm:justify-center gap-2 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
+            <div className="relative mt-auto">
+                {/* Connection line behind the circles */}
+                <div className="absolute top-[18px] left-[24px] right-[24px] h-[2px] bg-slate-100 dark:bg-slate-800 pointer-events-none"></div>
+
+                <div className="flex items-start justify-between overflow-x-auto pb-2 -mx-2 px-2 sm:mx-0 sm:px-0 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
                     {PROGRESS_STEPS.map((step, index) => {
                         const isCompleted = index < currentStep;
                         const isCurrent = index === currentStep;
-                        const isPending = index > currentStep;
 
                         return (
                             <motion.div
                                 key={step.key}
-                                className="flex flex-col items-center gap-2 min-w-[70px] sm:min-w-0 sm:flex-1 snap-center"
+                                className="flex flex-col items-center gap-2 min-w-[60px] sm:min-w-0 sm:flex-1 snap-center"
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.15 + index * 0.06, duration: 0.35 }}
@@ -66,7 +72,7 @@ export function ProgresoOrden({ estado }: ProgresoOrdenProps) {
                                         />
                                     )}
                                     <div
-                                        className={`relative w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${
+                                        className={`relative w-9 h-9 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${
                                             isCompleted
                                                 ? 'bg-green-100/50 dark:bg-green-500/10 border-green-500 dark:border-green-400'
                                                 : isCurrent
@@ -84,7 +90,7 @@ export function ProgresoOrden({ estado }: ProgresoOrdenProps) {
                                             />
                                         ) : (
                                             <step.icon
-                                                className={`w-4 h-4 ${isPending ? 'opacity-30' : 'opacity-80'}`}
+                                                className={`w-4 h-4 ${isCurrent ? 'opacity-80' : 'opacity-30'}`}
                                             />
                                         )}
                                     </div>
@@ -92,7 +98,7 @@ export function ProgresoOrden({ estado }: ProgresoOrdenProps) {
 
                                 {/* Label */}
                                 <span
-                                    className={`text-[9px] sm:text-[10px] font-semibold text-center leading-[1.1] w-full max-w-[64px] uppercase tracking-wider break-words ${
+                                    className={`text-[8px] sm:text-[9px] font-semibold text-center leading-[1.1] w-full max-w-[58px] uppercase tracking-wider break-words ${
                                         isCompleted
                                             ? 'text-green-600 dark:text-green-400'
                                             : isCurrent
