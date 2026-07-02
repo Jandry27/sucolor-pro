@@ -322,7 +322,7 @@ export function PaginaInicio() {
                             </p>
                             <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                 <a
-                                    href="https://wa.me/593960255898"
+                                    href="https://wa.me/593989575378"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-[10px] font-semibold text-white text-sm transition-all duration-150 hover:-translate-y-0.5"

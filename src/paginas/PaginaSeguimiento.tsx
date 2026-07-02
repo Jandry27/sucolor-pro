@@ -26,7 +26,7 @@ export function PaginaSeguimiento() {
     return (
         <div className="min-h-screen mesh-gradient flex flex-col">
             {/* ── Sticky Header with Logo ──── */}
-            <header className="sticky top-0 z-40 bg-[#FFFAF6]/95 backdrop-blur-xl text-white border-b-[3px] border-[#FF5100] shadow-lg shadow-black/10">
+            <header className="sticky top-0 z-40 bg-[#000000]/100 backdrop-blur-xl text-white border-b-[3px] border-[#FF5100] shadow-lg shadow-black/10">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3 sm:gap-4">
                         <Link to="/" className="flex-shrink-0">
@@ -88,7 +88,7 @@ export function PaginaSeguimiento() {
             </main>
 
             {/* ── Premium Footer ──── */}
-            <footer className="bg-[#0B1220] text-white mt-auto relative overflow-hidden">
+            <footer className="bg-[#000000] text-white mt-auto relative overflow-hidden">
                 {/* Top orange border */}
                 <div className="h-1 bg-gradient-to-r from-[#FF5100] via-[#fb923c] to-[#FF5100]"></div>
 
@@ -155,7 +155,7 @@ export function PaginaSeguimiento() {
                                     +593 989 575 378
                                 </a>
                                 <a
-                                    href="https://wa.me/593960255898"
+                                    href="https://wa.me/593989575378"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 hover:-translate-y-px"
@@ -172,7 +172,7 @@ export function PaginaSeguimiento() {
                     </div>
                 </div>
 
-                {/* Banner inferior naranjo */}
+                {/* Banner inferior naranja */}
                 <div className="bg-[#FF5100] text-white py-3 px-4 text-center text-xs sm:text-sm font-medium">
                     En <strong>SuColor</strong> cuidamos cada detalle de tu vehículo como si fuera nuestro.
                 </div>
