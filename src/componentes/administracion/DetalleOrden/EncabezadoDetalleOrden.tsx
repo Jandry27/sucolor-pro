@@ -1,4 +1,4 @@
-import { Edit2, FileText, Trash2, Loader2 } from 'lucide-react';
+import { Edit2, FileText, Trash2, Loader2, Phone, MessageCircle } from 'lucide-react';
 import type { AdminOrder } from '@/tipos';
 
 interface EncabezadoDetalleOrdenProps {
@@ -16,6 +16,11 @@ export function EncabezadoDetalleOrden({
     onOpenInvoice,
     onDelete,
 }: EncabezadoDetalleOrdenProps) {
+    const telefono = (order.cliente as any).telefono;
+    const cleanPhone = telefono ? telefono.replace(/\D/g, '') : '';
+    // Format for WhatsApp: replace leading 0 with 593 for Ecuador, otherwise use as is
+    const whatsappPhone = cleanPhone.startsWith('0') ? '593' + cleanPhone.slice(1) : cleanPhone;
+
     return (
         <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -29,6 +34,27 @@ export function EncabezadoDetalleOrden({
                     {order.vehiculo.marca} {order.vehiculo.modelo} —{' '}
                     <span className="font-mono-code">{order.vehiculo.placa}</span>
                 </p>
+                {telefono && (
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="text-sm font-medium text-[rgba(11,18,32,0.70)]">{telefono}</span>
+                        <a
+                            href={`tel:${cleanPhone}`}
+                            className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                            title="Llamar al cliente"
+                        >
+                            <Phone className="w-3.5 h-3.5" />
+                        </a>
+                        <a
+                            href={`https://wa.me/${whatsappPhone}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors"
+                            title="Enviar WhatsApp"
+                        >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                        </a>
+                    </div>
+                )}
             </div>
 
             <div className="flex items-center gap-1.5">
