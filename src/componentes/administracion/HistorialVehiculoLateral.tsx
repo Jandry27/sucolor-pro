@@ -30,6 +30,7 @@ interface OrdenRow {
     fecha_ingreso: string;
     fecha_estimada: string | null;
     notas_publicas: string | null;
+    precio_total: number | null;
 }
 
 interface Props {
@@ -79,7 +80,7 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
 
         supabase
             .from('ordenes')
-            .select('id, codigo, estado, fecha_ingreso, fecha_estimada, notas_publicas')
+            .select('id, codigo, estado, fecha_ingreso, fecha_estimada, notas_publicas, precio_total')
             .eq('vehiculo_id', vehiculo.id)
             .order('fecha_ingreso', { ascending: false })
             .then(({ data, error: err }) => {
@@ -181,6 +182,7 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
                                         bg: 'bg-gray-100',
                                         text: 'text-gray-600',
                                     };
+                                    const visitaNum = ordenes.length - i; // más antiguo = #1
                                     return (
                                         <motion.div
                                             key={orden.id}
@@ -189,11 +191,22 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
                                             transition={{ delay: i * 0.05 }}
                                             className="bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-2xl p-4 hover:border-[rgba(249,115,22,0.25)] hover:shadow-premium transition-all group"
                                         >
-                                            {/* Top row: código + badge estado */}
+                                            {/* Top row: número de visita + código + badge estado */}
                                             <div className="flex items-center justify-between mb-3">
-                                                <span className="font-mono text-xs font-bold text-[#0F172A] tracking-widest">
-                                                    {orden.codigo}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <span
+                                                        className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
+                                                        style={{
+                                                            background: 'rgba(249,115,22,0.12)',
+                                                            color: '#C2550D',
+                                                        }}
+                                                    >
+                                                        {visitaNum}
+                                                    </span>
+                                                    <span className="font-mono text-xs font-bold text-[#0F172A] tracking-widest">
+                                                        {orden.codigo}
+                                                    </span>
+                                                </div>
                                                 <span
                                                     className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${colors.bg} ${colors.text}`}
                                                 >
@@ -224,6 +237,20 @@ export function HistorialVehiculoLateral({ vehiculo, onClose }: Props) {
                                                     </div>
                                                 )}
                                             </div>
+
+                                            {/* Precio */}
+                                            {orden.precio_total != null && (
+                                                <div
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg mb-3 text-xs font-semibold"
+                                                    style={{
+                                                        background: 'rgba(22,163,74,0.08)',
+                                                        color: '#15803D',
+                                                    }}
+                                                >
+                                                    <span>Total cobrado:</span>
+                                                    <span>${orden.precio_total.toFixed(2)}</span>
+                                                </div>
+                                            )}
 
                                             {/* Notas */}
                                             {orden.notas_publicas && (

@@ -155,7 +155,7 @@ export function PaginaInicio() {
                     className="relative z-10"
                 >
                     <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-8 rounded-full text-xs font-semibold uppercase tracking-widest bg-white/50 backdrop-blur-sm border border-[#F97316]/20 text-[#F97316] shadow-[0_4px_14px_0_rgba(249,115,22,0.15)]">
-                        <Zap className="w-3 h-3" /> Taller automotriz profesional
+                        <Zap className="w-3 h-3" /> Taller de Pintura Automotriz
                     </div>
 
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#0F172A] mb-5 leading-[1.08] tracking-tight">
@@ -342,7 +342,7 @@ export function PaginaInicio() {
                             </div>
                             <div className="flex items-center justify-center gap-1.5 mt-6 text-xs text-[rgba(15,23,42,0.40)]">
                                 <MapPin className="w-3 h-3 text-[#F97316]" />
-                                Taller SuColor
+                                Taller SuColor (Machala y Jaramijo)
                             </div>
                         </div>
                     </div>
@@ -375,14 +375,7 @@ export function PaginaInicio() {
                                     </span>
                                 </div>
                                 {/* CTA Consultar estado */}
-                                <Link
-                                    to="/"
-                                    className="btn-primary w-full sm:w-auto mt-8 px-8 py-3.5 text-base"
-                                >
-                                    <Search className="w-3.5 h-3.5" />
-                                    Consultar estado de vehículo
-                                    <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
-                                </Link>
+
                             </div>
 
                             {/* ── Col 2: Servicios ── */}
