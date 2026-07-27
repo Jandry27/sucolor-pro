@@ -229,6 +229,10 @@ export function PaginaNuevaOrden() {
         setErrorMsg(null);
         if (vehiculoExistente) {
             setVehiculoId(vehiculoExistente.id);
+            // Usar el cliente del vehículo si no se seleccionó uno
+            if (!clienteId && vehiculoExistente.cliente_id) {
+                setClienteId(vehiculoExistente.cliente_id);
+            }
             setStep('orden');
             return;
         }
@@ -252,6 +256,10 @@ export function PaginaNuevaOrden() {
             setSaving(false);
             setVehiculoExistente(existente);
             setVehiculoId(existente.id);
+            // Usar el cliente del vehículo si no se seleccionó uno
+            if (!clienteId && existente.cliente_id) {
+                setClienteId(existente.cliente_id);
+            }
             cargarHistorial(existente.id);
             setStep('orden');
             return;
