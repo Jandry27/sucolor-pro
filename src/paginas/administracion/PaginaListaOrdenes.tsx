@@ -13,6 +13,14 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useOrdenes } from '@/ganchos/useOrdenes';
+
+// Normaliza nombres de clientes anónimos legacy para mostrarlos limpios
+function limpiarNombreCliente(nombre: string | undefined, placa?: string): string {
+    if (!nombre) return placa ?? 'Sin cliente';
+    const match = nombre.match(/^Cliente An[oó]nimo\s*\(Placa:\s*(.+?)\)$/i);
+    if (match) return match[1].trim();
+    return nombre;
+}
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 
 const PRIORITY_STYLE: Record<string, { color: string; bg: string }> = {
@@ -167,7 +175,7 @@ export function PaginaListaOrdenes() {
                                                             </span>
                                                         </div>
                                                         <p className="font-semibold text-[#0F172A] text-sm mt-0.5 leading-tight truncate">
-                                                            {(order.cliente as any).nombres}
+                                                            {limpiarNombreCliente((order.cliente as any).nombres, (order.vehiculo as any)?.placa)}
                                                         </p>
                                                     </div>
                                                 </div>

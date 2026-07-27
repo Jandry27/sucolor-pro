@@ -10,6 +10,15 @@ const PRIORITY_STYLE: Record<string, { color: string; bg: string }> = {
     URGENTE: { color: '#EF4444', bg: 'rgba(239,68,68,0.10)' },
 };
 
+// Normaliza nombres de clientes anónimos legacy para mostrarlos limpios
+function limpiarNombreCliente(nombre: string | undefined, placa?: string): string {
+    if (!nombre) return placa ?? 'Sin cliente';
+    // Formato viejo: "Cliente Anónimo (Placa: LBA-7124)"
+    const match = nombre.match(/^Cliente An[oó]nimo\s*\(Placa:\s*(.+?)\)$/i);
+    if (match) return match[1].trim();
+    return nombre;
+}
+
 interface TarjetaOrdenProps {
     order: AdminOrder;
     onDelete?: (id: string) => void;
@@ -47,7 +56,7 @@ export function TarjetaOrden({ order, onDelete }: TarjetaOrdenProps) {
                             {order.codigo}
                         </p>
                         <p className="font-semibold text-[#0F172A] text-sm mt-0.5 leading-tight truncate">
-                            {(order.cliente as any).nombres}
+                            {limpiarNombreCliente((order.cliente as any).nombres, order.vehiculo?.placa)}
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
