@@ -59,8 +59,29 @@ export function PanelSubidaFotos({ ordenId }: PanelSubidaFotosProps) {
         loadMedia();
     }, [loadMedia]);
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+    const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic'];
+
     const handleFiles = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
+
+        // Validar cada archivo
+        for (const file of Array.from(files)) {
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                setUploadError(`Tipo de archivo no permitido: ${file.type}. Solo se aceptan JPG, PNG y WebP.`);
+                return;
+            }
+            const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+            if (!ALLOWED_EXTENSIONS.includes(ext)) {
+                setUploadError(`Extensión no permitida: ${ext}`);
+                return;
+            }
+            if (file.size > MAX_FILE_SIZE) {
+                setUploadError(`Archivo demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo: 10MB`);
+                return;
+            }
+        }
         setUploading(true);
         setUploadError(null);
 

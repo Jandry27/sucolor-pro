@@ -20,6 +20,7 @@ import {
     CalendarCheck,
 } from 'lucide-react';
 import { supabase } from '@/biblioteca/clienteSupabase';
+import { sanitizarTexto, sanitizarPlaca, sanitizarTelefono } from '@/biblioteca/sanitizar';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 
 type Step = 'cliente' | 'vehiculo' | 'orden' | 'confirmado';
@@ -165,7 +166,7 @@ export function PaginaNuevaOrden() {
         setSaving(true);
         const { data, error } = await supabase
             .from('clientes')
-            .insert({ nombres: cNombres.trim(), telefono: cTel || null })
+            .insert({ nombres: sanitizarTexto(cNombres), telefono: sanitizarTelefono(cTel) || null })
             .select('id, nombres, telefono')
             .single();
         setSaving(false);
@@ -244,7 +245,7 @@ export function PaginaNuevaOrden() {
         setSaving(true);
 
         // ── Verificar si la placa ya existe antes de intentar insertar ────────
-        const placaNorm = vPlaca.trim().toUpperCase();
+        const placaNorm = sanitizarPlaca(vPlaca);
         const { data: existente } = await supabase
             .from('vehiculos')
             .select('id, placa, marca, modelo, anio, color, cliente_id')
@@ -290,10 +291,10 @@ export function PaginaNuevaOrden() {
             .from('vehiculos')
             .insert({
                 placa: placaNorm,
-                marca: vMarca.trim(),
-                modelo: vModelo.trim() || null,
+                marca: sanitizarTexto(vMarca),
+                modelo: sanitizarTexto(vModelo) || null,
                 anio: vAnio ? parseInt(vAnio) : null,
-                color: vColor || null,
+                color: sanitizarTexto(vColor) || null,
                 cliente_id: currentClienteId,
             })
             .select('id')
@@ -392,8 +393,8 @@ export function PaginaNuevaOrden() {
                 vehiculo_id: vehiculoId,
                 prioridad: oPrioridad,
                 fecha_estimada: oFechaEst || null,
-                notas_publicas: oNotasPublicas || null,
-                notas_internas: oNotasInternas || null,
+                notas_publicas: oNotasPublicas ? sanitizarTexto(oNotasPublicas) : null,
+                notas_internas: oNotasInternas ? sanitizarTexto(oNotasInternas) : null,
                 precio_total: oPrecio ? parseFloat(oPrecio) : null,
                 monto_entrada: oEntrada ? parseFloat(oEntrada) : null,
                 monto_pagado: oEntrada ? parseFloat(oEntrada) : null,

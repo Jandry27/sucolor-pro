@@ -1,10 +1,20 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+const ALLOWED_ORIGINS = [
+  "https://sucolor.vercel.app",
+  "http://localhost:5173",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin") || "";
+  const isAllowed = ALLOWED_ORIGINS.includes(origin) || origin.startsWith("http://localhost");
+  return {
+    "Access-Control-Allow-Origin": isAllowed ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
 
 // SRI Catastro endpoint — servicio público del SRI Ecuador
 const SRI_CATASTRO_URL =
@@ -12,7 +22,7 @@ const SRI_CATASTRO_URL =
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -21,7 +31,7 @@ serve(async (req) => {
     if (!identificacion || identificacion.length < 10) {
       return new Response(
         JSON.stringify({ success: false, message: "Identificación inválida" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" }, status: 400 }
       );
     }
 
@@ -45,7 +55,7 @@ serve(async (req) => {
       console.error(`SRI responded with status: ${sriResponse.status}`);
       return new Response(
         JSON.stringify({ success: false, message: `SRI no disponible (${sriResponse.status})` }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 502 }
+        { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" }, status: 502 }
       );
     }
 
@@ -54,7 +64,7 @@ serve(async (req) => {
     if (!sriData || !Array.isArray(sriData) || sriData.length === 0) {
       return new Response(
         JSON.stringify({ success: false, message: "Contribuyente no encontrado en el SRI" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+        { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" }, status: 404 }
       );
     }
 
@@ -82,14 +92,14 @@ serve(async (req) => {
     console.log(`SRI lookup exitoso: ${contribuyente.razonSocial}`);
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error: any) {
     console.error("Error en sri-lookup:", error.message);
     return new Response(
       JSON.stringify({ success: false, message: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" }, status: 500 }
     );
   }
 });

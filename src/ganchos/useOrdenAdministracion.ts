@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/biblioteca/clienteSupabase';
+import { sanitizarTexto, sanitizarPlaca, sanitizarTelefono } from '@/biblioteca/sanitizar';
 import type { AdminOrder, OrderStatus } from '@/tipos';
 
 interface UseAdminOrderReturn {
@@ -160,8 +161,8 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                     await supabase
                         .from('clientes')
                         .update({
-                            ...(updates.nombres !== undefined && { nombres: updates.nombres }),
-                            ...(updates.telefono !== undefined && { telefono: updates.telefono }),
+                            ...(updates.nombres !== undefined && { nombres: sanitizarTexto(updates.nombres) }),
+                            ...(updates.telefono !== undefined && { telefono: sanitizarTelefono(updates.telefono) }),
                         })
                         .eq('id', order.cliente_id);
                 }
@@ -175,10 +176,10 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                         .from('vehiculos')
                         .update({
                             ...(updates.placa !== undefined && {
-                                placa: updates.placa.toUpperCase(),
+                                placa: sanitizarPlaca(updates.placa),
                             }),
-                            ...(updates.marca !== undefined && { marca: updates.marca }),
-                            ...(updates.modelo !== undefined && { modelo: updates.modelo }),
+                            ...(updates.marca !== undefined && { marca: sanitizarTexto(updates.marca) }),
+                            ...(updates.modelo !== undefined && { modelo: sanitizarTexto(updates.modelo) }),
                         })
                         .eq('id', order.vehiculo_id);
                 }
@@ -219,8 +220,9 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
             if (!order) return;
             setSaving(true);
             try {
-                await supabase.from('ordenes').update({ notas_publicas: notas }).eq('id', order.id);
-                setOrder(prev => (prev ? { ...prev, notas_publicas: notas } : prev));
+                const notasSanitizadas = notas ? sanitizarTexto(notas) : null;
+                await supabase.from('ordenes').update({ notas_publicas: notasSanitizadas }).eq('id', order.id);
+                setOrder(prev => (prev ? { ...prev, notas_publicas: notasSanitizadas } : prev));
             } catch (e) {
                 console.error('Error updating notes:', e);
             } finally {
@@ -240,7 +242,8 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                     day: '2-digit',
                     month: 'short',
                 }).format(new Date());
-                const newLine = `• [${date}] ${entry.trim()}`;
+                const entrySanitizado = sanitizarTexto(entry);
+                const newLine = `• [${date}] ${entrySanitizado}`;
                 const updatedNotes = order.notas_publicas
                     ? `${newLine}\n${order.notas_publicas}`
                     : newLine;

@@ -5,10 +5,21 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/clienteSupabase-js@2';
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+    'https://sucolor.vercel.app',
+    'http://localhost:5173',
+];
+
+function getCorsHeaders(req: Request) {
+    const origin = req.headers.get('origin') || '';
+    const isAllowed = ALLOWED_ORIGINS.includes(origin) || origin.startsWith('http://localhost');
+    return {
+        'Access-Control-Allow-Origin': isAllowed ? origin : ALLOWED_ORIGINS[0],
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Vary': 'Origin',
+    };
+}
 
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 // Consulta la tabla `rate_limits` para saber si la IP ha superado el límite
@@ -58,7 +69,7 @@ async function checkRateLimit(
 
 serve(async (req: Request) => {
     if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders });
+        return new Response('ok', { headers: getCorsHeaders(req) });
     }
 
     try {
@@ -77,7 +88,7 @@ serve(async (req: Request) => {
                     ok: false,
                     error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
                 }),
-                { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                { status: 429, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
             );
         }
 
@@ -94,7 +105,7 @@ serve(async (req: Request) => {
         if (!codigoRaw || !tokenRaw || !codigoValido || !tokenValido) {
             return new Response(JSON.stringify({ ok: false, error: 'Parámetros inválidos.' }), {
                 status: 400,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
             });
         }
 
@@ -113,7 +124,7 @@ serve(async (req: Request) => {
         if (ordErr || !orden) {
             return new Response(JSON.stringify({ ok: false, error: 'Orden no encontrada.' }), {
                 status: 404,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
             });
         }
 
@@ -123,14 +134,14 @@ serve(async (req: Request) => {
                     ok: false,
                     error: 'El portal de seguimiento para esta orden está desactivado.',
                 }),
-                { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
             );
         }
 
         if (orden.share_token !== token) {
             return new Response(JSON.stringify({ ok: false, error: 'Token inválido.' }), {
                 status: 401,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
             });
         }
 
@@ -217,13 +228,13 @@ serve(async (req: Request) => {
                 gastos: gastos ?? [],
                 media,
             }),
-            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         );
     } catch (err) {
         console.error('track-order error:', err);
         return new Response(JSON.stringify({ ok: false, error: 'Error interno del servidor.' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
         });
     }
 });

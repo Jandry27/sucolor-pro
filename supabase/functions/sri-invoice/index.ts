@@ -2,10 +2,21 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/clienteSupabase-js@2.39.0';
 import forge from 'npm:node-forge@1.3.1';
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+    'https://sucolor.vercel.app',
+    'http://localhost:5173',
+];
+
+function getCorsHeaders(req: Request) {
+    const origin = req.headers.get('origin') || '';
+    const isAllowed = ALLOWED_ORIGINS.includes(origin) || origin.startsWith('http://localhost');
+    return {
+        'Access-Control-Allow-Origin': isAllowed ? origin : ALLOWED_ORIGINS[0],
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Vary': 'Origin',
+    };
+}
 
 // ============================================================
 // SRI ENDPOINTS
@@ -794,7 +805,7 @@ async function sendInvoiceEmail(data: {
 // ============================================================
 serve(async req => {
     if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders });
+        return new Response('ok', { headers: getCorsHeaders(req) });
     }
 
     try {
@@ -1264,13 +1275,13 @@ serve(async req => {
         }
 
         return new Response(JSON.stringify(responseBody), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
             status: 200,
         });
     } catch (error: any) {
         console.error('Invoice function error:', error.message);
         return new Response(JSON.stringify({ success: false, message: error.message }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
             status: 400,
         });
     }

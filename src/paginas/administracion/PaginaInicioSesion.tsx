@@ -12,17 +12,37 @@ export function PaginaInicioSesion() {
     const [showPw, setShowPw] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [attempts, setAttempts] = useState(0);
+    const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+    const MAX_ATTEMPTS = 5;
+    const LOCKOUT_SECONDS = 60;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (lockedUntil && Date.now() < lockedUntil) {
+            const secsLeft = Math.ceil((lockedUntil - Date.now()) / 1000);
+            setError(`Demasiados intentos. Espera ${secsLeft} segundos.`);
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
             const exito = await login(email, password);
             if (exito) {
+                setAttempts(0);
                 navigate('/administracion/orders');
             } else {
-                setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
+                const newAttempts = attempts + 1;
+                setAttempts(newAttempts);
+                if (newAttempts >= MAX_ATTEMPTS) {
+                    setLockedUntil(Date.now() + LOCKOUT_SECONDS * 1000);
+                    setAttempts(0);
+                    setError(`Cuenta bloqueada temporalmente por ${LOCKOUT_SECONDS} segundos.`);
+                } else {
+                    setError(`Credenciales incorrectas. Intentos restantes: ${MAX_ATTEMPTS - newAttempts}`);
+                }
             }
         } catch {
             setError('Ocurrió un error inesperado. Por favor, intenta de nuevo.');
