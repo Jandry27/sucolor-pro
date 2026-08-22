@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/biblioteca/clienteSupabase';
 import { sanitizarTexto, sanitizarPlaca, sanitizarTelefono } from '@/biblioteca/sanitizar';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
+import { sonidoOrdenCreada, sonidoError } from '@/biblioteca/sonidos';
 
 type Step = 'cliente' | 'vehiculo' | 'orden' | 'confirmado';
 const PRIORIDADES = ['NORMAL', 'URGENTE'];
@@ -171,6 +172,7 @@ export function PaginaNuevaOrden() {
             .single();
         setSaving(false);
         if (error) {
+            sonidoError();
             setErrorMsg('Error al guardar el cliente: ' + error.message);
             return;
         }
@@ -280,6 +282,7 @@ export function PaginaNuevaOrden() {
                 .single();
             if (errAnon) {
                 setSaving(false);
+                sonidoError();
                 setErrorMsg('Error al generar cliente anónimo: ' + errAnon.message);
                 return;
             }
@@ -301,6 +304,7 @@ export function PaginaNuevaOrden() {
             .single();
         setSaving(false);
         if (error) {
+            sonidoError();
             setErrorMsg('Error al guardar el vehículo: ' + error.message);
             return;
         }
@@ -404,6 +408,7 @@ export function PaginaNuevaOrden() {
             .single();
         setSaving(false);
         if (error) {
+            sonidoError();
             setErrorMsg('Error al crear la orden: ' + error.message);
             return;
         }
@@ -411,6 +416,7 @@ export function PaginaNuevaOrden() {
         setNuevaOrdenCodigo(data.codigo);
         // Subir fotos ya seleccionadas
         await uploadPhotos(data.id);
+        sonidoOrdenCreada();
         setStep('confirmado');
     };
 

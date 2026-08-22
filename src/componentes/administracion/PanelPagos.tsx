@@ -13,6 +13,7 @@ import {
     X,
 } from 'lucide-react';
 import { supabase } from '@/biblioteca/clienteSupabase';
+import { sonidoPagoRegistrado, sonidoPagoEliminado, sonidoPagoCompleto, sonidoDetallesGuardados, sonidoError } from '@/biblioteca/sonidos';
 
 interface PanelPagosProps {
     ordenId: string;
@@ -123,7 +124,8 @@ export function PanelPagos({
         const fields = { precio_total: parseFloat(total) || 0 };
         const { error } = await supabase.from('ordenes').update(fields).eq('id', ordenId);
         setSaving(false);
-        if (!error) { onUpdate(fields); setEditing(false); }
+        if (!error) { onUpdate(fields); setEditing(false); sonidoDetallesGuardados(); }
+        else { sonidoError(); }
     };
 
     const uploadComprobante = async (): Promise<string | null> => {
@@ -197,6 +199,15 @@ export function PanelPagos({
             setNewAbono({ fecha: new Date().toISOString().split('T')[0], monto: '', nota: '', metodo: 'Efectivo' });
             clearComprobante();
             onUpdate(fields);
+            // Si el pago quedó completo, fanfarria; si no, sonido normal
+            const newSaldo = (parseFloat(total) || precioTotal) - newMontoPagado;
+            if (newSaldo <= 0 && precioTotal > 0) {
+                sonidoPagoCompleto();
+            } else {
+                sonidoPagoRegistrado();
+            }
+        } else {
+            sonidoError();
         }
     };
 
@@ -212,7 +223,8 @@ export function PanelPagos({
         const fields = { monto_pagado: newMontoPagado, notas_internas: newNotasInternas };
         const { error } = await supabase.from('ordenes').update(fields).eq('id', ordenId);
         setSaving(false);
-        if (!error) { setAbonos(updatedAbonos); onUpdate(fields); }
+        if (!error) { setAbonos(updatedAbonos); onUpdate(fields); sonidoPagoEliminado(); }
+        else { sonidoError(); }
     };
 
     return (

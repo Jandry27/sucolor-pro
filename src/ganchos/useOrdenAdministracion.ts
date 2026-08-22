@@ -2,6 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import { sanitizarTexto, sanitizarPlaca, sanitizarTelefono } from '@/biblioteca/sanitizar';
 import type { AdminOrder, OrderStatus } from '@/tipos';
+import {
+    sonidoEstadoCambiado,
+    sonidoDetallesGuardados,
+    sonidoToggle,
+    sonidoOrdenEliminada,
+    sonidoBitacoraEntrada,
+    sonidoBitacoraGuardada,
+    sonidoError,
+} from '@/biblioteca/sonidos';
 
 interface UseAdminOrderReturn {
     order: AdminOrder | null;
@@ -112,7 +121,12 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                 .from('ordenes')
                 .update({ estado })
                 .eq('id', order.id);
-            if (!err) setOrder(prev => (prev ? { ...prev, estado } : prev));
+            if (!err) {
+                setOrder(prev => (prev ? { ...prev, estado } : prev));
+                sonidoEstadoCambiado();
+            } else {
+                sonidoError();
+            }
             setSaving(false);
         },
         [order]
@@ -127,7 +141,12 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
             .from('ordenes')
             .update({ share_enabled: newVal })
             .eq('id', order.id);
-        if (!err) setOrder(prev => (prev ? { ...prev, share_enabled: newVal } : prev));
+        if (!err) {
+            setOrder(prev => (prev ? { ...prev, share_enabled: newVal } : prev));
+            sonidoToggle();
+        } else {
+            sonidoError();
+        }
         setSaving(false);
     }, [order]);
 
@@ -137,8 +156,12 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
         setSaving(true);
         const { error: err } = await supabase.from('ordenes').delete().eq('id', order.id);
         setSaving(false);
-        if (!err) return true;
+        if (!err) {
+            sonidoOrdenEliminada();
+            return true;
+        }
         console.error('Error deleting order:', err);
+        sonidoError();
         return false;
     }, [order]);
 
@@ -205,8 +228,10 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                         },
                     };
                 });
+                sonidoDetallesGuardados();
             } catch (e) {
                 console.error('Error updating details:', e);
+                sonidoError();
             } finally {
                 setSaving(false);
             }
@@ -223,8 +248,10 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                 const notasSanitizadas = notas ? sanitizarTexto(notas) : null;
                 await supabase.from('ordenes').update({ notas_publicas: notasSanitizadas }).eq('id', order.id);
                 setOrder(prev => (prev ? { ...prev, notas_publicas: notasSanitizadas } : prev));
+                sonidoBitacoraGuardada();
             } catch (e) {
                 console.error('Error updating notes:', e);
+                sonidoError();
             } finally {
                 setSaving(false);
             }
@@ -252,8 +279,10 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                     .update({ notas_publicas: updatedNotes })
                     .eq('id', order.id);
                 setOrder(prev => (prev ? { ...prev, notas_publicas: updatedNotes } : prev));
+                sonidoBitacoraEntrada();
             } catch (e) {
                 console.error('Error adding note entry:', e);
+                sonidoError();
             } finally {
                 setSaving(false);
             }

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, FileText, Trash2, Camera, Receipt } from 'lucide-react';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import type { OrdenGasto } from '@/tipos';
+import { sonidoGastoAgregado, sonidoGastoEliminado, sonidoError } from '@/biblioteca/sonidos';
 
 interface PanelGastosProps {
     ordenId: string;
@@ -120,7 +121,9 @@ export function PanelGastos({ ordenId }: PanelGastosProps) {
             setDescripcion('');
             setMonto('');
             removeFile();
+            sonidoGastoAgregado();
         } catch (err: any) {
+            sonidoError();
             setError(`Error al guardar gasto: ${err.message}`);
             console.error('Gasto save error:', err);
         } finally {
@@ -134,6 +137,7 @@ export function PanelGastos({ ordenId }: PanelGastosProps) {
 
         await supabase.from('orden_gastos').delete().eq('id', id);
         setGastos(prev => prev.filter(g => g.id !== id));
+        sonidoGastoEliminado();
     };
 
     const totalGastos = gastos.reduce((acc, curr) => acc + Number(curr.monto), 0);

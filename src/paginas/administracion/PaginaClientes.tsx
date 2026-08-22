@@ -4,6 +4,7 @@ import { Search, Loader2, AlertTriangle, Phone, Users, Trash2, Edit2, X, Save } 
 import { supabase } from '@/biblioteca/clienteSupabase';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 import type { Cliente } from '@/tipos';
+import { sonidoDetallesGuardados, sonidoOrdenEliminada, sonidoError } from '@/biblioteca/sonidos';
 
 export function PaginaClientes() {
     const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -44,7 +45,9 @@ export function PaginaClientes() {
                 )
             );
             setEditingId(null);
+            sonidoDetallesGuardados();
         } catch (err: any) {
+            sonidoError();
             alert('Error al guardar: ' + (err.message || 'Error desconocido'));
         } finally {
             setSaving(false);
@@ -85,7 +88,9 @@ export function PaginaClientes() {
             const { error } = await supabase.from('clientes').delete().eq('id', id);
             if (error) throw error;
             setClientes(prev => prev.filter(c => c.id !== id));
+            sonidoOrdenEliminada();
         } catch (err: any) {
+            sonidoError();
             alert('Error al eliminar cliente: ' + (err.message || 'Error desconocido'));
         }
     };
