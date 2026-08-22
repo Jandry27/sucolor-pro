@@ -36,8 +36,11 @@ interface ToneConfig {
  * Cada tono pasa por: Oscillator → LowPass Filter → Gain → Destination
  * Esto permite crear sonidos complejos, cálidos y "cristalinos" como iOS.
  */
-const playSound = (tones: ToneConfig[]) => {
+const playSound = (tones: ToneConfig[], vibratePattern?: number | number[]) => {
     try {
+        if (vibratePattern && typeof navigator !== 'undefined' && navigator.vibrate) {
+            try { navigator.vibrate(vibratePattern); } catch {}
+        }
         const ac = getCtx();
         if (!ac) return;
         if (ac.state === 'suspended') ac.resume();
@@ -113,7 +116,7 @@ export const sonidoOrdenCreada = () =>
         { freq: 784,  start: 0,    duration: 0.35, volume: 0.07, filterFreq: 5000 },     // G5
         { freq: 988,  start: 0.08, duration: 0.30, volume: 0.065, filterFreq: 4500 },    // B5
         { freq: 1319, start: 0.16, duration: 0.40, volume: 0.06, filterFreq: 4000 },     // E6
-    ]);
+    ], [15, 30, 15]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 2. BITÁCORA — AÑADIR ENTRADA
@@ -123,7 +126,7 @@ export const sonidoBitacoraEntrada = () =>
     playSound([
         { freq: 1047, start: 0, duration: 0.12, volume: 0.06, filterFreq: 3000 },        // C6
         { freq: 1568, start: 0, duration: 0.10, volume: 0.025, filterFreq: 2500 },       // G6 (armónico sutil)
-    ]);
+    ], [10]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 3. BITÁCORA — GUARDAR HISTORIAL COMPLETO
@@ -133,7 +136,7 @@ export const sonidoBitacoraGuardada = () =>
     playSound([
         { freq: 880,  start: 0,    duration: 0.18, volume: 0.06, filterFreq: 3500 },     // A5
         { freq: 1047, start: 0.10, duration: 0.28, volume: 0.055, filterFreq: 3000 },    // C6
-    ]);
+    ], [15, 20, 15]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 4. GASTO AGREGADO
@@ -143,7 +146,7 @@ export const sonidoGastoAgregado = () =>
     playSound([
         { freq: 698,  start: 0,    duration: 0.10, volume: 0.055, filterFreq: 3200 },    // F5
         { freq: 880,  start: 0.07, duration: 0.15, volume: 0.06,  filterFreq: 3000 },    // A5
-    ]);
+    ], [10, 20, 10]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 5. GASTO ELIMINADO
@@ -153,7 +156,7 @@ export const sonidoGastoEliminado = () =>
     playSound([
         { freq: 659, start: 0, duration: 0.18, volume: 0.045, filterFreq: 2500 },        // E5
         { freq: 523, start: 0, duration: 0.14, volume: 0.02,  filterFreq: 2000 },        // C5 ghost
-    ]);
+    ], [20]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 6. PAGO REGISTRADO
@@ -164,7 +167,7 @@ export const sonidoPagoRegistrado = () =>
         { freq: 1047, start: 0,    duration: 0.15, volume: 0.06,  filterFreq: 4000 },    // C6
         { freq: 1319, start: 0,    duration: 0.15, volume: 0.04,  filterFreq: 3500 },    // E6
         { freq: 1568, start: 0.06, duration: 0.22, volume: 0.055, filterFreq: 3500 },    // G6
-    ]);
+    ], [15, 30, 20]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 7. PAGO ELIMINADO
@@ -174,7 +177,7 @@ export const sonidoPagoEliminado = () =>
     playSound([
         { freq: 523, start: 0, duration: 0.2,  volume: 0.045, filterFreq: 2200 },        // C5
         { freq: 440, start: 0, duration: 0.18, volume: 0.02,  filterFreq: 1800 },        // A4 ghost
-    ]);
+    ], [20]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 8. PAGO COMPLETO — ¡Celebración!
@@ -188,7 +191,7 @@ export const sonidoPagoCompleto = () =>
         // Acorde final que resuena
         { freq: 2093, start: 0.24, duration: 0.45, volume: 0.05,  filterFreq: 4000 },    // C7
         { freq: 1568, start: 0.24, duration: 0.40, volume: 0.03,  filterFreq: 3500 },    // G6
-    ]);
+    ], [10, 20, 10, 20, 10, 30, 20]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 9. ESTADO CAMBIADO
@@ -198,7 +201,7 @@ export const sonidoEstadoCambiado = () =>
     playSound([
         { freq: 659,  start: 0,    duration: 0.14, volume: 0.055, filterFreq: 3500 },    // E5
         { freq: 880,  start: 0.09, duration: 0.20, volume: 0.06,  filterFreq: 3200 },    // A5
-    ]);
+    ], [10, 20, 10]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 10. DETALLES GUARDADOS (cliente/vehículo/total editado)
@@ -208,7 +211,7 @@ export const sonidoDetallesGuardados = () =>
     playSound([
         { freq: 880,  start: 0, duration: 0.18, volume: 0.055, filterFreq: 3000 },       // A5
         { freq: 1760, start: 0, duration: 0.14, volume: 0.018, filterFreq: 2500 },       // A6 (octava ghost)
-    ]);
+    ], [15]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 11. TOGGLE COMPARTIR
@@ -217,7 +220,7 @@ export const sonidoDetallesGuardados = () =>
 export const sonidoToggle = () =>
     playSound([
         { freq: 1319, start: 0, duration: 0.08, volume: 0.04, filterFreq: 2800 },        // E6
-    ]);
+    ], [5]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 12. ORDEN / ELEMENTO ELIMINADO
@@ -227,7 +230,7 @@ export const sonidoOrdenEliminada = () =>
     playSound([
         { freq: 330,  start: 0,    duration: 0.15, volume: 0.05, filterFreq: 1800 },     // E4
         { freq: 262,  start: 0.08, duration: 0.20, volume: 0.04, filterFreq: 1500 },     // C4
-    ]);
+    ], [30, 40, 20]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 13. ERROR
@@ -237,7 +240,7 @@ export const sonidoError = () =>
     playSound([
         { freq: 262,  start: 0,    duration: 0.12, volume: 0.055, filterFreq: 1200, type: 'triangle' },  // C4
         { freq: 247,  start: 0.10, duration: 0.15, volume: 0.05,  filterFreq: 1000, type: 'triangle' },  // B3
-    ]);
+    ], [50, 40, 50]);
 
 // ── Aliases retrocompatibles ─────────────────────────────────────────────────
 export const reproducirExito = sonidoOrdenCreada;

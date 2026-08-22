@@ -491,7 +491,10 @@ export function PaginaNuevaOrden() {
                 )}
 
                 {errorMsg && (
-                    <div
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0, x: [-5, 5, -5, 5, 0] }}
+                        transition={{ duration: 0.4 }}
                         className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-[#EF4444]"
                         style={{
                             background: 'rgba(239,68,68,0.08)',
@@ -500,7 +503,7 @@ export function PaginaNuevaOrden() {
                     >
                         <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                         {errorMsg}
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* ── PASO 1: CLIENTE ──────────────────────────────────────────── */}
@@ -530,7 +533,8 @@ export function PaginaNuevaOrden() {
                                     placeholder="Ej: Juan Pérez, 0989..., ABC-1234"
                                     className="input-field flex-1"
                                 />
-                                <button
+                                <motion.button
+                                    whileTap={{ scale: 0.96 }}
                                     onClick={buscarCliente}
                                     disabled={buscandoCliente}
                                     className="btn-secondary text-sm px-4 flex items-center gap-1.5"
@@ -542,7 +546,7 @@ export function PaginaNuevaOrden() {
                                             <Search className="w-3.5 h-3.5" /> Buscar
                                         </>
                                     )}
-                                </button>
+                                </motion.button>
                             </div>
                             <AnimatePresence>
                                 {clientesEncontrados.length > 0 && (
@@ -591,7 +595,8 @@ export function PaginaNuevaOrden() {
                                     className="input-field"
                                 />
                             </div>
-                            <button
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
                                 onClick={guardarCliente}
                                 disabled={saving}
                                 className="btn-primary w-full flex items-center justify-center gap-2 mb-3"
@@ -603,14 +608,15 @@ export function PaginaNuevaOrden() {
                                         Registrar y continuar <ChevronRight className="w-4 h-4" />
                                     </>
                                 )}
-                            </button>
-                            <button
+                            </motion.button>
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
                                 onClick={saltarCliente}
                                 disabled={saving}
                                 className="btn-secondary w-full text-sm"
                             >
                                 Omitir este paso / Registro Rápido
-                            </button>
+                            </motion.button>
                         </div>
                     </motion.div>
                 )}
@@ -659,7 +665,8 @@ export function PaginaNuevaOrden() {
                                     placeholder="Ej: ABC-1234"
                                     className="input-field flex-1 font-mono uppercase"
                                 />
-                                <button
+                                <motion.button
+                                    whileTap={{ scale: 0.96 }}
                                     onClick={buscarVehiculo}
                                     disabled={buscandoVehiculo}
                                     className="btn-secondary text-sm px-4 flex items-center gap-1.5"
@@ -671,7 +678,7 @@ export function PaginaNuevaOrden() {
                                             <Search className="w-3.5 h-3.5" /> Buscar
                                         </>
                                     )}
-                                </button>
+                                </motion.button>
                             </div>
                             {vehiculoExistente && (
                                 <motion.div
@@ -962,7 +969,8 @@ export function PaginaNuevaOrden() {
                             >
                                 ← Volver
                             </button>
-                            <button
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
                                 onClick={guardarVehiculo}
                                 disabled={saving}
                                 className="btn-primary flex-1 flex items-center justify-center gap-2"
@@ -974,7 +982,7 @@ export function PaginaNuevaOrden() {
                                         Continuar <ChevronRight className="w-4 h-4" />
                                     </>
                                 )}
-                            </button>
+                            </motion.button>
                         </div>
                     </motion.div>
                 )}
@@ -1115,7 +1123,8 @@ export function PaginaNuevaOrden() {
                             >
                                 ← Volver
                             </button>
-                            <button
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
                                 onClick={guardarOrden}
                                 disabled={saving}
                                 className="btn-primary flex-1 flex items-center justify-center gap-2"
@@ -1125,7 +1134,7 @@ export function PaginaNuevaOrden() {
                                 ) : (
                                     '✓ Crear Orden'
                                 )}
-                            </button>
+                            </motion.button>
                         </div>
                     </motion.div>
                 )}
@@ -1194,9 +1203,9 @@ export function PaginaNuevaOrden() {
                                     Ver Orden
                                 </button>
                             )}
-                            <button onClick={reset} className="btn-primary flex-1">
+                            <motion.button whileTap={{ scale: 0.96 }} onClick={reset} className="btn-primary flex-1">
                                 Nueva orden
-                            </button>
+                            </motion.button>
                         </div>
                     </motion.div>
                 )}
