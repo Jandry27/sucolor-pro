@@ -165,9 +165,40 @@ export function PaginaNuevaOrden() {
             return;
         }
         setSaving(true);
+
+        const nombreNorm = sanitizarTexto(cNombres);
+        const telefonoNorm = sanitizarTelefono(cTel) || null;
+
+        // 1. Buscar por nombre exacto (case-insensitive), limit(1) para tolerar duplicados ya existentes
+        const { data: porNombre } = await supabase
+            .from('clientes')
+            .select('id, nombres, telefono')
+            .ilike('nombres', nombreNorm)
+            .limit(1);
+
+        // 2. Si no se encontró por nombre y hay teléfono, buscar por teléfono
+        let existente = porNombre?.[0] ?? null;
+        if (!existente && telefonoNorm) {
+            const { data: porTel } = await supabase
+                .from('clientes')
+                .select('id, nombres, telefono')
+                .eq('telefono', telefonoNorm)
+                .limit(1);
+            existente = porTel?.[0] ?? null;
+        }
+
+        if (existente) {
+            // Cliente ya registrado → reutilizar sin crear duplicado
+            setSaving(false);
+            setClienteSeleccionado(existente);
+            setClienteId(existente.id);
+            setStep('vehiculo');
+            return;
+        }
+
         const { data, error } = await supabase
             .from('clientes')
-            .insert({ nombres: sanitizarTexto(cNombres), telefono: sanitizarTelefono(cTel) || null })
+            .insert({ nombres: nombreNorm, telefono: telefonoNorm })
             .select('id, nombres, telefono')
             .single();
         setSaving(false);

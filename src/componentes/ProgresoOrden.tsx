@@ -11,7 +11,7 @@ export function ProgresoOrden({ estado }: ProgresoOrdenProps) {
     const config = STATUS_CONFIG[estado] ?? STATUS_CONFIG['RECIBIDO'];
     const currentStep = config.step;
     const totalSteps = PROGRESS_STEPS.length - 1;
-    const pct = Math.round((currentStep / totalSteps) * 100);
+    const pct = Math.min(100, Math.round((currentStep / totalSteps) * 100));
 
     return (
         <motion.div
