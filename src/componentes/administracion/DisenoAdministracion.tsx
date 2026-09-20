@@ -13,6 +13,7 @@ import {
     X,
     ClipboardList,
     Settings,
+    Palette,
 } from 'lucide-react';
 import { useAutenticacion } from '@/ganchos/useAutenticacion';
 
@@ -22,6 +23,7 @@ const NAV = [
     { to: '/administracion/orders/nueva', icon: PlusCircle, label: 'Nueva Orden' },
     { to: '/administracion/clientes', icon: Users, label: 'Clientes' },
     { to: '/administracion/vehiculos', icon: Car, label: 'Vehículos' },
+    { to: '/administracion/pinturas', icon: Palette, label: 'Inventario Pinturas' },
     { to: '/administracion/reportes', icon: FileBarChart, label: 'Reportes' },
     { to: '/administracion/configuracion', icon: Settings, label: 'Configuración' },
 ];

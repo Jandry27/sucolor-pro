@@ -182,3 +182,20 @@ export interface InvoiceItem {
     valor_iva: number;
     created_at: string;
 }
+
+// ─── Inventario de Pinturas Sobrantes ─────────────────────────────────────────
+export interface PinturaSobrante {
+    id: string;
+    placa: string;
+    color: string;
+    codigo_color: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PinturaFormData {
+    placa: string;
+    color: string;
+    codigo_color: string;
+}
+

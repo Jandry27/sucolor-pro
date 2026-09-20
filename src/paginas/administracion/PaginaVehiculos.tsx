@@ -141,24 +141,26 @@ export function PaginaVehiculos() {
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
                                                     <div
-                                                        className="w-3 h-3 rounded-full border border-[rgba(15,23,42,0.15)]"
+                                                        className="w-3.5 h-3.5 rounded-full border border-[rgba(15,23,42,0.15)]"
                                                         style={{
-                                                            background:
-                                                                v.color?.toLowerCase() === 'blanco'
-                                                                    ? '#f9fafb'
-                                                                    : v.color?.toLowerCase() ===
-                                                                        'negro'
-                                                                      ? '#111827'
-                                                                      : v.color?.toLowerCase() ===
-                                                                          'rojo'
-                                                                        ? '#ef4444'
-                                                                        : v.color?.toLowerCase() ===
-                                                                            'azul'
-                                                                          ? '#3b82f6'
-                                                                          : v.color?.toLowerCase() ===
-                                                                              'verde'
-                                                                            ? '#22c55e'
-                                                                            : '#9ca3af',
+                                                            background: (() => {
+                                                                const c = v.color?.toLowerCase().trim() || '';
+                                                                if (c.includes('blanco')) return '#f9fafb';
+                                                                if (c.includes('negro')) return '#111827';
+                                                                if (c.includes('rojo') || c.includes('vino')) return '#ef4444';
+                                                                if (c.includes('azul') || c.includes('marino')) return '#3b82f6';
+                                                                if (c.includes('celeste') || c.includes('cyan')) return '#38bdf8';
+                                                                if (c.includes('verde')) return '#22c55e';
+                                                                if (c.includes('amarillo') || c.includes('mostaza')) return '#eab308';
+                                                                if (c.includes('naranja')) return '#f97316';
+                                                                if (c.includes('gris') || c.includes('plomo') || c.includes('plata') || c.includes('plateado')) return '#9ca3af';
+                                                                if (c.includes('cafe') || c.includes('café') || c.includes('marron') || c.includes('marrón')) return '#78350f';
+                                                                if (c.includes('morado') || c.includes('lila')) return '#a855f7';
+                                                                if (c.includes('rosa')) return '#ec4899';
+                                                                if (c.includes('beige') || c.includes('crema') || c.includes('hueso')) return '#fef3c7';
+                                                                if (c.includes('dorado') || c.includes('oro')) return '#ca8a04';
+                                                                return '#e2e8f0'; // gris claro por defecto
+                                                            })()
                                                         }}
                                                     />
                                                     <span className="text-[rgba(11,18,32,0.55)]">
@@ -234,26 +236,29 @@ export function PaginaVehiculos() {
                                         <div className="flex items-center gap-3 text-xs text-[rgba(11,18,32,0.55)]">
                                             <span>{v.anio}</span>
                                             <div className="flex items-center gap-1.5">
-                                                <div
-                                                    className="w-2.5 h-2.5 rounded-full border border-[rgba(15,23,42,0.15)]"
-                                                    style={{
-                                                        background:
-                                                            v.color?.toLowerCase() === 'blanco'
-                                                                ? '#f9fafb'
-                                                                : v.color?.toLowerCase() === 'negro'
-                                                                  ? '#111827'
-                                                                  : v.color?.toLowerCase() ===
-                                                                      'rojo'
-                                                                    ? '#ef4444'
-                                                                    : v.color?.toLowerCase() ===
-                                                                        'azul'
-                                                                      ? '#3b82f6'
-                                                                      : v.color?.toLowerCase() ===
-                                                                          'verde'
-                                                                        ? '#22c55e'
-                                                                        : '#9ca3af',
-                                                    }}
-                                                />
+                                                    <div
+                                                        className="w-3.5 h-3.5 rounded-full border border-[rgba(15,23,42,0.15)]"
+                                                        style={{
+                                                            background: (() => {
+                                                                const c = v.color?.toLowerCase().trim() || '';
+                                                                if (c.includes('blanco')) return '#f9fafb';
+                                                                if (c.includes('negro')) return '#111827';
+                                                                if (c.includes('rojo') || c.includes('vino')) return '#ef4444';
+                                                                if (c.includes('azul') || c.includes('marino')) return '#3b82f6';
+                                                                if (c.includes('celeste') || c.includes('cyan')) return '#38bdf8';
+                                                                if (c.includes('verde')) return '#22c55e';
+                                                                if (c.includes('amarillo') || c.includes('mostaza')) return '#eab308';
+                                                                if (c.includes('naranja')) return '#f97316';
+                                                                if (c.includes('gris') || c.includes('plomo') || c.includes('plata') || c.includes('plateado')) return '#9ca3af';
+                                                                if (c.includes('cafe') || c.includes('café') || c.includes('marron') || c.includes('marrón')) return '#78350f';
+                                                                if (c.includes('morado') || c.includes('lila')) return '#a855f7';
+                                                                if (c.includes('rosa')) return '#ec4899';
+                                                                if (c.includes('beige') || c.includes('crema') || c.includes('hueso')) return '#fef3c7';
+                                                                if (c.includes('dorado') || c.includes('oro')) return '#ca8a04';
+                                                                return '#e2e8f0';
+                                                            })()
+                                                        }}
+                                                    />
                                             </div>
                                         </div>
                                         <span className="inline-flex items-center gap-1 text-xs text-[#FF5100] font-medium">

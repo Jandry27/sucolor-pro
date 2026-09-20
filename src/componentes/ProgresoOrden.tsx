@@ -72,13 +72,12 @@ export function ProgresoOrden({ estado }: ProgresoOrdenProps) {
                                         />
                                     )}
                                     <div
-                                        className={`relative w-9 h-9 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${
-                                            isCompleted
+                                        className={`relative w-9 h-9 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${isCompleted
                                                 ? 'bg-green-100/50 dark:bg-green-500/10 border-green-500 dark:border-green-400'
                                                 : isCurrent
-                                                  ? 'bg-orange-100/50 dark:bg-orange-500/10 border-[#F97316] dark:border-[#FB923C] shadow-[0_4px_10px_rgba(249,115,22,0.2)]'
-                                                  : 'bg-slate-100/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
-                                        }`}
+                                                    ? 'bg-orange-100/50 dark:bg-orange-500/10 border-[#F97316] dark:border-[#FB923C] shadow-[0_4px_10px_rgba(249,115,22,0.2)]'
+                                                    : 'bg-slate-100/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
+                                            }`}
                                         style={{
                                             borderWidth: isCompleted || isCurrent ? '1.5px' : '1px',
                                         }}
@@ -98,13 +97,12 @@ export function ProgresoOrden({ estado }: ProgresoOrdenProps) {
 
                                 {/* Label */}
                                 <span
-                                    className={`text-[8px] sm:text-[9px] font-semibold text-center leading-[1.1] w-full max-w-[58px] uppercase tracking-wider break-words ${
-                                        isCompleted
+                                    className={`text-[8px] sm:text-[9px] font-semibold text-center leading-[1.1] w-full max-w-[58px] uppercase tracking-wider break-words ${isCompleted
                                             ? 'text-green-600 dark:text-green-400'
                                             : isCurrent
-                                              ? 'text-[#F97316] dark:text-[#FB923C]'
-                                              : 'text-slate-400 dark:text-slate-500'
-                                    }`}
+                                                ? 'text-[#F97316] dark:text-[#FB923C]'
+                                                : 'text-slate-400 dark:text-slate-500'
+                                        }`}
                                 >
                                     {step.label}
                                 </span>

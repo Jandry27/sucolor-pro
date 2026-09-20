@@ -10,6 +10,7 @@ import { PaginaVehiculos } from '@/paginas/administracion/PaginaVehiculos';
 import { PaginaNuevaOrden } from '@/paginas/administracion/PaginaNuevaOrden';
 import { PaginaReportes } from '@/paginas/administracion/PaginaReportes';
 import { PaginaConfiguracion } from '@/paginas/administracion/PaginaConfiguracion';
+import { PaginaPinturas } from '@/paginas/administracion/PaginaPinturas';
 import { RutaProtegida } from '@/componentes/administracion/RutaProtegida';
 
 import { ProveedorTema } from '@/componentes/ProveedorTema';
@@ -86,6 +87,14 @@ export default function App() {
                         element={
                             <RutaProtegida>
                                 <PaginaConfiguracion />
+                            </RutaProtegida>
+                        }
+                    />
+                    <Route
+                        path="/administracion/pinturas"
+                        element={
+                            <RutaProtegida>
+                                <PaginaPinturas />
                             </RutaProtegida>
                         }
                     />

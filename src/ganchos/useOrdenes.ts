@@ -53,45 +53,67 @@ export function useOrdenes(filterEstado?: OrderStatus) {
             const clienteMap = Object.fromEntries((clientes ?? []).map(c => [c.id, c]));
             const vehiculoMap = Object.fromEntries((vehiculos ?? []).map(v => [v.id, v]));
 
-            // Step 2.5: fetch cover photos
-            const orderIds = ordenes.map(o => o.id);
-            const { data: mediaFiles } = await supabase
-                .from('media')
-                .select('orden_id, storage_bucket, storage_path, url')
-                .in('orden_id', orderIds)
-                .eq('categoria', 'ANTES')
-                .order('created_at', { ascending: true }); // Get the first uploaded photo
+            // Step 2.5: fetch cover photos ONLY for active orders
+            // To avoid huge amount of createSignedUrl requests
+            const now = new Date();
+            const activeOrderIds = ordenes.filter(o => {
+                if (o.estado !== 'ENTREGADO') return true;
+                if (!o.updated_at) return false;
+                const updatedAt = new Date(o.updated_at);
+                const diffMinutes = (now.getTime() - updatedAt.getTime()) / (1000 * 60);
+                return diffMinutes <= 5;
+            }).map(o => o.id);
 
-            // Use order_id as key, grab the URL of the first one found
             const coverPhotos: Record<string, string> = {};
-            if (mediaFiles && mediaFiles.length > 0) {
-                // Group by order
-                const firstMediaMap = new Map<string, any>();
-                mediaFiles.forEach(file => {
-                    if (!firstMediaMap.has(file.orden_id)) {
-                        firstMediaMap.set(file.orden_id, file);
-                    }
-                });
+            
+            if (activeOrderIds.length > 0) {
+                // Split activeOrderIds into chunks of 100 to avoid Supabase URL length limits
+                const chunkedIds = [];
+                for (let i = 0; i < activeOrderIds.length; i += 100) {
+                    chunkedIds.push(activeOrderIds.slice(i, i + 100));
+                }
 
-                // Request URLs
-                const urlsToFetch = Array.from(firstMediaMap.entries()).map(
-                    async ([ordId, file]) => {
-                        try {
-                            if (file.url) {
-                                coverPhotos[ordId] = file.url; // Nueva lógica (Cloudinary)
-                            } else if (file.storage_bucket && file.storage_path) {
-                                // Lógica legacy (Supabase Storage)
-                                const { data } = await supabase.storage
-                                    .from(file.storage_bucket)
-                                    .createSignedUrl(file.storage_path, 3600);
-                                if (data?.signedUrl) coverPhotos[ordId] = data.signedUrl;
-                            }
-                        } catch (e) {
-                            console.error('Error fetching cover photo URL', e);
-                        }
-                    }
+                const mediaPromises = chunkedIds.map(chunk => 
+                    supabase
+                        .from('media')
+                        .select('orden_id, storage_bucket, storage_path, url')
+                        .in('orden_id', chunk)
+                        .eq('categoria', 'ANTES')
+                        .order('created_at', { ascending: true })
                 );
-                await Promise.all(urlsToFetch);
+                
+                const mediaResults = await Promise.all(mediaPromises);
+                const mediaFiles = mediaResults.flatMap(r => r.data || []);
+
+                if (mediaFiles.length > 0) {
+                    // Group by order
+                    const firstMediaMap = new Map<string, any>();
+                    mediaFiles.forEach(file => {
+                        if (!firstMediaMap.has(file.orden_id)) {
+                            firstMediaMap.set(file.orden_id, file);
+                        }
+                    });
+
+                    // Request URLs
+                    const urlsToFetch = Array.from(firstMediaMap.entries()).map(
+                        async ([ordId, file]) => {
+                            try {
+                                if (file.url) {
+                                    coverPhotos[ordId] = file.url; // Nueva lógica (Cloudinary)
+                                } else if (file.storage_bucket && file.storage_path) {
+                                    // Lógica legacy (Supabase Storage)
+                                    const { data } = await supabase.storage
+                                        .from(file.storage_bucket)
+                                        .createSignedUrl(file.storage_path, 3600);
+                                    if (data?.signedUrl) coverPhotos[ordId] = data.signedUrl;
+                                }
+                            } catch (e) {
+                                console.error('Error fetching cover photo URL', e);
+                            }
+                        }
+                    );
+                    await Promise.all(urlsToFetch);
+                }
             }
 
             // Step 3: merge
