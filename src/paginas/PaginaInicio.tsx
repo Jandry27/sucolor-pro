@@ -27,13 +27,14 @@ function FadeIn({
     className?: string;
 }) {
     const ref = useRef<HTMLDivElement>(null);
-    const inView = useInView(ref, { once: true, margin: '0px' });
+    // margin negativo: dispara 120px ANTES de entrar al viewport → sin pantallas en blanco en iPad
+    const inView = useInView(ref, { once: true, margin: '-120px 0px' });
     return (
         <motion.div
             ref={ref}
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.45, delay, ease: 'easeOut' }}
+            transition={{ duration: 0.35, delay, ease: 'easeOut' }}
             className={className}
         >
             {children}
@@ -80,20 +81,28 @@ const STATS = [
 
 export function PaginaInicio() {
     return (
-        <div className="min-h-screen bg-transparent relative">
-            {/* ── PROFESSIONAL HERO BACKGROUND ──────────────────── */}
-            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#FAFAFA] dark:bg-[#0B1220]">
-                {/* Subtle technical grid pattern */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-
-                {/* Soft glowing accents matching brand color */}
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#F97316]/10 blur-[120px]"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#F97316]/10 blur-[120px]"></div>
-                <div className="absolute top-[20%] right-[15%] w-[30%] h-[30%] rounded-full bg-[#0F172A]/5 blur-[100px]"></div>
-
-                {/* Overlay gradient to fade the grid smoothly */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white dark:via-[#0B1220]/40 dark:to-[#0B1220]"></div>
-            </div>
+        // wrapper relativo: el fondo es absolute, NO fixed → evita el flash blanco en iOS Safari al hacer scroll
+        <div className="relative" style={{ background: '#FAFAFA' }}>
+            {/* ── HERO BACKGROUND ──────────────────────────────── */}
+            {/*
+              * IMPORTANTE: position:absolute (no fixed).
+              * En iPad/Safari, los elementos fixed con filtros blur pesados
+              * causan frames en blanco durante el momentum scroll.
+              * Usamos un gradiente CSS puro pintado una sola vez — sin coste de GPU por frame.
+              */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+                style={{
+                    background:
+                        'radial-gradient(ellipse 60% 40% at 0% 0%, rgba(249,115,22,0.09) 0%, transparent 70%), ' +
+                        'radial-gradient(ellipse 60% 40% at 100% 100%, rgba(249,115,22,0.09) 0%, transparent 70%)',
+                    backgroundImage:
+                        'linear-gradient(to right,#8080800a 1px,transparent 1px),' +
+                        'linear-gradient(to bottom,#8080800a 1px,transparent 1px)',
+                    backgroundSize: '24px 24px',
+                }}
+            />
             {/* ── NAV ─────────────────────────────────────────────── */}
             <nav
                 className="sticky top-0 z-40 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-b border-white/20 dark:border-slate-800/50"
