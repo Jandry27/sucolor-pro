@@ -57,8 +57,8 @@ export function PaginaInicioSesion() {
             style={{ backgroundColor: '#F7F8FA' }}
         >
             <motion.div
-                initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ duration: 0.35, ease: 'easeOut' }}
                 className="w-full max-w-sm"
             >
@@ -98,7 +98,7 @@ export function PaginaInicioSesion() {
                                 onChange={e => setEmail(e.target.value)}
                                 placeholder="admin@sucolor.com"
                                 required
-                                className="input-field"
+                                className="input-field text-base md:text-sm"
                                 autoComplete="email"
                             />
                         </div>
@@ -112,7 +112,7 @@ export function PaginaInicioSesion() {
                                     onChange={e => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     required
-                                    className="input-field pr-10"
+                                    className="input-field pr-10 text-base md:text-sm"
                                     autoComplete="current-password"
                                 />
                                 <button

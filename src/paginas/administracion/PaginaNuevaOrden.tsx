@@ -64,6 +64,7 @@ export function PaginaNuevaOrden() {
     const navigate = useNavigate();
     const [step, setStep] = useState<Step>('cliente');
     const [saving, setSaving] = useState(false);
+    const envioOrdenBloqueado = useRef(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     // IDs guardados
@@ -419,40 +420,62 @@ export function PaginaNuevaOrden() {
 
     // ── Guardar orden ─────────────────────────────────────────────────────────
     const guardarOrden = async () => {
+        // El ref bloquea también los clics que llegan antes del siguiente render.
+        if (envioOrdenBloqueado.current) return;
+        envioOrdenBloqueado.current = true;
         setErrorMsg(null);
         setSaving(true);
-        const { data, error } = await supabase
-            .from('ordenes')
-            .insert({
-                cliente_id: clienteId,
-                vehiculo_id: vehiculoId,
-                prioridad: oPrioridad,
-                fecha_estimada: oFechaEst || null,
-                notas_publicas: oNotasPublicas ? sanitizarTexto(oNotasPublicas) : null,
-                notas_internas: oNotasInternas ? sanitizarTexto(oNotasInternas) : null,
-                precio_total: oPrecio ? parseFloat(oPrecio) : null,
-                monto_entrada: oEntrada ? parseFloat(oEntrada) : null,
-                monto_pagado: oEntrada ? parseFloat(oEntrada) : null,
-                share_enabled: true,
-            })
-            .select('codigo, id')
-            .single();
-        setSaving(false);
-        if (error) {
-            sonidoError();
-            setErrorMsg('Error al crear la orden: ' + error.message);
-            return;
+        let ordenCreada = false;
+
+        try {
+            const { data, error } = await supabase
+                .from('ordenes')
+                .insert({
+                    cliente_id: clienteId,
+                    vehiculo_id: vehiculoId,
+                    prioridad: oPrioridad,
+                    fecha_estimada: oFechaEst || null,
+                    notas_publicas: oNotasPublicas ? sanitizarTexto(oNotasPublicas) : null,
+                    notas_internas: oNotasInternas ? sanitizarTexto(oNotasInternas) : null,
+                    precio_total: oPrecio ? parseFloat(oPrecio) : null,
+                    monto_entrada: oEntrada ? parseFloat(oEntrada) : null,
+                    monto_pagado: oEntrada ? parseFloat(oEntrada) : null,
+                    share_enabled: true,
+                })
+                .select('codigo, id')
+                .single();
+            if (error) throw new Error(error.message);
+            if (!data) throw new Error('No se recibió la confirmación de la orden.');
+
+            ordenCreada = true;
+            setOrdenId(data.id);
+            setNuevaOrdenCodigo(data.codigo);
+            await uploadPhotos(data.id);
+            setStep('confirmado');
+            sonidoOrdenCreada();
+        } catch (error) {
+            if (ordenCreada) {
+                // Un fallo posterior al guardado no debe permitir otra inserción.
+                setPhotoError('La orden se creó, pero no se pudo completar el proceso. Revisa sus fotos desde Ver Orden.');
+                setStep('confirmado');
+            } else {
+                setErrorMsg('Error al crear la orden: ' + (error instanceof Error ? error.message : 'Inténtalo nuevamente.'));
+                sonidoError();
+            }
+        } finally {
+            setUploadingPhotos(false);
+            setSaving(false);
+            // Tras el éxito solo «Nueva orden» habilita una nueva creación.
+            if (!ordenCreada) envioOrdenBloqueado.current = false;
         }
-        setOrdenId(data.id);
-        setNuevaOrdenCodigo(data.codigo);
-        // Subir fotos ya seleccionadas
-        await uploadPhotos(data.id);
-        sonidoOrdenCreada();
-        setStep('confirmado');
     };
 
     // ── Reset completo ────────────────────────────────────────────────────────
     const reset = () => {
+        envioOrdenBloqueado.current = false;
+        setErrorMsg(null);
+        setPhotoError(null);
+        setOEntrada('');
         setStep('cliente');
         setClienteId(null);
         setVehiculoId(null);
@@ -1150,6 +1173,7 @@ export function PaginaNuevaOrden() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setStep('vehiculo')}
+                                disabled={saving}
                                 className="btn-secondary flex-1"
                             >
                                 ← Volver
@@ -1158,10 +1182,14 @@ export function PaginaNuevaOrden() {
                                 whileTap={{ scale: 0.96 }}
                                 onClick={guardarOrden}
                                 disabled={saving}
+                                aria-busy={saving}
                                 className="btn-primary flex-1 flex items-center justify-center gap-2"
                             >
                                 {saving ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                                        {uploadingPhotos ? 'Subiendo fotos…' : 'Creando orden…'}
+                                    </>
                                 ) : (
                                     '✓ Crear Orden'
                                 )}

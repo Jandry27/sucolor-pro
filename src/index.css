@@ -603,3 +603,12 @@ body {
 .animate-scale-in {
     animation: scaleIn 0.2s ease-out both;
 }
+
+/* Evita el zoom al enfocar campos pequeños en Safari móvil sin limitar el zoom manual. */
+@media (max-width: 1023px) {
+    .admin-layout input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+    .admin-layout select,
+    .admin-layout textarea {
+        font-size: 16px;
+    }
+}

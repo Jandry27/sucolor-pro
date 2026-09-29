@@ -97,7 +97,7 @@ export function DisenoAdministracion({ children }: { children: React.ReactNode }
     );
 
     return (
-        <div className="min-h-screen flex mesh-gradient">
+        <div className="admin-layout min-h-screen flex mesh-gradient">
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50">
                 <SidebarContent />
