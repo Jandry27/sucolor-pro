@@ -56,14 +56,33 @@ export function PaginaInicioSesion() {
     };
 
     return (
-        <div className="min-h-screen flex w-full bg-white overflow-hidden">
+        <div className="min-h-screen flex w-full bg-[#FEF7F0] lg:bg-white overflow-hidden relative">
+            
+            {/* Ondas decorativas globales (visibles en móvil, ocultas bajo el panel blanco en desktop) */}
+            <div className="absolute inset-0 pointer-events-none opacity-40 lg:hidden z-0">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-full h-full text-[#F97316]">
+                    <path fill="currentColor" fillOpacity="0.05" d="M0,50 C30,70 70,30 100,50 L100,100 L0,100 Z" />
+                    <path fill="currentColor" fillOpacity="0.05" d="M0,70 C40,90 60,40 100,70 L100,100 L0,100 Z" />
+                    <path fill="currentColor" fillOpacity="0.05" d="M0,90 C50,100 50,70 100,90 L100,100 L0,100 Z" />
+                    <path fill="none" stroke="currentColor" strokeWidth="0.2" strokeOpacity="0.3" d="M-10,40 C30,80 70,20 110,60" />
+                    <path fill="none" stroke="currentColor" strokeWidth="0.1" strokeOpacity="0.2" d="M-10,50 C40,90 60,30 110,70" />
+                    <path fill="none" stroke="currentColor" strokeWidth="0.15" strokeOpacity="0.2" d="M-10,60 C50,100 50,50 110,90" />
+                </svg>
+            </div>
+            
+            {/* Fondo del auto para MÓVIL (muy suave para no estorbar la lectura) */}
+            <div className="absolute bottom-0 right-0 w-full max-w-[500px] pointer-events-none lg:hidden z-0 flex justify-end items-end opacity-70" style={{ mixBlendMode: 'darken' }}>
+                <img src="/car-illustration.jpg" alt="" className="w-full object-contain select-none" draggable={false} />
+            </div>
+
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FEF7F0]/80 via-transparent to-[#F97316]/5 pointer-events-none lg:hidden z-0" />
 
             {/* Lado Izquierdo: Formulario */}
             <motion.div
                 initial={{ opacity: 0, x: -40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full lg:w-5/12 xl:w-[42%] flex flex-col justify-center px-6 sm:px-14 md:px-20 lg:px-12 xl:px-20 relative z-10 bg-white"
+                className="w-full lg:w-5/12 xl:w-[42%] flex flex-col justify-center px-6 sm:px-14 md:px-20 lg:px-12 xl:px-20 relative z-10 bg-transparent lg:bg-white lg:shadow-[20px_0_40px_rgba(0,0,0,0.05)]"
             >
                 <div className="w-full max-w-[380px] mx-auto">
                     {/* Logo */}
