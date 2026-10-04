@@ -5,6 +5,7 @@ import { supabase } from '@/biblioteca/clienteSupabase';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 import { HistorialVehiculoLateral } from '@/componentes/administracion/HistorialVehiculoLateral';
 import type { Vehiculo } from '@/tipos';
+import { useNotif } from '@/componentes/SistemaNotificaciones';
 
 interface VehiculoRow extends Vehiculo {
     id: string;
@@ -12,6 +13,7 @@ interface VehiculoRow extends Vehiculo {
 }
 
 export function PaginaVehiculos() {
+    const { toast, confirm } = useNotif();
     const [vehiculos, setVehiculos] = useState<VehiculoRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -40,21 +42,22 @@ export function PaginaVehiculos() {
     });
 
     const handleDelete = async (id: string, placa: string) => {
-        if (
-            !window.confirm(
-                `¿Estás seguro de que deseas eliminar el vehículo con placa "${placa}"?\nEsta acción es irreversible y eliminará sus órdenes asociadas.`
-            )
-        ) {
-            return;
-        }
+        const ok = await confirm({
+            title: `¿Eliminar vehículo ${placa}?`,
+            message: 'Esta acción es irreversible y eliminará sus órdenes asociadas.',
+            confirmLabel: 'Eliminar',
+            variant: 'danger',
+        });
+        if (!ok) return;
 
         try {
             const { error } = await supabase.from('vehiculos').delete().eq('id', id);
             if (error) throw error;
             setVehiculos(prev => prev.filter(v => v.id !== id));
             if (selected?.id === id) setSelected(null);
+            toast('success', 'Vehículo eliminado', `La placa ${placa} fue removida del sistema.`);
         } catch (err: any) {
-            alert('Error al eliminar vehículo: ' + (err.message || 'Error desconocido'));
+            toast('error', 'Error al eliminar', err.message || 'Error desconocido');
         }
     };
 

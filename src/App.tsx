@@ -14,10 +14,12 @@ import { PaginaPinturas } from '@/paginas/administracion/PaginaPinturas';
 import { RutaProtegida } from '@/componentes/administracion/RutaProtegida';
 
 import { ProveedorTema } from '@/componentes/ProveedorTema';
+import { ProveedorNotificaciones } from '@/componentes/SistemaNotificaciones';
 
 export default function App() {
     return (
         <ProveedorTema>
+            <ProveedorNotificaciones>
             <HashRouter>
                 <Routes>
                     {/* ── Public ──────────────────────────────────────────────── */}
@@ -110,6 +112,7 @@ export default function App() {
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </HashRouter>
+            </ProveedorNotificaciones>
         </ProveedorTema>
     );
 }

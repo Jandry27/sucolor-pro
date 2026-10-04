@@ -12,10 +12,12 @@ import { FormularioEdicionDetalleOrden } from '@/componentes/administracion/Deta
 import { TarjetaEstadoDetalleOrden } from '@/componentes/administracion/DetalleOrden/TarjetaEstadoDetalleOrden';
 import { TarjetaNotasDetalleOrden } from '@/componentes/administracion/DetalleOrden/TarjetaNotasDetalleOrden';
 import { useOrdenAdministracion } from '@/ganchos/useOrdenAdministracion';
+import { useNotif } from '@/componentes/SistemaNotificaciones';
 
 export function PaginaDetalleOrden() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { toast, confirm } = useNotif();
 
     const [isEditingDetails, setIsEditingDetails] = useState(false);
     const [isModalFacturaOpen, setIsModalFacturaOpen] = useState(false);
@@ -40,15 +42,20 @@ export function PaginaDetalleOrden() {
     } = useOrdenAdministracion(id);
 
     const handleDelete = async () => {
-        if (
-            !window.confirm(
-                '¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer.'
-            )
-        )
-            return;
+        const ok = await confirm({
+            title: '¿Eliminar esta orden?',
+            message: 'Esta acción no se puede deshacer. Asegúrate de eliminar primero los pagos y las fotos asociadas.',
+            confirmLabel: 'Eliminar orden',
+            variant: 'danger',
+        });
+        if (!ok) return;
         const success = await deleteOrder();
-        if (success) navigate('/administracion/orders');
-        else alert('Asegúrese de eliminar primero los pagos y las fotos asociadas a la orden.');
+        if (success) {
+            toast('success', 'Orden eliminada', 'La orden fue eliminada correctamente.');
+            navigate('/administracion/orders');
+        } else {
+            toast('error', 'No se pudo eliminar', 'Elimina primero los pagos y las fotos asociadas a la orden.');
+        }
     };
 
     const handleCopyLink = () => {

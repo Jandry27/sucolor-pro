@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useOrdenes } from '@/ganchos/useOrdenes';
+import { useNotif } from '@/componentes/SistemaNotificaciones';
 
 // Normaliza nombres de clientes anónimos legacy para mostrarlos limpios
 function limpiarNombreCliente(nombre: string | undefined, placa?: string): string {
@@ -43,6 +44,7 @@ const ESTADOS: Record<string, { label: string; color: string }> = {
 
 export function PaginaListaOrdenes() {
     const { orders, loading, error, deleteOrder } = useOrdenes();
+    const { confirm } = useNotif();
     const [q, setQ] = useState('');
 
     // Filtrar órdenes activas: no están ENTREGADO o fueron entregadas hace menos de 5 minutos
@@ -72,13 +74,13 @@ export function PaginaListaOrdenes() {
     const handleDelete = async (e: React.MouseEvent, id: string, codigo: string) => {
         e.preventDefault();
         e.stopPropagation();
-        if (
-            window.confirm(
-                `¿Estás seguro de que deseas eliminar la orden ${codigo}? Esta acción no se puede deshacer.`
-            )
-        ) {
-            await deleteOrder(id);
-        }
+        const ok = await confirm({
+            title: `¿Eliminar orden ${codigo}?`,
+            message: 'Esta acción no se puede deshacer.',
+            confirmLabel: 'Eliminar',
+            variant: 'danger',
+        });
+        if (ok) await deleteOrder(id);
     };
 
     return (

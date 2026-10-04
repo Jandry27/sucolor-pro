@@ -4,12 +4,14 @@ import { Upload, X, Loader2, FileText, Trash2, Camera, Receipt } from 'lucide-re
 import { supabase } from '@/biblioteca/clienteSupabase';
 import type { OrdenGasto } from '@/tipos';
 import { sonidoGastoAgregado, sonidoGastoEliminado, sonidoError } from '@/biblioteca/sonidos';
+import { useNotif } from '@/componentes/SistemaNotificaciones';
 
 interface PanelGastosProps {
     ordenId: string;
 }
 
 export function PanelGastos({ ordenId }: PanelGastosProps) {
+    const { toast, confirm } = useNotif();
     const [gastos, setGastos] = useState<OrdenGasto[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -133,11 +135,18 @@ export function PanelGastos({ ordenId }: PanelGastosProps) {
 
     const deleteGasto = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!window.confirm('¿Eliminar este gasto?')) return;
+        const ok = await confirm({
+            title: '¿Eliminar este gasto?',
+            message: 'El registro del repuesto/gasto será eliminado permanentemente.',
+            confirmLabel: 'Eliminar',
+            variant: 'danger',
+        });
+        if (!ok) return;
 
         await supabase.from('orden_gastos').delete().eq('id', id);
         setGastos(prev => prev.filter(g => g.id !== id));
         sonidoGastoEliminado();
+        toast('success', 'Gasto eliminado', 'El registro fue removido correctamente.');
     };
 
     const totalGastos = gastos.reduce((acc, curr) => acc + Number(curr.monto), 0);

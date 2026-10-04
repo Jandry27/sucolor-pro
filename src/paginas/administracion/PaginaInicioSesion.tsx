@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAutenticacion } from '@/ganchos/useAutenticacion';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, ArrowRight } from 'lucide-react';
 
 export function PaginaInicioSesion() {
     const { login } = useAutenticacion();
@@ -14,6 +14,7 @@ export function PaginaInicioSesion() {
     const [error, setError] = useState<string | null>(null);
     const [attempts, setAttempts] = useState(0);
     const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+    const [isSuccess, setIsSuccess] = useState(false);
     const MAX_ATTEMPTS = 5;
     const LOCKOUT_SECONDS = 60;
 
@@ -32,7 +33,10 @@ export function PaginaInicioSesion() {
             const exito = await login(email, password);
             if (exito) {
                 setAttempts(0);
-                navigate('/administracion/orders');
+                setIsSuccess(true);
+                setTimeout(() => {
+                    navigate('/administracion/orders');
+                }, 1200);
             } else {
                 const newAttempts = attempts + 1;
                 setAttempts(newAttempts);
@@ -52,73 +56,98 @@ export function PaginaInicioSesion() {
     };
 
     return (
-        <div
-            className="min-h-screen flex items-center justify-center px-4"
-            style={{ backgroundColor: '#F7F8FA' }}
-        >
+        <div className="min-h-screen flex w-full bg-white overflow-hidden">
+
+            {/* Lado Izquierdo: Formulario */}
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="w-full max-w-sm"
+                initial={{ opacity: 0, x: -40 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full lg:w-5/12 xl:w-[42%] flex flex-col justify-center px-6 sm:px-14 md:px-20 lg:px-12 xl:px-20 relative z-10 bg-white"
             >
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <img
+                <div className="w-full max-w-[380px] mx-auto">
+                    {/* Logo */}
+                    <motion.img
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1, duration: 0.5 }}
                         src="/logo.png"
                         alt="SuColor"
-                        className="h-12 w-auto object-contain mx-auto mb-4"
+                        className="h-12 sm:h-16 w-auto object-contain mb-8 sm:mb-10"
+                        draggable={false}
                     />
-                    <h1 className="text-xl font-bold text-[#0B1220]">Panel de Administración</h1>
-                    <p className="text-sm text-[rgba(11,18,32,0.50)] mt-1">
-                        Ingresa tus credenciales para continuar
-                    </p>
-                </div>
 
-                {/* Card */}
-                <div className="card" style={{ padding: '32px' }}>
+                    {/* Título */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.5 }}
+                        className="mb-8 sm:mb-10"
+                    >
+                        <h1 className="text-3xl sm:text-[2rem] leading-tight font-bold text-[#0B1220] tracking-tight">
+                            Bienvenido a<br />
+                            SuColor <span className="text-[#F97316]">PRO</span>
+                        </h1>
+                        <p className="text-sm text-[#0B1220]/50 mt-2 sm:mt-3">
+                            Inicia sesión para acceder al panel de gestión.
+                        </p>
+                    </motion.div>
+
                     {error && (
-                        <div
-                            className="mb-5 px-4 py-3 rounded-xl text-sm font-medium text-[#EF4444]"
-                            style={{
-                                background: 'rgba(239,68,68,0.08)',
-                                border: '1px solid rgba(239,68,68,0.15)',
-                            }}
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="mb-6 px-4 py-3 rounded-xl text-sm font-medium text-red-700 bg-red-50 border border-red-100"
                         >
                             {error}
-                        </div>
+                        </motion.div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="form-label">Correo electrónico</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                placeholder="admin@sucolor.com"
-                                required
-                                className="input-field text-base md:text-sm"
-                                autoComplete="email"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="form-label">Contraseña</label>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* Input Correo */}
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }}>
+                            <label className="block text-sm font-semibold text-[#0B1220] mb-2">
+                                Correo electrónico
+                            </label>
                             <div className="relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B1220]/30" />
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    placeholder="nombre@correo.com"
+                                    required
+                                    className="w-full pl-11 pr-4 py-3 bg-[#F7F8FA] border border-[#0B1220]/8 rounded-xl text-sm text-[#0B1220] placeholder-[#0B1220]/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all"
+                                    autoComplete="email"
+                                />
+                            </div>
+                        </motion.div>
+
+                        {/* Input Contraseña */}
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-sm font-semibold text-[#0B1220]">
+                                    Contraseña
+                                </label>
+                                <a href="#" className="text-xs font-medium text-[#F97316] hover:text-[#EA6C0A] transition-colors">
+                                    ¿Olvidaste tu contraseña?
+                                </a>
+                            </div>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B1220]/30" />
                                 <input
                                     type={showPw ? 'text' : 'password'}
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
-                                    placeholder="••••••••"
+                                    placeholder="Ingresa tu contraseña"
                                     required
-                                    className="input-field pr-10 text-base md:text-sm"
+                                    className="w-full pl-11 pr-12 py-3 bg-[#F7F8FA] border border-[#0B1220]/8 rounded-xl text-sm text-[#0B1220] placeholder-[#0B1220]/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 focus:border-[#F97316] transition-all"
                                     autoComplete="current-password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPw(!showPw)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(11,18,32,0.35)] hover:text-[rgba(11,18,32,0.65)] transition-colors"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0B1220]/30 hover:text-[#0B1220]/60 transition-colors"
                                 >
                                     {showPw ? (
                                         <EyeOff className="w-4 h-4" />
@@ -127,28 +156,128 @@ export function PaginaInicioSesion() {
                                     )}
                                 </button>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="btn-primary w-full mt-2"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" /> Ingresando...
-                                </>
-                            ) : (
-                                'Iniciar sesión'
-                            )}
-                        </button>
+                        {/* Botón */}
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.5 }} className="pt-3">
+                            <button
+                                type="submit"
+                                disabled={loading || isSuccess}
+                                className={`w-full flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-bold text-white rounded-xl transition-all shadow-orange-sm ${isSuccess
+                                    ? 'bg-green-500 hover:bg-green-600'
+                                    : 'bg-[#F97316] hover:bg-[#EA6C0A]'
+                                    } disabled:opacity-70 disabled:cursor-not-allowed`}
+                            >
+                                {isSuccess ? (
+                                    <motion.svg
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        className="w-5 h-5 text-white"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={3}
+                                    >
+                                        <motion.path
+                                            initial={{ pathLength: 0 }}
+                                            animate={{ pathLength: 1 }}
+                                            transition={{ duration: 0.3 }}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M5 13l4 4L19 7"
+                                        />
+                                    </motion.svg>
+                                ) : loading ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <>
+                                        <span>Iniciar sesión</span>
+                                        <ArrowRight className="w-4 h-4" />
+                                    </>
+                                )}
+                            </button>
+                        </motion.div>
                     </form>
+
+                    {/* Footer */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                        className="mt-14 pt-8 border-t border-[#0B1220]/5"
+                    >
+                        <p className="text-xs text-[#0B1220]/30">
+                            SuColor PRO &copy; {new Date().getFullYear()}
+                        </p>
+                    </motion.div>
+                </div>
+            </motion.div>
+
+            {/* Lado Derecho: Visual de Marca */}
+            <div className="hidden lg:flex lg:w-7/12 xl:w-[58%] relative flex-col items-center overflow-hidden" style={{ backgroundColor: '#FEF7F0' }}>
+
+                {/* Ondas decorativas de fondo (Vectores) */}
+                <div className="absolute inset-0 pointer-events-none opacity-40">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-full h-full text-[#F97316]">
+                        <path fill="currentColor" fillOpacity="0.05" d="M0,50 C30,70 70,30 100,50 L100,100 L0,100 Z" />
+                        <path fill="currentColor" fillOpacity="0.05" d="M0,70 C40,90 60,40 100,70 L100,100 L0,100 Z" />
+                        <path fill="currentColor" fillOpacity="0.05" d="M0,90 C50,100 50,70 100,90 L100,100 L0,100 Z" />
+
+                        {/* Líneas fluidas (strokes) */}
+                        <path fill="none" stroke="currentColor" strokeWidth="0.2" strokeOpacity="0.3" d="M-10,40 C30,80 70,20 110,60" />
+                        <path fill="none" stroke="currentColor" strokeWidth="0.1" strokeOpacity="0.2" d="M-10,50 C40,90 60,30 110,70" />
+                        <path fill="none" stroke="currentColor" strokeWidth="0.15" strokeOpacity="0.2" d="M-10,60 C50,100 50,50 110,90" />
+                    </svg>
                 </div>
 
-                <p className="text-center text-xs text-[rgba(11,18,32,0.35)] mt-6">
-                    SuColor PRO v1.0 — Panel exclusivo para administradores
-                </p>
-            </motion.div>
+                {/* Gradiente adicional para suavizar */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-[#F97316]/10 pointer-events-none" />
+
+                {/* Contenido superior: Logo + Texto */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative z-10 flex flex-col items-center text-center mt-3 xl:mt-5 mb-auto"
+                >
+                    <img
+                        src="/logo.png"
+                        alt="SuColor"
+                        className="w-48 xl:w-64 object-contain select-none mb-6"
+                        draggable={false}
+                    />
+
+                    <div className="flex flex-col items-center gap-1">
+                        <h2 className="text-lg md:text-xl font-black text-[#FF4805] uppercase tracking-[0.2em]">
+                            Gestión Automotriz
+                        </h2>
+                        <div className="w-12 h-[2px] bg-[#0B1220]/10 my-2" />
+                        <p className="text-base text-[#0B1220]/50 font-medium tracking-wide">
+                            Simple & Profesional
+                        </p>
+                    </div>
+                </motion.div>
+
+                {/* Ilustración del auto */}
+                <motion.div
+                    initial={{ opacity: 0, x: 80, y: 40 }}
+                    animate={{ opacity: 1, x: 0, y: 0 }}
+                    transition={{ delay: 0.6, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute bottom-0 right-0 w-[95%] max-w-[800px] pointer-events-none flex justify-end items-end"
+                    style={{ mixBlendMode: 'darken' }}
+                >
+                    <img
+                        src="/car-illustration.jpg"
+                        alt=""
+                        className="w-full object-contain select-none opacity-90"
+                        draggable={false}
+                    />
+                    {/* Gradiente para que el auto se difumine con el borde inferior */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#FEF7F0] via-transparent to-transparent h-20 bottom-0" />
+                </motion.div>
+            </div>
         </div>
     );
 }
+
+

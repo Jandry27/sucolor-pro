@@ -5,6 +5,7 @@ import { supabase } from '@/biblioteca/clienteSupabase';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 import type { Cliente } from '@/tipos';
 import { sonidoDetallesGuardados, sonidoOrdenEliminada, sonidoError } from '@/biblioteca/sonidos';
+import { useNotif } from '@/componentes/SistemaNotificaciones';
 
 // Paleta de colores para los avatares según la inicial del nombre
 const AVATAR_COLORS = [
@@ -18,6 +19,7 @@ function avatarColor(name: string): string {
 }
 
 export function PaginaClientes() {
+    const { toast, confirm } = useNotif();
     const [clientes, setClientes] = useState<Cliente[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -74,9 +76,10 @@ export function PaginaClientes() {
             );
             setEditingId(null);
             sonidoDetallesGuardados();
+            toast('success', 'Cliente actualizado', 'Los datos se guardaron correctamente.');
         } catch (err: any) {
             sonidoError();
-            alert('Error al guardar: ' + (err.message || 'Error desconocido'));
+            toast('error', 'Error al guardar', err.message || 'Error desconocido');
         } finally {
             setSaving(false);
         }
@@ -104,13 +107,13 @@ export function PaginaClientes() {
     }, [clientes, q]);
 
     const handleDelete = async (id: string, nombre: string) => {
-        if (
-            !window.confirm(
-                `¿Eliminar el registro de "${nombre}"?\n\nSi tiene órdenes asociadas, se reasignarán automáticamente al otro cliente con el mismo nombre.`
-            )
-        ) {
-            return;
-        }
+        const ok = await confirm({
+            title: `¿Eliminar a "${nombre}"?`,
+            message: 'Si tiene órdenes asociadas, se reasignarán automáticamente al otro cliente con el mismo nombre.',
+            confirmLabel: 'Eliminar',
+            variant: 'danger',
+        });
+        if (!ok) return;
 
         try {
             // 1. ¿Tiene órdenes este cliente?
@@ -133,9 +136,7 @@ export function PaginaClientes() {
 
                 if (!destinoId) {
                     sonidoError();
-                    alert(
-                        `No se puede eliminar "${nombre}" porque tiene órdenes registradas y no existe otro cliente con el mismo nombre al cual reasignarlas.\n\nEsta es la única copia de este cliente.`
-                    );
+                    toast('error', 'No se puede eliminar', `"${nombre}" tiene órdenes registradas y no existe otro cliente con el mismo nombre al cual reasignarlas.`);
                     return;
                 }
 
@@ -159,9 +160,10 @@ export function PaginaClientes() {
 
             setClientes(prev => prev.filter(c => c.id !== id));
             sonidoOrdenEliminada();
+            toast('success', 'Cliente eliminado', 'El registro fue eliminado correctamente.');
         } catch (err: any) {
             sonidoError();
-            alert(err.message || 'Error desconocido al eliminar el cliente');
+            toast('error', 'Error al eliminar', err.message || 'Error desconocido');
         }
     };
 
@@ -197,9 +199,13 @@ export function PaginaClientes() {
 
     const mergeAllDuplicates = useCallback(async () => {
         if (duplicados.length === 0) return;
-        if (!window.confirm(
-            `¿Fusionar todos los duplicados automáticamente?\n\n• Se conservará el registro más antiguo de cada nombre\n• Las órdenes y vehículos se reasignarán al registro conservado\n• Los registros duplicados serán eliminados\n\nGrupos a fusionar: ${duplicados.length}`
-        )) return;
+        const ok = await confirm({
+            title: '¿Fusionar duplicados?',
+            message: `Se conservará el registro más antiguo de cada nombre. Las órdenes y vehículos se reasignarán. Grupos a fusionar: ${duplicados.length}.`,
+            confirmLabel: 'Fusionar',
+            variant: 'warning',
+        });
+        if (!ok) return;
 
         setMerging(true);
         for (const grupo of duplicados) {
@@ -207,7 +213,8 @@ export function PaginaClientes() {
         }
         setMerging(false);
         sonidoDetallesGuardados();
-    }, [duplicados, mergeDuplicateGroup]);
+        toast('success', 'Fusión completada', `${duplicados.length} grupos de duplicados fueron fusionados.`);
+    }, [duplicados, mergeDuplicateGroup, confirm, toast]);
 
     return (
         <DisenoAdministracion>

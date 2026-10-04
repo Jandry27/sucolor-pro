@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import { sonidoPagoRegistrado, sonidoPagoEliminado, sonidoPagoCompleto, sonidoDetallesGuardados, sonidoError } from '@/biblioteca/sonidos';
+import { useNotif } from '@/componentes/SistemaNotificaciones';
 
 interface PanelPagosProps {
     ordenId: string;
@@ -82,6 +83,7 @@ export function PanelPagos({
     notasInternas,
     onUpdate,
 }: PanelPagosProps) {
+    const { toast, confirm } = useNotif();
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [total, setTotal] = useState(precioTotal.toString());
@@ -212,7 +214,13 @@ export function PanelPagos({
     };
 
     const deleteAbono = async (id: string) => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar este abono?')) return;
+        const ok = await confirm({
+            title: '¿Eliminar este abono?',
+            message: 'El pago registrado será eliminado y el saldo será recalculado.',
+            confirmLabel: 'Eliminar abono',
+            variant: 'danger',
+        });
+        if (!ok) return;
         setSaving(true);
         const updatedAbonos = abonos.filter(a => a.id !== id);
         const newMontoPagado = updatedAbonos.reduce((acc, a) => acc + Number(a.monto), 0);
@@ -223,8 +231,15 @@ export function PanelPagos({
         const fields = { monto_pagado: newMontoPagado, notas_internas: newNotasInternas };
         const { error } = await supabase.from('ordenes').update(fields).eq('id', ordenId);
         setSaving(false);
-        if (!error) { setAbonos(updatedAbonos); onUpdate(fields); sonidoPagoEliminado(); }
-        else { sonidoError(); }
+        if (!error) {
+            setAbonos(updatedAbonos);
+            onUpdate(fields);
+            sonidoPagoEliminado();
+            toast('success', 'Abono eliminado', 'El pago fue removido y el saldo actualizado.');
+        } else {
+            sonidoError();
+            toast('error', 'Error al eliminar', 'No se pudo eliminar el abono.');
+        }
     };
 
     return (

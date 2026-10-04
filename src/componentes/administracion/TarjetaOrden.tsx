@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, AlertTriangle, Share2, ChevronRight, Trash2 } from 'lucide-react';
 import type { AdminOrder } from '@/tipos';
+import { useNotif } from '@/componentes/SistemaNotificaciones';
 
 const PRIORITY_STYLE: Record<string, { color: string; bg: string }> = {
     BAJA: { color: '#6B7280', bg: 'rgba(107,114,128,0.10)' },
@@ -25,18 +26,24 @@ interface TarjetaOrdenProps {
 }
 
 export function TarjetaOrden({ order, onDelete }: TarjetaOrdenProps) {
+    const { confirm } = useNotif();
     const pStyle = PRIORITY_STYLE[order.prioridad] ?? PRIORITY_STYLE.NORMAL;
     const fecha = new Date(order.fecha_ingreso).toLocaleDateString('es', {
         day: '2-digit',
         month: 'short',
     });
 
-    const handleDelete = (e: React.MouseEvent) => {
+    const handleDelete = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (onDelete && window.confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
-            onDelete(order.id);
-        }
+        if (!onDelete) return;
+        const ok = await confirm({
+            title: '¿Eliminar esta orden?',
+            message: `Se eliminará la orden ${order.codigo}. Esta acción no se puede deshacer.`,
+            confirmLabel: 'Eliminar',
+            variant: 'danger',
+        });
+        if (ok) onDelete(order.id);
     };
 
     return (
