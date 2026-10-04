@@ -82,7 +82,7 @@ export function PaginaInicioSesion() {
                 initial={{ opacity: 0, x: -40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full lg:w-5/12 xl:w-[42%] flex flex-col justify-start pt-16 sm:pt-24 lg:justify-center lg:pt-0 px-6 sm:px-14 md:px-20 lg:px-12 xl:px-20 relative z-10 bg-transparent lg:bg-white lg:shadow-[20px_0_40px_rgba(0,0,0,0.05)]"
+                className="w-full lg:w-5/12 xl:w-[42%] flex flex-col justify-start pt-8 sm:pt-16 lg:justify-center lg:pt-0 px-6 sm:px-14 md:px-20 lg:px-12 xl:px-20 relative z-10 bg-transparent lg:bg-white lg:shadow-[20px_0_40px_rgba(0,0,0,0.05)]"
             >
                 <div className="w-full max-w-[380px] mx-auto">
                     {/* Logo */}
@@ -92,7 +92,7 @@ export function PaginaInicioSesion() {
                         transition={{ delay: 0.1, duration: 0.5 }}
                         src="/logo.png"
                         alt="SuColor"
-                        className="w-56 sm:w-64 lg:w-52 xl:w-64 h-auto object-contain mb-8 sm:mb-10"
+                        className="w-56 sm:w-64 lg:w-52 xl:w-64 h-auto object-contain mb-6 sm:mb-8"
                         draggable={false}
                     />
 
@@ -101,7 +101,7 @@ export function PaginaInicioSesion() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
-                        className="mb-8 sm:mb-10"
+                        className="mb-6 sm:mb-8"
                     >
                         <h1 className="text-3xl sm:text-[2rem] leading-tight font-bold text-[#0B1220] tracking-tight">
                             Bienvenido a<br />
