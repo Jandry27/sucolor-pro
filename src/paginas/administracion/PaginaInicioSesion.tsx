@@ -58,12 +58,13 @@ export function PaginaInicioSesion() {
     return (
         <div className="min-h-screen flex w-full bg-[#FEF7F0] lg:bg-white overflow-hidden relative">
             
-            {/* Ondas decorativas globales (visibles en móvil, ocultas bajo el panel blanco en desktop) */}
+            {/* Ondas decorativas globales (visibles en móvil) */}
             <div className="absolute inset-0 pointer-events-none opacity-40 lg:hidden z-0">
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-full h-full text-[#F97316]">
                     <path fill="currentColor" fillOpacity="0.05" d="M0,50 C30,70 70,30 100,50 L100,100 L0,100 Z" />
                     <path fill="currentColor" fillOpacity="0.05" d="M0,70 C40,90 60,40 100,70 L100,100 L0,100 Z" />
                     <path fill="currentColor" fillOpacity="0.05" d="M0,90 C50,100 50,70 100,90 L100,100 L0,100 Z" />
+
                     <path fill="none" stroke="currentColor" strokeWidth="0.2" strokeOpacity="0.3" d="M-10,40 C30,80 70,20 110,60" />
                     <path fill="none" stroke="currentColor" strokeWidth="0.1" strokeOpacity="0.2" d="M-10,50 C40,90 60,30 110,70" />
                     <path fill="none" stroke="currentColor" strokeWidth="0.15" strokeOpacity="0.2" d="M-10,60 C50,100 50,50 110,90" />
@@ -74,6 +75,8 @@ export function PaginaInicioSesion() {
             <div className="absolute bottom-0 right-0 w-full max-w-[500px] pointer-events-none lg:hidden z-0 flex justify-end items-end opacity-70" style={{ mixBlendMode: 'darken' }}>
                 <img src="/car-illustration.jpg" alt="" className="w-full object-contain select-none" draggable={false} />
             </div>
+            
+
 
             <div className="absolute inset-0 bg-gradient-to-br from-[#FEF7F0]/80 via-transparent to-[#F97316]/5 pointer-events-none lg:hidden z-0" />
 
@@ -105,7 +108,7 @@ export function PaginaInicioSesion() {
                     >
                         <h1 className="text-3xl sm:text-[2rem] leading-tight font-bold text-[#0B1220] tracking-tight">
                             Bienvenido a<br />
-                            SuColor <span className="text-[#F97316]">PRO</span>
+                            <span className="text-[#F97316]">SuColor</span>
                         </h1>
                         <p className="text-sm text-[#0B1220]/50 mt-2 sm:mt-3">
                             Inicia sesión para acceder al panel de gestión.
@@ -225,22 +228,18 @@ export function PaginaInicioSesion() {
             {/* Lado Derecho: Visual de Marca */}
             <div className="hidden lg:flex lg:w-7/12 xl:w-[58%] relative flex-col items-center overflow-hidden" style={{ backgroundColor: '#FEF7F0' }}>
 
-                {/* Ondas decorativas de fondo (Vectores) */}
-                <div className="absolute inset-0 pointer-events-none opacity-40">
-                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-full h-full text-[#F97316]">
-                        <path fill="currentColor" fillOpacity="0.05" d="M0,50 C30,70 70,30 100,50 L100,100 L0,100 Z" />
-                        <path fill="currentColor" fillOpacity="0.05" d="M0,70 C40,90 60,40 100,70 L100,100 L0,100 Z" />
-                        <path fill="currentColor" fillOpacity="0.05" d="M0,90 C50,100 50,70 100,90 L100,100 L0,100 Z" />
-
-                        {/* Líneas fluidas (strokes) */}
-                        <path fill="none" stroke="currentColor" strokeWidth="0.2" strokeOpacity="0.3" d="M-10,40 C30,80 70,20 110,60" />
-                        <path fill="none" stroke="currentColor" strokeWidth="0.1" strokeOpacity="0.2" d="M-10,50 C40,90 60,30 110,70" />
-                        <path fill="none" stroke="currentColor" strokeWidth="0.15" strokeOpacity="0.2" d="M-10,60 C50,100 50,50 110,90" />
-                    </svg>
+                {/* Paisaje de montañas y auto (imagen proporcionada por el usuario) */}
+                <div className="absolute inset-0 pointer-events-none" style={{ mixBlendMode: 'darken' }}>
+                    <img
+                        src="/auto.png"
+                        alt=""
+                        className="w-full h-full object-cover object-bottom select-none opacity-90"
+                        draggable={false}
+                    />
                 </div>
 
                 {/* Gradiente adicional para suavizar */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-[#F97316]/10 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#FEF7F0]/70 via-transparent to-[#FEF7F0]/40 pointer-events-none" />
 
                 {/* Contenido superior: Logo + Texto */}
                 <motion.div
@@ -267,23 +266,6 @@ export function PaginaInicioSesion() {
                     </div>
                 </motion.div>
 
-                {/* Ilustración del auto */}
-                <motion.div
-                    initial={{ opacity: 0, x: 80, y: 40 }}
-                    animate={{ opacity: 1, x: 0, y: 0 }}
-                    transition={{ delay: 0.6, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute bottom-0 right-0 w-[95%] max-w-[800px] pointer-events-none flex justify-end items-end"
-                    style={{ mixBlendMode: 'darken' }}
-                >
-                    <img
-                        src="/car-illustration.jpg"
-                        alt=""
-                        className="w-full object-contain select-none opacity-90"
-                        draggable={false}
-                    />
-                    {/* Gradiente para que el auto se difumine con el borde inferior */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#FEF7F0] via-transparent to-transparent h-20 bottom-0" />
-                </motion.div>
             </div>
         </div>
     );
