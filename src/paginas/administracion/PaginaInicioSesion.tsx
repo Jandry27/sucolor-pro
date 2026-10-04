@@ -92,7 +92,7 @@ export function PaginaInicioSesion() {
                         transition={{ delay: 0.1, duration: 0.5 }}
                         src="/logo.png"
                         alt="SuColor"
-                        className="h-12 sm:h-16 w-auto object-contain mb-8 sm:mb-10"
+                        className="h-20 sm:h-24 lg:h-20 xl:h-24 w-auto object-contain mb-8 sm:mb-10"
                         draggable={false}
                     />
 
