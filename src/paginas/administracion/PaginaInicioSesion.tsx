@@ -218,17 +218,7 @@ export function PaginaInicioSesion() {
                         </motion.div>
                     </form>
 
-                    {/* Footer */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                        className="mt-14 pt-8 border-t border-[#0B1220]/5"
-                    >
-                        <p className="text-xs text-[#0B1220]/30">
-                            SuColor PRO &copy; {new Date().getFullYear()}
-                        </p>
-                    </motion.div>
+
                 </div>
             </motion.div>
 
