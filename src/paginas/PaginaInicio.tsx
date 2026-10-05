@@ -325,7 +325,7 @@ export function PaginaInicio() {
                                         </p>
 
                                         <p className="mt-1 text-xs text-black/60">
-                                            Consulta el avance con tu placa.
+                                            Consulta el avance con tu placa y los últimos 4 dígitos de tu teléfono.
                                         </p>
                                     </div>
 
