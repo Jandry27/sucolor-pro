@@ -1,7 +1,3 @@
-// Supabase Edge Function: search-order
-// @ts-nocheck
-// Deploy: copia este código en Supabase Dashboard → Edge Functions → New Function → "search-order"
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -27,7 +23,7 @@ function getCorsHeaders(req: Request) {
     const origin = req.headers.get('origin') || '';
     const headers: Record<string, string> = {
         'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Vary': 'Origin',
     };
 
@@ -38,57 +34,15 @@ function getCorsHeaders(req: Request) {
     return headers;
 }
 
-// ─── Rate limiting ────────────────────────────────────────────────────────────
-// Consulta la tabla `rate_limits` para saber si la IP ha superado el límite
-// en la ventana horaria actual. Retorna true = permitido, false = bloqueado.
-// Si hay cualquier error de BD, permite la request (fail-open) para no bloquear
-// usuarios legítimos por problemas de infraestructura.
-async function checkRateLimit(
-    supabase: any,
-    ip: string,
-    endpoint: string,
-    maxReq: number
-): Promise<boolean> {
-    try {
-        const windowStart = new Date();
-        windowStart.setMinutes(0, 0, 0);
-        windowStart.setSeconds(0, 0);
-
-        const { data: existing } = await supabase
-            .from('rate_limits')
-            .select('count')
-            .eq('ip', ip)
-            .eq('endpoint', endpoint)
-            .eq('window_start', windowStart.toISOString())
-            .single();
-
-        if (existing) {
-            if (existing.count >= maxReq) return false; // bloqueado
-            await supabase
-                .from('rate_limits')
-                .update({ count: existing.count + 1 })
-                .eq('ip', ip)
-                .eq('endpoint', endpoint)
-                .eq('window_start', windowStart.toISOString());
-        } else {
-            await supabase.from('rate_limits').insert({
-                ip,
-                endpoint,
-                window_start: windowStart.toISOString(),
-                count: 1,
-            });
-        }
-        return true; // permitido
-    } catch {
-        return true; // si falla, no bloquear
-    }
+function onlyDigits(value: string) {
+    return value.replace(/\D/g, '');
 }
 
 serve(async (req: Request) => {
     const origin = req.headers.get('origin') || '';
 
     if (origin && !isAllowedOrigin(origin)) {
-        return new Response(JSON.stringify({ ok: false, message: 'Origen no autorizado.' }), {
+        return new Response(JSON.stringify({ ok: false, message: 'Solicitud no permitida.' }), {
             status: 403,
             headers: { 'Content-Type': 'application/json', Vary: 'Origin' },
         });
@@ -98,124 +52,130 @@ serve(async (req: Request) => {
         return new Response('ok', { headers: getCorsHeaders(req) });
     }
 
-    try {
-        // Crear cliente de Supabase al inicio (necesario para rate limiting)
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? Deno.env.get('PROJECT_URL') ?? '';
-        const serviceKey =
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SERVICE_ROLE_KEY') ?? '';
-        const supabase = createClient(supabaseUrl, serviceKey);
+    if (req.method !== 'POST') {
+        return new Response(JSON.stringify({ ok: false, message: 'Método no permitido.' }), {
+            status: 405,
+            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+        });
+    }
 
-        // ── Rate limiting: máximo 30 requests/hora por IP (búsqueda es más sensible)
+    try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+        if (!supabaseUrl || !serviceKey) {
+            throw new Error('Configuración interna incompleta.');
+        }
+
+        const supabase = createClient(supabaseUrl, serviceKey);
         const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-        const allowed = await checkRateLimit(supabase, clientIp, 'search-order', 30);
+
+        const { data: allowed, error: rateError } = await supabase.rpc('consume_rate_limit', {
+            p_ip: clientIp,
+            p_endpoint: 'search-order',
+            p_max: 15,
+        });
+
+        if (rateError) {
+            console.error('Rate limit error:', rateError);
+            return new Response(JSON.stringify({ ok: false, message: 'Intenta de nuevo más tarde.' }), {
+                status: 503,
+                headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+            });
+        }
+
         if (!allowed) {
             return new Response(
                 JSON.stringify({
                     ok: false,
-                    message: 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
+                    message: 'Demasiados intentos. Intenta de nuevo más tarde.',
                 }),
-                { status: 429, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+                {
+                    status: 429,
+                    headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+                }
             );
         }
 
-        // ── Validación robusta de parámetros (sin Zod, validación manual para Deno)
-        const url = new URL(req.url);
-        const placaRaw = url.searchParams.get('placa')?.trim() ?? '';
-        const nombreRaw = url.searchParams.get('nombre')?.trim() ?? '';
-        const apellidoRaw = url.searchParams.get('apellido')?.trim() ?? '';
+        const body = await req.json().catch(() => null);
+        const placaRaw = typeof body?.placa === 'string' ? body.placa.trim().toUpperCase() : '';
+        const verificadorRaw =
+            typeof body?.verificador === 'string' ? onlyDigits(body.verificador).slice(-4) : '';
 
-        // Validar placa: solo letras mayúsculas, números y guiones, 3-10 chars
-        const placaValida = placaRaw !== '' && /^[A-Z0-9-]{3,10}$/.test(placaRaw.toUpperCase());
-        // Validar nombre y apellido: solo letras (con acentos y ñ) y espacios, 2-50 chars
-        const nombreValido = nombreRaw !== '' && /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/.test(nombreRaw);
-        const apellidoValido =
-            apellidoRaw !== '' && /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/.test(apellidoRaw);
+        const placaValida = /^[A-Z0-9-]{3,10}$/.test(placaRaw);
+        const verificadorValido = /^\d{4}$/.test(verificadorRaw);
 
-        // Se requiere placa válida, o nombre + apellido ambos válidos
-        if (!placaValida && !(nombreValido && apellidoValido)) {
+        if (!placaValida || !verificadorValido) {
             return new Response(
                 JSON.stringify({
                     ok: false,
-                    message: 'Proporciona una placa válida o nombre y apellido válidos.',
+                    message: 'No se pudo validar la información proporcionada.',
                 }),
-                { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+                {
+                    status: 400,
+                    headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+                }
             );
         }
 
-        const placa = placaValida ? placaRaw.toUpperCase() : null;
-        const nombre = nombreValido ? nombreRaw : null;
-        const apellido = apellidoValido ? apellidoRaw : null;
+        const { data: orders, error } = await supabase
+            .from('ordenes')
+            .select(
+                `
+                codigo,
+                share_token,
+                share_enabled,
+                fecha_ingreso,
+                estado,
+                cliente:clientes!inner(telefono),
+                vehiculo:vehiculos!inner(placa)
+            `
+            )
+            .eq('vehiculos.placa', placaRaw)
+            .eq('share_enabled', true)
+            .neq('estado', 'ENTREGADO')
+            .order('fecha_ingreso', { ascending: false })
+            .limit(1);
 
-        let data, error;
+        const order = orders?.[0];
+        const telefono = onlyDigits(order?.cliente?.telefono ?? '');
+        const coincide = telefono.length >= 4 && telefono.slice(-4) === verificadorRaw;
 
-        if (placa) {
-            // Búsqueda por placa
-            ({ data, error } = await supabase
-                .from('ordenes')
-                .select(
-                    `
-          codigo,
-          share_token,
-          share_enabled,
-          vehiculo:vehiculos!inner(placa)
-        `
-                )
-                .eq('vehiculos.placa', placa)
-                .eq('share_enabled', true)
-                .neq('estado', 'ENTREGADO')
-                .order('fecha_ingreso', { ascending: false })
-                .limit(1));
-        } else {
-            // Búsqueda por nombre + apellido
-            ({ data, error } = await supabase
-                .from('ordenes')
-                .select(
-                    `
-          codigo,
-          share_token,
-          share_enabled,
-          cliente:clientes!inner(nombres, apellidos)
-        `
-                )
-                .ilike('clientes.nombres', nombre!)
-                .ilike('clientes.apellidos', apellido!)
-                .eq('share_enabled', true)
-                .neq('estado', 'ENTREGADO')
-                .order('fecha_ingreso', { ascending: false })
-                .limit(1));
-        }
-
-        if (error || !data || data.length === 0) {
+        if (error || !order || !order.share_token || !coincide) {
             return new Response(
                 JSON.stringify({
                     ok: false,
-                    message: 'No se encontró una orden activa para los datos proporcionados.',
+                    message: 'No se pudo validar la información proporcionada.',
                 }),
-                { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-            );
-        }
-
-        const order = data[0];
-
-        if (!order.share_token) {
-            return new Response(
-                JSON.stringify({
-                    ok: false,
-                    message: 'Esta orden no tiene portal de seguimiento activado.',
-                }),
-                { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+                {
+                    status: 404,
+                    headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+                }
             );
         }
 
         return new Response(
-            JSON.stringify({ ok: true, codigo: order.codigo, token: order.share_token }),
-            { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+            JSON.stringify({
+                ok: true,
+                codigo: order.codigo,
+                token: order.share_token,
+            }),
+            {
+                status: 200,
+                headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+            }
         );
-    } catch (err) {
-        console.error('search-order error:', err);
-        return new Response(JSON.stringify({ ok: false, message: 'Error interno del servidor.' }), {
-            status: 500,
-            headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-        });
+    } catch (error) {
+        console.error('search-order error:', error);
+        return new Response(
+            JSON.stringify({
+                ok: false,
+                message: 'No se pudo procesar la solicitud.',
+            }),
+            {
+                status: 500,
+                headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+            }
+        );
     }
 });
