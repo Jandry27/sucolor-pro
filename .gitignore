@@ -25,3 +25,6 @@ Thumbs.db
 
 # Vite
 *.local
+
+# Backups locales — contienen datos reales y NUNCA deben subirse a Git
+.backups/
