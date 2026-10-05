@@ -44,7 +44,7 @@ describe('FormularioBusqueda', () => {
 
     it('renderiza el botón de envío', () => {
         renderForm();
-        expect(screen.getByRole('button', { name: /consultar estado/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /consultar/i })).toBeInTheDocument();
     });
 
     it('el input respeta maxLength de 10 caracteres', () => {
@@ -55,7 +55,7 @@ describe('FormularioBusqueda', () => {
 
     it('no llama a search si el campo está vacío', () => {
         renderForm();
-        const button = screen.getByRole('button', { name: /consultar estado/i });
+        const button = screen.getByRole('button', { name: /consultar/i });
         fireEvent.click(button);
         expect(mockSearch).not.toHaveBeenCalled();
     });

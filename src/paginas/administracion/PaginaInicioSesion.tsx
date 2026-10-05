@@ -57,7 +57,7 @@ export function PaginaInicioSesion() {
 
     return (
         <div className="min-h-screen flex w-full bg-[#FEF7F0] lg:bg-white overflow-hidden relative">
-            
+
             {/* Ondas decorativas globales (visibles en móvil) */}
             <div className="absolute inset-0 pointer-events-none opacity-40 lg:hidden z-0">
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-full h-full text-[#F97316]">
@@ -70,12 +70,12 @@ export function PaginaInicioSesion() {
                     <path fill="none" stroke="currentColor" strokeWidth="0.15" strokeOpacity="0.2" d="M-10,60 C50,100 50,50 110,90" />
                 </svg>
             </div>
-            
+
             {/* Fondo del auto para MÓVIL (muy suave para no estorbar la lectura) */}
             <div className="absolute bottom-0 right-0 w-full max-w-[500px] pointer-events-none lg:hidden z-0 flex justify-end items-end opacity-70" style={{ mixBlendMode: 'darken' }}>
                 <img src="/car-illustration.jpg" alt="" className="w-full object-contain select-none" draggable={false} />
             </div>
-            
+
 
 
             <div className="absolute inset-0 bg-gradient-to-br from-[#FEF7F0]/80 via-transparent to-[#F97316]/5 pointer-events-none lg:hidden z-0" />
@@ -88,17 +88,6 @@ export function PaginaInicioSesion() {
                 className="w-full lg:w-5/12 xl:w-[42%] flex flex-col justify-start pt-8 sm:pt-16 lg:justify-center lg:pt-0 px-6 sm:px-14 md:px-20 lg:px-12 xl:px-20 relative z-10 bg-transparent lg:bg-white lg:shadow-[20px_0_40px_rgba(0,0,0,0.05)]"
             >
                 <div className="w-full max-w-[380px] mx-auto">
-                    {/* Logo */}
-                    <motion.img
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.1, duration: 0.5 }}
-                        src="/logo.png"
-                        alt="SuColor"
-                        className="w-56 sm:w-64 lg:w-52 xl:w-64 h-auto object-contain mb-6 sm:mb-8"
-                        draggable={false}
-                    />
-
                     {/* Título */}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -106,11 +95,13 @@ export function PaginaInicioSesion() {
                         transition={{ delay: 0.2, duration: 0.5 }}
                         className="mb-6 sm:mb-8"
                     >
-                        <h1 className="text-3xl sm:text-[2rem] leading-tight font-bold text-[#0B1220] tracking-tight">
-                            Bienvenido a<br />
-                            <span className="text-[#F97316]">SuColor</span>
+                        <h1>
+                            <picture className="block w-60 max-w-full h-32 mx-auto">
+                                <source media="(max-width: 1023px)" srcSet="/loja.PNG" />
+                                <img src="/rueda.png" alt="SuColor" className="block w-full h-full object-contain" draggable={false} />
+                            </picture>
                         </h1>
-                        <p className="text-sm text-[#0B1220]/50 mt-2 sm:mt-3">
+                        <p className="text-sm text-[#0B1220]/50 mt-5">
                             Inicia sesión para acceder al panel de gestión.
                         </p>
                     </motion.div>
@@ -249,7 +240,7 @@ export function PaginaInicioSesion() {
                     className="relative z-10 flex flex-col items-center text-center mt-3 xl:mt-5 mb-auto"
                 >
                     <img
-                        src="/logo.png"
+                        src="/loja.PNG"
                         alt="SuColor"
                         className="w-48 xl:w-64 object-contain select-none mb-6"
                         draggable={false}
@@ -270,5 +261,3 @@ export function PaginaInicioSesion() {
         </div>
     );
 }
-
-
