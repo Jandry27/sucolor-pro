@@ -817,6 +817,36 @@ async function sendInvoiceEmail(data: {
     }
 }
 
+async function requireAdmin(req: Request, supabaseAdmin: any) {
+    const authHeader = req.headers.get('authorization') || '';
+
+    if (!authHeader.startsWith('Bearer ')) {
+        return { ok: false, status: 401, message: 'Sesión no válida.' };
+    }
+
+    const token = authHeader.slice('Bearer '.length).trim();
+    const {
+        data: { user },
+        error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (userError || !user) {
+        return { ok: false, status: 401, message: 'Sesión no válida.' };
+    }
+
+    const { data: profile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (profileError || profile?.role !== 'admin') {
+        return { ok: false, status: 403, message: 'Acceso restringido a administradores.' };
+    }
+
+    return { ok: true, status: 200, message: 'ok', user };
+}
+
 // ============================================================
 // MAIN HANDLER
 // ============================================================
@@ -835,12 +865,27 @@ serve(async req => {
     }
 
     try {
-        const { orden_id, items, notas, comprador } = await req.json();
-
-        // --- Supabase admin client ---
         const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+
+        if (!supabaseUrl || !supabaseServiceKey) {
+            throw new Error('Configuración de Supabase incompleta en la función.');
+        }
+
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const admin = await requireAdmin(req, supabase);
+
+        if (!admin.ok) {
+            return new Response(
+                JSON.stringify({ success: false, message: admin.message }),
+                {
+                    status: admin.status,
+                    headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+                }
+            );
+        }
+
+        const { orden_id, items, notas, comprador } = await req.json();
 
         // --- 1. Company Settings ---
         const { data: settings } = await supabase
