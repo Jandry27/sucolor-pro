@@ -11,14 +11,12 @@ export function useBusquedaOrden() {
     });
 
     const search = useCallback(async (params: SearchParams) => {
-        const metodo = 'placa' in params ? 'placa' : 'nombre';
-
-        registrarEventoAnalytics('buscar_vehiculo', { metodo });
+        registrarEventoAnalytics('buscar_vehiculo', { metodo: 'placa_segura' });
         setState({ result: null, loading: true, error: null });
 
         try {
             const result = await buscarOrden(params);
-            registrarEventoAnalytics('vehiculo_encontrado', { metodo });
+            registrarEventoAnalytics('vehiculo_encontrado', { metodo: 'placa_segura' });
             setState({ result, loading: false, error: null });
             return result;
         } catch (err) {
@@ -28,7 +26,7 @@ export function useBusquedaOrden() {
                     : 'Error inesperado al buscar tu vehículo.';
 
             registrarEventoAnalytics('busqueda_vehiculo_error', {
-                metodo,
+                metodo: 'placa_segura',
                 estado_http: err instanceof BusquedaOrdenError ? err.status : 0,
             });
             setState({ result: null, loading: false, error: message });
