@@ -13,38 +13,26 @@ export class BusquedaOrdenError extends Error {
     }
 }
 
-interface SearchByPlaca {
+export interface SearchParams {
     placa: string;
-    nombre?: never;
-    apellido?: never;
+    verificador: string;
 }
-
-interface SearchByNombre {
-    nombre: string;
-    apellido: string;
-    placa?: never;
-}
-
-export type SearchParams = SearchByPlaca | SearchByNombre;
 
 export async function buscarOrden(params: SearchParams): Promise<BusquedaOrdenResponse> {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 15000);
 
     try {
-        const url = new URL(EDGE_FUNCTION_URL);
-
-        Object.entries(params).forEach(([key, value]) => {
-            if (typeof value === 'string' && value.trim()) {
-                url.searchParams.set(key, value);
-            }
-        });
-
-        const response = await fetch(url.toString(), {
-            method: 'GET',
+        const response = await fetch(EDGE_FUNCTION_URL, {
+            method: 'POST',
             headers: {
                 Accept: 'application/json',
+                'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                placa: params.placa,
+                verificador: params.verificador,
+            }),
             signal: controller.signal,
         });
 
@@ -58,7 +46,7 @@ export async function buscarOrden(params: SearchParams): Promise<BusquedaOrdenRe
 
         if (!response.ok || !data?.ok) {
             throw new BusquedaOrdenError(
-                data?.message || 'No se encontró ninguna orden.',
+                data?.message || 'No se pudo validar la información proporcionada.',
                 response.status || 0
             );
         }
