@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { PaginaSeguimiento } from '@/paginas/PaginaSeguimiento';
+import { PaginaNoEncontrada } from '@/paginas/PaginaNoEncontrada';
 import { PaginaInicio } from '@/paginas/PaginaInicio';
 import { PaginaInicioSesion } from '@/paginas/administracion/PaginaInicioSesion';
 import { PaginaPanel } from '@/paginas/administracion/PaginaPanel';
@@ -109,29 +110,10 @@ export default function App() {
                     />
 
                     {/* ── Catch-all ───────────────────────────────────────────── */}
-                    <Route path="*" element={<NotFound />} />
+                    <Route path="*" element={<PaginaNoEncontrada />} />
                 </Routes>
             </HashRouter>
             </ProveedorNotificaciones>
         </ProveedorTema>
-    );
-}
-
-function NotFound() {
-    return (
-        <div className="min-h-screen mesh-gradient bg-[#0F172A] flex items-center justify-center px-4">
-            <div className="text-center space-y-4">
-                <p className="text-8xl font-display font-black text-brand-white/[0.04]">404</p>
-                <h1 className="text-xl font-display font-semibold text-brand-white">
-                    Página no encontrada
-                </h1>
-                <p className="text-brand-gray-lighter text-sm">
-                    Usa el enlace de seguimiento que te proporcionó el taller.
-                </p>
-                <a href="#/" className="inline-block btn-primary mt-2">
-                    Volver al inicio
-                </a>
-            </div>
-        </div>
     );
 }

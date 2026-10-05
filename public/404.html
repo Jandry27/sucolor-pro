@@ -1,26 +1,48 @@
-<!DOCTYPE html>
-<html>
-
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <title>SuColor — Redirigiendo...</title>
-    <script>
-        // GitHub Pages SPA redirect
-        // When a direct URL is accessed, GitHub serves this 404 page.
-        // We store the path in sessionStorage and redirect to the root.
-        var path = window.location.pathname;
-        var search = window.location.search;
-        var hash = window.location.hash;
-        // For HashRouter apps, we just redirect to root and let the hash handle it
-        sessionStorage.setItem('spa_redirect', path + search + hash);
-        window.location.replace('/SuColor/');
-    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FFF8ED" />
+    <title>Página no encontrada · SuColor</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; color: #171717; background: #fff8ed; font-family: system-ui, sans-serif; }
+        main { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; background: linear-gradient(90deg,rgba(255,248,237,.99),rgba(255,248,237,.95) 35%,rgba(255,248,237,.15) 80%),url('/auto.png') right center/cover; }
+        header,footer { padding: 24px clamp(24px,6vw,80px); }
+        header img { height: 56px; width: auto; }
+        article { flex: 1; align-content: center; width: 100%; max-width: 1440px; margin: auto; padding: 24px clamp(24px,6vw,80px) 64px; }
+        .contenido { max-width: 540px; }
+        .etiqueta { color: #8d451d; font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+        .codigo { margin: 12px 0 0; font-size: clamp(112px,18vw,208px); font-weight: 900; line-height: 1; letter-spacing: -.07em; color: #c94e0c; }
+        .codigo span { color: #171717; }
+        h1 { margin: 20px 0; font-size: clamp(36px,5vw,48px); line-height: 1.08; letter-spacing: -.025em; }
+        .descripcion { max-width: 390px; color: #525252; font-size: 16px; line-height: 1.75; }
+        nav { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+        a { color: inherit; }
+        nav a { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; padding: 12px 24px; border: 1px solid #8d451d33; border-radius: 12px; background: #fff8ede6; font-size: 14px; font-weight: 600; text-decoration: none; }
+        nav a:first-child { color: white; background: #c94e0c; border-color: #c94e0c; }
+        nav a:hover { background: white; }
+        nav a:first-child:hover { background: #a33d08; }
+        a:focus-visible { outline: 2px solid #c94e0c; outline-offset: 4px; }
+        .ayuda { margin-top: 20px; font-size: 12px; line-height: 1.7; color: #525252; }
+        footer { color: #64391f; font-size: 12px; }
+        @media(max-width: 700px) { main { background: linear-gradient(180deg,rgba(255,248,237,.98),rgba(255,248,237,.93) 58%,rgba(255,248,237,.2)),url('/auto.png') 65% bottom/cover; } article { padding-bottom: 160px; } nav { flex-direction: column; } }
+    </style>
 </head>
-
 <body>
-    <p style="font-family: sans-serif; color: #9A9A9A; text-align: center; padding: 40px;">
-        Redirigiendo...
-    </p>
+    <main>
+        <header><a href="/#/" aria-label="SuColor, ir al inicio"><img src="/logo.png" alt="SuColor" /></a></header>
+        <article><div class="contenido">
+            <p class="etiqueta">Un desvío inesperado</p>
+            <p class="codigo" aria-hidden="true">404<span>.</span></p>
+            <h1>Esta ruta<br />salió del mapa.</h1>
+            <p class="descripcion">La página que buscas no existe o cambió de dirección. Volvamos al inicio para retomar el camino.</p>
+            <nav aria-label="Opciones para continuar"><a href="/#/">Volver al inicio &nbsp; →</a><a href="https://wa.me/593989575378" target="_blank" rel="noopener noreferrer">Contactar al taller</a></nav>
+            <p class="ayuda">¿Buscas tu vehículo? Puedes consultar su estado con tu placa desde el inicio.</p>
+        </div></article>
+        <footer>SuColor · Pintura y latonería en Loja</footer>
+    </main>
 </body>
-
 </html>
