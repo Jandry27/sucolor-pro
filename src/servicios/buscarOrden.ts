@@ -15,7 +15,6 @@ export class BusquedaOrdenError extends Error {
 
 export interface SearchParams {
     placa: string;
-    verificador: string;
 }
 
 export async function buscarOrden(params: SearchParams): Promise<BusquedaOrdenResponse> {
@@ -31,7 +30,6 @@ export async function buscarOrden(params: SearchParams): Promise<BusquedaOrdenRe
             },
             body: JSON.stringify({
                 placa: params.placa,
-                verificador: params.verificador,
             }),
             signal: controller.signal,
         });
@@ -46,7 +44,7 @@ export async function buscarOrden(params: SearchParams): Promise<BusquedaOrdenRe
 
         if (!response.ok || !data?.ok) {
             throw new BusquedaOrdenError(
-                data?.message || 'No se pudo validar la información proporcionada.',
+                data?.message || 'No se encontró una orden activa para esa placa.',
                 response.status || 0
             );
         }
