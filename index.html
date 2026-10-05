@@ -6,7 +6,7 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
   <meta http-equiv="X-Frame-Options" content="DENY" />
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://*.supabase.co data: blob:; connect-src 'self' https://*.supabase.co https://api.cloudinary.com https://srienlinea.sri.gob.ec; frame-ancestors 'none';" />
+    content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://*.supabase.co data: blob:; connect-src 'self' https://*.supabase.co https://api.cloudinary.com https://srienlinea.sri.gob.ec https://www.googletagmanager.com https://*.google-analytics.com; frame-ancestors 'none';" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -31,6 +31,25 @@
     window.va = window.va || function () {
       (window.vaq = window.vaq || []).push(arguments);
     };
+
+    window.va('beforeSend', function (event) {
+      try {
+        var url = new URL(event.url);
+        url.searchParams.delete('token');
+
+        if (url.hash.indexOf('?') !== -1) {
+          var parts = url.hash.split('?');
+          var hashParams = new URLSearchParams(parts[1] || '');
+          hashParams.delete('token');
+          var cleanQuery = hashParams.toString();
+          url.hash = cleanQuery ? parts[0] + '?' + cleanQuery : parts[0];
+        }
+
+        return Object.assign({}, event, { url: url.toString() });
+      } catch (_error) {
+        return event;
+      }
+    });
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
   <script type="module" src="/src/main.tsx"></script>
