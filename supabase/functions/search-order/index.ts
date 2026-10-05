@@ -34,10 +34,6 @@ function getCorsHeaders(req: Request) {
     return headers;
 }
 
-function onlyDigits(value: string) {
-    return value.replace(/\D/g, '');
-}
-
 serve(async (req: Request) => {
     const origin = req.headers.get('origin') || '';
 
@@ -73,7 +69,7 @@ serve(async (req: Request) => {
         const { data: allowed, error: rateError } = await supabase.rpc('consume_rate_limit', {
             p_ip: clientIp,
             p_endpoint: 'search-order',
-            p_max: 15,
+            p_max: 30,
         });
 
         if (rateError) {
@@ -88,7 +84,7 @@ serve(async (req: Request) => {
             return new Response(
                 JSON.stringify({
                     ok: false,
-                    message: 'Demasiados intentos. Intenta de nuevo más tarde.',
+                    message: 'Demasiadas consultas. Intenta de nuevo más tarde.',
                 }),
                 {
                     status: 429,
@@ -98,18 +94,13 @@ serve(async (req: Request) => {
         }
 
         const body = await req.json().catch(() => null);
-        const placaRaw = typeof body?.placa === 'string' ? body.placa.trim().toUpperCase() : '';
-        const verificadorRaw =
-            typeof body?.verificador === 'string' ? onlyDigits(body.verificador).slice(-4) : '';
+        const placa = typeof body?.placa === 'string' ? body.placa.trim().toUpperCase() : '';
 
-        const placaValida = /^[A-Z0-9-]{3,10}$/.test(placaRaw);
-        const verificadorValido = /^\d{4}$/.test(verificadorRaw);
-
-        if (!placaValida || !verificadorValido) {
+        if (!/^[A-Z0-9-]{3,10}$/.test(placa)) {
             return new Response(
                 JSON.stringify({
                     ok: false,
-                    message: 'No se pudo validar la información proporcionada.',
+                    message: 'Ingresa una placa válida.',
                 }),
                 {
                     status: 400,
@@ -127,25 +118,22 @@ serve(async (req: Request) => {
                 share_enabled,
                 fecha_ingreso,
                 estado,
-                cliente:clientes!inner(telefono),
                 vehiculo:vehiculos!inner(placa)
             `
             )
-            .eq('vehiculos.placa', placaRaw)
+            .eq('vehiculos.placa', placa)
             .eq('share_enabled', true)
             .neq('estado', 'ENTREGADO')
             .order('fecha_ingreso', { ascending: false })
             .limit(1);
 
         const order = orders?.[0];
-        const telefono = onlyDigits(order?.cliente?.telefono ?? '');
-        const coincide = telefono.length >= 4 && telefono.slice(-4) === verificadorRaw;
 
-        if (error || !order || !order.share_token || !coincide) {
+        if (error || !order || !order.share_token) {
             return new Response(
                 JSON.stringify({
                     ok: false,
-                    message: 'No se pudo validar la información proporcionada.',
+                    message: 'No se encontró una orden activa para esa placa.',
                 }),
                 {
                     status: 404,
