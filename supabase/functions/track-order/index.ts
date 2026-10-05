@@ -49,39 +49,18 @@ async function checkRateLimit(
     endpoint: string,
     maxReq: number
 ): Promise<boolean> {
-    try {
-        const windowStart = new Date();
-        windowStart.setMinutes(0, 0, 0);
-        windowStart.setSeconds(0, 0);
+    const { data, error } = await supabase.rpc('consume_rate_limit', {
+        p_ip: ip,
+        p_endpoint: endpoint,
+        p_max: maxReq,
+    });
 
-        const { data: existing } = await supabase
-            .from('rate_limits')
-            .select('count')
-            .eq('ip', ip)
-            .eq('endpoint', endpoint)
-            .eq('window_start', windowStart.toISOString())
-            .single();
-
-        if (existing) {
-            if (existing.count >= maxReq) return false; // bloqueado
-            await supabase
-                .from('rate_limits')
-                .update({ count: existing.count + 1 })
-                .eq('ip', ip)
-                .eq('endpoint', endpoint)
-                .eq('window_start', windowStart.toISOString());
-        } else {
-            await supabase.from('rate_limits').insert({
-                ip,
-                endpoint,
-                window_start: windowStart.toISOString(),
-                count: 1,
-            });
-        }
-        return true; // permitido
-    } catch {
-        return true; // si falla, no bloquear
+    if (error) {
+        console.error('Rate limit error:', error);
+        return false;
     }
+
+    return data === true;
 }
 
 serve(async (req: Request) => {
