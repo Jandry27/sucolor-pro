@@ -287,8 +287,9 @@ export function PaginaInicio() {
                                 }}
                                 className="mt-7 max-w-[490px] text-[15px] leading-7 text-black/[0.60] sm:text-[17px]"
                             >
-                                Pintura, latonería y restauración de carrocerías.
-                                Desde la preparación de cada pieza hasta el acabado final.
+                                Taller automotriz en Loja especializado en pintura, latonería,
+                                enderezado y restauración de carrocerías, desde la preparación
+                                de cada pieza hasta el acabado final.
                             </motion.p>
 
                             {/* FORMULARIO PRINCIPAL */}
@@ -347,22 +348,22 @@ export function PaginaInicio() {
                                 <span className="h-[2px] w-8 bg-[#F97316]" />
 
                                 <span className="text-[10px] font-semibold uppercase tracking-normal text-black/40">
-                                    Nuestros servicios
+                                    Servicios automotrices en Loja
                                 </span>
                             </div>
 
                             <h2 className="mt-6 text-4xl font-semibold tracking-normal sm:text-4xl">
-                                Trabajo que
+                                Cuidado profesional
                                 <br />
-                                se nota.
+                                para tu vehículo.
                             </h2>
                         </div>
 
                         <div className="flex items-end">
                             <p className="max-w-[470px] text-[15px] leading-7 text-black/[0.60]">
-                                Cada vehículo requiere atención diferente.
-                                Trabajamos desde la preparación de la
-                                carrocería hasta el acabado final.
+                                En SuColor atendemos vehículos en Loja con servicios de pintura
+                                automotriz, latonería, enderezado, restauración estética y acabados.
+                                Cada trabajo se revisa por etapas hasta la entrega final.
                             </p>
                         </div>
                     </Reveal>
