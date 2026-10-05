@@ -4,7 +4,6 @@ import forge from 'npm:node-forge@1.3.1';
 
 const ALLOWED_ORIGINS = [
     'https://sucolor.autos',
-    'https://sucolor.vercel.app',
     'https://sucolor-jandry27s-projects.vercel.app',
     'https://sucolor-git-main-jandry27s-projects.vercel.app',
     'http://localhost:5173',
