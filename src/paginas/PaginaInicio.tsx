@@ -134,8 +134,13 @@ export function PaginaInicio() {
                             aria-label="SuColor"
                         >
                             <img
-                                src="/loja.PNG"
+                                src="/_vercel/image?url=%2Floja.PNG&w=128&q=75"
+                                srcSet="/_vercel/image?url=%2Floja.PNG&w=64&q=75 64w, /_vercel/image?url=%2Floja.PNG&w=128&q=75 128w, /_vercel/image?url=%2Floja.PNG&w=256&q=75 256w"
+                                sizes="128px"
+                                width="256"
+                                height="256"
                                 alt="SuColor"
+                                decoding="async"
                                 className="h-[48px] w-auto object-contain"
                             />
 
@@ -212,10 +217,13 @@ export function PaginaInicio() {
             >
                 <div className="relative isolate mx-auto min-h-[640px] max-w-[1600px] overflow-hidden bg-[#FFF4E3]">
                     <img
-                        src="/taller.png"
+                        src="/_vercel/image?url=%2Ftaller.png&w=1080&q=75"
+                        srcSet="/_vercel/image?url=%2Ftaller.png&w=640&q=75 640w, /_vercel/image?url=%2Ftaller.png&w=828&q=75 828w, /_vercel/image?url=%2Ftaller.png&w=1080&q=75 1080w, /_vercel/image?url=%2Ftaller.png&w=1600&q=75 1600w, /_vercel/image?url=%2Ftaller.png&w=1920&q=75 1920w"
+                        sizes="100vw"
                         alt=""
                         aria-hidden="true"
                         fetchPriority="high"
+                        decoding="async"
                         className="absolute inset-0 -z-20 h-full w-full object-cover object-[65%_center] lg:object-[right_bottom]"
                     />
                     {/* El degradado conserva el contraste sin ocultar el automóvil. */}
@@ -418,8 +426,12 @@ export function PaginaInicio() {
                 className="scroll-mt-28 relative h-[70vh] min-h-[560px] overflow-hidden bg-[#171717]"
             >
                 <img
-                    src="/montañas.png"
+                    src="/_vercel/image?url=%2Fmontan%CC%83as.png&w=1080&q=75"
+                    srcSet="/_vercel/image?url=%2Fmontan%CC%83as.png&w=640&q=75 640w, /_vercel/image?url=%2Fmontan%CC%83as.png&w=1080&q=75 1080w, /_vercel/image?url=%2Fmontan%CC%83as.png&w=1600&q=75 1600w"
+                    sizes="100vw"
                     alt="Ilustración de una carretera de montaña"
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 h-full w-full object-cover opacity-75"
                     onError={event => {
                         event.currentTarget.style.display = 'none';
@@ -508,8 +520,14 @@ export function PaginaInicio() {
                     <div className="grid gap-10 border-b border-white/10 pb-12 md:grid-cols-3">
                         <div>
                             <img
-                                src="/loja.PNG"
+                                src="/_vercel/image?url=%2Floja.PNG&w=128&q=75"
+                                srcSet="/_vercel/image?url=%2Floja.PNG&w=64&q=75 64w, /_vercel/image?url=%2Floja.PNG&w=128&q=75 128w, /_vercel/image?url=%2Floja.PNG&w=256&q=75 256w"
+                                sizes="128px"
+                                width="256"
+                                height="256"
                                 alt="SuColor"
+                                loading="lazy"
+                                decoding="async"
                                 className="h-14 w-auto"
                             />
 
