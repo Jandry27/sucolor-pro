@@ -34,10 +34,9 @@ describe('FormularioBusqueda', () => {
         vi.clearAllMocks();
     });
 
-    it('renderiza placa y verificador telefónico', () => {
+    it('renderiza el campo de placa', () => {
         renderForm();
         expect(screen.getByPlaceholderText('Ej. LAA-1362')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Últimos 4 del teléfono')).toBeInTheDocument();
     });
 
     it('renderiza el botón de envío', () => {
@@ -45,62 +44,40 @@ describe('FormularioBusqueda', () => {
         expect(screen.getByRole('button', { name: /consultar/i })).toBeInTheDocument();
     });
 
-    it('limita placa a 10 y verificador a 4 caracteres', () => {
+    it('limita la placa a 10 caracteres', () => {
         renderForm();
         expect(screen.getByPlaceholderText('Ej. LAA-1362')).toHaveAttribute('maxLength', '10');
-        expect(screen.getByPlaceholderText('Últimos 4 del teléfono')).toHaveAttribute(
-            'maxLength',
-            '4'
-        );
     });
 
-    it('no permite enviar sin ambos datos', async () => {
+    it('no permite enviar sin placa', () => {
         renderForm();
-        const placa = screen.getByPlaceholderText('Ej. LAA-1362');
         const button = screen.getByRole('button', { name: /consultar/i });
-
-        await userEvent.type(placa, 'LAA1362');
         expect(button).toBeDisabled();
         expect(mockSearch).not.toHaveBeenCalled();
     });
 
-    it('envía placa normalizada y últimos cuatro dígitos', async () => {
+    it('envía la placa normalizada', async () => {
         mockSearch.mockResolvedValueOnce({ ok: false });
         renderForm();
 
         const placa = screen.getByPlaceholderText('Ej. LAA-1362');
-        const verificador = screen.getByPlaceholderText('Últimos 4 del teléfono');
-
         await userEvent.type(placa, 'laa1362');
-        await userEvent.type(verificador, '5378');
 
         fireEvent.submit(placa.closest('form')!);
 
         await waitFor(() =>
             expect(mockSearch).toHaveBeenCalledWith({
                 placa: 'LAA1362',
-                verificador: '5378',
             })
         );
     });
 
-    it('descarta caracteres no numéricos del verificador', async () => {
-        renderForm();
-        const verificador = screen.getByPlaceholderText('Últimos 4 del teléfono');
-
-        await userEvent.type(verificador, '53a78');
-        expect(verificador).toHaveValue('5378');
-    });
-
-    it('navega al seguimiento cuando la verificación tiene éxito', async () => {
+    it('navega al seguimiento cuando la búsqueda tiene éxito', async () => {
         mockSearch.mockResolvedValueOnce({ ok: true, codigo: 'SC-0001', token: 'tok-abc123' });
         renderForm();
 
         const placa = screen.getByPlaceholderText('Ej. LAA-1362');
-        const verificador = screen.getByPlaceholderText('Últimos 4 del teléfono');
-
         await userEvent.type(placa, 'ABC1234');
-        await userEvent.type(verificador, '1234');
         fireEvent.submit(placa.closest('form')!);
 
         await waitFor(() =>
@@ -113,10 +90,7 @@ describe('FormularioBusqueda', () => {
         renderForm();
 
         const placa = screen.getByPlaceholderText('Ej. LAA-1362');
-        const verificador = screen.getByPlaceholderText('Últimos 4 del teléfono');
-
         await userEvent.type(placa, 'ABC1234');
-        await userEvent.type(verificador, '1234');
         fireEvent.submit(placa.closest('form')!);
 
         await waitFor(() => expect(mockSearch).toHaveBeenCalled());
@@ -127,14 +101,14 @@ describe('FormularioBusqueda', () => {
         const { useBusquedaOrden } = await import('@/ganchos/useBusquedaOrden');
         (useBusquedaOrden as ReturnType<typeof vi.fn>).mockReturnValue({
             loading: false,
-            error: 'No se pudo validar la información proporcionada.',
+            error: 'No se encontró una orden activa para esa placa.',
             search: mockSearch,
             reset: vi.fn(),
             result: null,
         });
 
         renderForm();
-        expect(screen.getByText('No se pudo validar la información proporcionada.')).toBeInTheDocument();
+        expect(screen.getByText('No se encontró una orden activa para esa placa.')).toBeInTheDocument();
     });
 
     it('muestra estado de carga mientras busca', async () => {
