@@ -3,10 +3,13 @@
 // Copia este código en Supabase → Edge Functions → track-order → Edit
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'npm:@supabase/clienteSupabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const ALLOWED_ORIGINS = [
+    'https://sucolor.autos',
     'https://sucolor.vercel.app',
+    'https://sucolor-jandry27s-projects.vercel.app',
+    'https://sucolor-git-main-jandry27s-projects.vercel.app',
     'http://localhost:5173',
 ];
 
