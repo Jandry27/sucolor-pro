@@ -57,5 +57,18 @@
       "image/avif",
       "image/webp"
     ]
-  }
+  },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "sucolor.vercel.app"
+        }
+      ],
+      "destination": "https://sucolor.autos/:path*",
+      "permanent": true
+    }
+  ]
 }
