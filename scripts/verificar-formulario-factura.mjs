@@ -21,7 +21,7 @@ supabase.from=(tabla)=>{
  return cadena;
 };
 Object.defineProperty(supabase,'functions',{value:{invoke:(_nombre,datos)=>new Promise(resolve=>window.emisiones.push({datos,resolve}))}});
-const order={id:'orden-prueba',codigo:'SC-PRUEBA',cliente_id:'cliente-original',precio_total:100,vehiculo:{placa:'TEST-001'},cliente:{nombres:'Cliente original',cedula:'0000000000',direccion:'Dirección de prueba',email:'cliente@example.test',telefono:'',tipo_identificacion:'05'}};
+const order={id:'orden-prueba',codigo:'SC-PRUEBA',notas_publicas:'Enderezado y pintura del guardafango trasero derecho',cliente_id:'cliente-original',precio_total:100,vehiculo:{placa:'TEST-001'},cliente:{nombres:'Cliente original',cedula:'0000000000',direccion:'Dirección de prueba',email:'cliente@example.test',telefono:'',tipo_identificacion:'05'}};
 window.renderizar=(isOpen=true)=>root.render(React.createElement(ModalFactura,{isOpen,onClose:()=>window.renderizar(false),order}));
 const root=createRoot(document.getElementById('root')); window.renderizar();
 </script></body></html>`;
@@ -46,6 +46,7 @@ try {
   Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(elemento,valor);
   elemento.dispatchEvent(new Event('input',{bubbles:true}));
  },valor);
+ assert.equal(await page.$eval('#factura-trabajo',e=>e.value),'Enderezado y pintura del guardafango trasero derecho');
  await cambiar('#factura-documento','0000000001');
  await page.waitForFunction(()=>window.consultas.length===1);
  await cambiar('#factura-documento','0000000002');
@@ -60,11 +61,22 @@ try {
  await page.setViewport({width:390,height:844});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await page.screenshot({path:'/tmp/sucolor-factura-mobile.png'});
+ await page.$eval('#factura-trabajo',elemento=>{
+  Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(elemento,'');
+  elemento.dispatchEvent(new Event('input',{bubbles:true}));
+ });
+ await page.evaluate(()=>Array.from(document.querySelectorAll('button')).find(e=>e.textContent.includes('Emitir Factura')).click());
+ assert.equal(await page.evaluate(()=>window.emisiones.length),0);
+ await page.$eval('#factura-trabajo',elemento=>{
+  Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(elemento,'Enderezado y pintura del guardafango trasero derecho. Pulido final.');
+  elemento.dispatchEvent(new Event('input',{bubbles:true}));
+ });
  await page.evaluate(()=>{
   const boton=Array.from(document.querySelectorAll('button')).find(e=>e.textContent.includes('Emitir Factura'));
   for(let i=0;i<5;i++)boton.click();
  });
  await page.waitForFunction(()=>window.emisiones.length===1);
+ assert.equal(await page.evaluate(()=>window.emisiones[0].datos.body.items[0].descripcion),'Mano de obra: Enderezado y pintura del guardafango trasero derecho. Pulido final.');
  assert.equal(await page.evaluate(()=>window.actualizaciones.length),0);
  assert.equal(await page.evaluate(()=>window.emisiones[0].datos.body.comprador.identificacion),'0000000002');
  await page.evaluate(()=>window.emisiones[0].resolve({data:{success:false,message:'Error simulado'},error:null}));

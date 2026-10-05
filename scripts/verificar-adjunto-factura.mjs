@@ -14,7 +14,8 @@ const modulo = async (archivo, reemplazos = {}) => {
  const js = ts.transpileModule(fuente,{compilerOptions:{module:ts.ModuleKind.ES2020,target:ts.ScriptTarget.ES2020}}).outputText;
  return 'data:text/javascript;base64,'+Buffer.from(js).toString('base64');
 };
-const pdfUrl=await modulo('supabase/functions/_shared/facturaPdf.ts',{'npm:pdf-lib@1.17.1':pdfLib});
+const logoUrl=await modulo('supabase/functions/_shared/logoFactura.ts');
+const pdfUrl=await modulo('supabase/functions/_shared/facturaPdf.ts',{'npm:pdf-lib@1.17.1':pdfLib,'./logoFactura.ts':logoUrl});
 const correoUrl=await modulo('supabase/functions/_shared/correoFactura.ts',{'./facturaPdf.ts':pdfUrl});
 const {prepararCorreoFactura}=await import(correoUrl);
 const {PDFDocument}=await import(pdfLib);
@@ -27,6 +28,7 @@ assert.equal(adjunto.filename,'Factura-001-001-000000001.pdf');
 assert.equal(new TextDecoder().decode(adjunto.content.slice(0,5)),'%PDF-');
 const pdf=await PDFDocument.load(adjunto.content);
 assert.ok(pdf.getPageCount()>=1);
+assert.ok(pdf.getPages()[0].node.Resources().toString().includes('/XObject'), 'El PDF debe contener el logo incrustado');
 assert.ok(correo.html.includes('PDF adjunto')&&correo.content.includes(adjunto.filename));
 assert.ok(!correo.html.includes('<button')&&!correo.html.includes('href="#"'));
 const sanitizado=await prepararCorreoFactura({...datos,comprador:{...datos.comprador,nombre:'<b>Cliente</b>'},factura:{...datos.factura,secuencial:'../ejemplo'}});

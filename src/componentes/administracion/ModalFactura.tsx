@@ -64,6 +64,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const [ivaManoObra, setIvaManoObra] = useState<number>(0);
     const [formaPago, setFormaPago] = useState('01');
     const [notasVenta, setNotasVenta] = useState('');
+    const [trabajoRealizado, setTrabajoRealizado] = useState(order.notas_publicas || '');
 
     useEffect(() => {
         if (isOpen) {
@@ -75,6 +76,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             setError(null);
             setAvisoCorreo(null);
             setExistingInvoice(null);
+            setTrabajoRealizado(order.notas_publicas || '');
             setClienteDocTipo(order.cliente?.tipo_identificacion || '05');
             setClienteDoc(order.cliente?.cedula || '');
             setClienteNombre(order.cliente?.nombres || '');
@@ -331,6 +333,11 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             return;
         }
 
+        if (!trabajoRealizado.trim() || trabajoRealizado.trim().length > 250) {
+            setError('Describe el trabajo realizado en un máximo de 250 caracteres.');
+            return;
+        }
+
         emisionBloqueada.current = true;
         setProcessing(true);
         setError(null);
@@ -365,7 +372,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                 items: [
                     {
                         codigo_principal: 'MANO_OBRA',
-                        descripcion: `Servicio automotriz reparación/pintura placa ${order.vehiculo.placa}`,
+                        descripcion: `Mano de obra: ${trabajoRealizado.trim().replace(/\s+/g, ' ')}`,
                         precio_total_sin_impuestos: order.precio_total || 0,
                         tarifa_iva: ivaManoObra,
                     },
@@ -569,6 +576,23 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                                 ${totalManoObra.toFixed(2)}
                                             </span>
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="factura-trabajo" className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
+                                            Trabajo realizado
+                                        </label>
+                                        <textarea
+                                            id="factura-trabajo" value={trabajoRealizado}
+                                            onChange={e => setTrabajoRealizado(e.target.value)}
+                                            disabled={processing} maxLength={250} rows={3}
+                                            aria-describedby="factura-trabajo-ayuda"
+                                            placeholder="Ej. Enderezado y pintura del guardafango trasero derecho."
+                                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-3 text-base dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                        />
+                                        <p id="factura-trabajo-ayuda" className="mt-1 text-xs text-slate-500">
+                                            Revisa el texto de la bitácora. Este detalle aparecerá en la factura. {trabajoRealizado.length}/250
+                                        </p>
                                     </div>
 
                                     {gastos.length > 0 && (

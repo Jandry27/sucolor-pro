@@ -12,7 +12,7 @@ export async function prepararCorreoFactura(datos: DatosFactura) {
         html: `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:24px 12px;background:#f5f3ef;font-family:Arial,Helvetica,sans-serif;color:#25221f">
 <table role="presentation" style="width:100%;max-width:560px;margin:auto;background:#fff;border-collapse:collapse;border-top:4px solid #ea6b16"><tr><td style="padding:32px 26px">
-<p style="margin:0 0 28px;font-size:28px;font-weight:bold;color:#d4530c">SuColor<span style="color:#25221f">.</span></p>
+<img src="https://sucolor.autos/logo.png" alt="SuColor" width="130" style="display:block;width:130px;height:auto;margin:0 0 28px;border:0">
 <h1 style="font-size:25px;line-height:1.2;letter-spacing:-.6px;margin:0 0 14px">Tu factura está lista.</h1>
 <p style="font-size:14px;line-height:1.7;margin:0;color:#68615a">Hola, ${esc(datos.comprador.nombre)}. Gracias por confiar en nosotros para cuidar tu vehículo.</p>
 <table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse;background:#fcf6ee"><tr><td style="padding:20px">

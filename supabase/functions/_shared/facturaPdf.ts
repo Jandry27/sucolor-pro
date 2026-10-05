@@ -1,9 +1,11 @@
 import { PDFDocument, StandardFonts, rgb } from 'npm:pdf-lib@1.17.1';
+import { LOGO_FACTURA_PNG } from './logoFactura.ts';
 import type { DatosFactura } from './facturaHtml.ts';
 
 // Generación local al servidor: no envía datos del cliente a servicios de conversión.
 export async function generarFacturaPdf(data: DatosFactura): Promise<Uint8Array> {
     const pdf = await PDFDocument.create();
+    const logo = await pdf.embedPng(LOGO_FACTURA_PNG);
     const regular = await pdf.embedFont(StandardFonts.Helvetica);
     const negrita = await pdf.embedFont(StandardFonts.HelveticaBold);
     const negro = rgb(.14, .13, .12), gris = rgb(.43, .40, .37);
@@ -38,7 +40,7 @@ export async function generarFacturaPdf(data: DatosFactura): Promise<Uint8Array>
     const espacio = (altura: number) => { if (y - altura < margen + 24) nuevaPagina(); };
     const parrafo = (valor: string, tam = 10, fuerte = false, color = negro, x = margen, limite = util) => {
         for (const linea of lineas(valor, limite, tam, fuerte)) {
-            espacio(tam + 5); texto(linea, x, y, tam, fuerte, color); y -= tam + 5;
+            espacio(tam + 4); texto(linea, x, y, tam, fuerte, color); y -= tam + 4;
         }
     };
     const separador = () => { espacio(14); pagina.drawLine({ start: {x:margen,y}, end:{x:ancho-margen,y}, thickness:.6,color:borde }); y -= 11; };
@@ -50,7 +52,8 @@ export async function generarFacturaPdf(data: DatosFactura): Promise<Uint8Array>
     pdf.setAuthor(data.empresa.nombre_comercial || data.empresa.razon_social);
     pdf.setSubject('Representación impresa de la factura electrónica');
     pagina.drawRectangle({x:margen,y:y+10,width:util,height:3,color:naranja});
-    texto('SuColor.', margen, y - 8, 29, true, naranja);
+    const dimensionesLogo = logo.scaleToFit(125, 48);
+    pagina.drawImage(logo, { x: margen, y: y - dimensionesLogo.height, ...dimensionesLogo });
     texto('FACTURA', ancho - margen - 160, y - 4, 26, true);
     texto(data.factura.secuencial, ancho - margen - 160, y - 39, 11, true);
     y -= 55;
