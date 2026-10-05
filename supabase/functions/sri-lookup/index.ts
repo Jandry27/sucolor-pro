@@ -1,19 +1,36 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const ALLOWED_ORIGINS = [
+  "https://sucolor.autos",
   "https://sucolor.vercel.app",
+  "https://sucolor-jandry27s-projects.vercel.app",
+  "https://sucolor-git-main-jandry27s-projects.vercel.app",
   "http://localhost:5173",
 ];
 
+function isAllowedOrigin(origin: string) {
+  if (!origin) return true;
+
+  return (
+    ALLOWED_ORIGINS.includes(origin) ||
+    /^https:\/\/sucolor-[a-z0-9-]+-jandry27s-projects\.vercel\.app$/i.test(origin) ||
+    /^http:\/\/localhost(?::\d+)?$/i.test(origin)
+  );
+}
+
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("origin") || "";
-  const isAllowed = ALLOWED_ORIGINS.includes(origin) || origin.startsWith("http://localhost");
-  return {
-    "Access-Control-Allow-Origin": isAllowed ? origin : ALLOWED_ORIGINS[0],
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Vary": "Origin",
   };
+
+  if (origin && isAllowedOrigin(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
 }
 
 // SRI Catastro endpoint — servicio público del SRI Ecuador
@@ -21,6 +38,15 @@ const SRI_CATASTRO_URL =
   "https://srienlinea.sri.gob.ec/sri-catastro-sujeto-servicio-internet/rest/ConsolidadoContribuyente/obtenerPorNumerosRuc";
 
 serve(async (req) => {
+  const origin = req.headers.get("origin") || "";
+
+  if (origin && !isAllowedOrigin(origin)) {
+    return new Response(JSON.stringify({ success: false, message: "Origen no autorizado." }), {
+      status: 403,
+      headers: { "Content-Type": "application/json", Vary: "Origin" },
+    });
+  }
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: getCorsHeaders(req) });
   }
