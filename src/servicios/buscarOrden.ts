@@ -1,4 +1,3 @@
-import axios, { AxiosError } from 'axios';
 import type { BusquedaOrdenResponse } from '@/tipos';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -6,6 +5,7 @@ const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/search-order`;
 
 export class BusquedaOrdenError extends Error {
     public status: number;
+
     constructor(message: string, status: number) {
         super(message);
         this.name = 'BusquedaOrdenError';
@@ -28,35 +28,53 @@ interface SearchByNombre {
 export type SearchParams = SearchByPlaca | SearchByNombre;
 
 export async function buscarOrden(params: SearchParams): Promise<BusquedaOrdenResponse> {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15000);
+
     try {
-        const response = await axios.get<BusquedaOrdenResponse>(EDGE_FUNCTION_URL, {
-            params,
-            timeout: 15000,
+        const url = new URL(EDGE_FUNCTION_URL);
+
+        Object.entries(params).forEach(([key, value]) => {
+            if (typeof value === 'string' && value.trim()) {
+                url.searchParams.set(key, value);
+            }
         });
 
-        if (!response.data?.ok) {
+        const response = await fetch(url.toString(), {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+            },
+            signal: controller.signal,
+        });
+
+        let data: BusquedaOrdenResponse | null = null;
+
+        try {
+            data = (await response.json()) as BusquedaOrdenResponse;
+        } catch {
+            data = null;
+        }
+
+        if (!response.ok || !data?.ok) {
             throw new BusquedaOrdenError(
-                response.data?.message || 'No se encontró una orden activa.',
-                404
+                data?.message || 'No se encontró ninguna orden.',
+                response.status || 0
             );
         }
 
-        return response.data;
-    } catch (err) {
-        if (err instanceof BusquedaOrdenError) throw err;
-
-        const axiosErr = err as AxiosError<{ error?: string; message?: string }>;
-
-        if (axiosErr.response) {
-            const status = axiosErr.response.status;
-            const msg = axiosErr.response.data?.error || axiosErr.response.data?.message;
-            throw new BusquedaOrdenError(msg || 'No se encontró ninguna orden.', status);
+        return data;
+    } catch (error) {
+        if (error instanceof BusquedaOrdenError) {
+            throw error;
         }
 
-        if (axiosErr.code === 'ECONNABORTED') {
+        if (error instanceof DOMException && error.name === 'AbortError') {
             throw new BusquedaOrdenError('La conexión tardó demasiado.', 408);
         }
 
         throw new BusquedaOrdenError('No se pudo conectar al servidor.', 0);
+    } finally {
+        window.clearTimeout(timeout);
     }
 }
