@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
 import { useSeguimientoOrden } from '@/ganchos/useSeguimientoOrden';
@@ -9,6 +10,7 @@ import { GaleriaMedia } from '@/componentes/GaleriaMedia';
 import { PanelGastosPublico } from '@/componentes/PanelGastosPublico';
 import { NotasPublicas } from '@/componentes/NotasPublicas';
 import { Phone, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { registrarEventoAnalytics } from '@/biblioteca/googleAnalytics';
 
 export function PaginaSeguimiento() {
     const { codigo } = useParams<{ codigo: string }>();
@@ -16,6 +18,22 @@ export function PaginaSeguimiento() {
     const token = searchParams.get('token') ?? '';
 
     const { data, loading, error, refetch } = useSeguimientoOrden({ codigo: codigo ?? '', token });
+
+    const ordenCodigo = data?.order.codigo;
+    const estadoOrden = data?.order.estado;
+
+    useEffect(() => {
+        if (!ordenCodigo || !estadoOrden) return;
+
+        registrarEventoAnalytics('ver_seguimiento', {
+            estado: estadoOrden,
+        });
+    }, [ordenCodigo, estadoOrden]);
+
+    const actualizarSeguimiento = () => {
+        registrarEventoAnalytics('actualizar_seguimiento');
+        refetch();
+    };
 
     if (loading) return <EsqueletoCarga />;
     if (error || !data)
@@ -59,7 +77,7 @@ export function PaginaSeguimiento() {
                             </span>
                         </div>
                         <button
-                            onClick={refetch}
+                            onClick={actualizarSeguimiento}
                             className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all duration-200"
                             title="Actualizar"
                         >
@@ -149,6 +167,11 @@ export function PaginaSeguimiento() {
                             <div className="text-sm text-slate-400 space-y-3">
                                 <a
                                     href="tel:+593989575378"
+                                    onClick={() =>
+                                        registrarEventoAnalytics('telefono_click', {
+                                            ubicacion: 'seguimiento',
+                                        })
+                                    }
                                     className="flex items-center gap-2 hover:text-white transition-colors"
                                 >
                                     <Phone className="w-3.5 h-3.5 text-[#FF5100]" />
@@ -158,6 +181,11 @@ export function PaginaSeguimiento() {
                                     href="https://wa.me/593989575378"
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={() =>
+                                        registrarEventoAnalytics('whatsapp_click', {
+                                            ubicacion: 'seguimiento',
+                                        })
+                                    }
                                     className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-white transition-all duration-150 hover:opacity-90 hover:-translate-y-px"
                                     style={{
                                         background: '#25D366',
