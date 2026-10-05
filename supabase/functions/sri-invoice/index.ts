@@ -834,13 +834,14 @@ async function requireAdmin(req: Request, supabaseAdmin: any) {
         return { ok: false, status: 401, message: 'Sesión no válida.' };
     }
 
-    const { data: profile, error: profileError } = await supabaseAdmin
-        .from('profiles')
+    const { data: roleRow, error: roleError } = await supabaseAdmin
+        .from('user_roles')
         .select('role')
-        .eq('id', user.id)
-        .single();
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
 
-    if (profileError || profile?.role !== 'admin') {
+    if (roleError || roleRow?.role !== 'admin') {
         return { ok: false, status: 403, message: 'Acceso restringido a administradores.' };
     }
 
