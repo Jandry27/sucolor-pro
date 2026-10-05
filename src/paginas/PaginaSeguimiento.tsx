@@ -49,8 +49,11 @@ export function PaginaSeguimiento() {
                     <div className="flex items-center gap-3 sm:gap-4">
                         <Link to="/" className="flex-shrink-0">
                             <img
-                                src="/logo.png"
+                                src="/_vercel/image?url=%2Flogo.png&w=256&q=75"
+                                width="256"
+                                height="256"
                                 alt="SuColor"
+                                decoding="async"
                                 className="h-20 sm:h-20 w-auto object-contain"
                                 style={{ filter: 'drop-shadow(0 2px 8px rgba(255,81,0,0.2))' }}
                             />
@@ -118,8 +121,12 @@ export function PaginaSeguimiento() {
                         {/* Info */}
                         <div>
                             <img
-                                src="/logo.png"
+                                src="/_vercel/image?url=%2Flogo.png&w=256&q=75"
+                                width="256"
+                                height="256"
                                 alt="SuColor"
+                                loading="lazy"
+                                decoding="async"
                                 className="h-16 w-auto object-contain mb-4"
                                 style={{ filter: 'drop-shadow(0 2px 8px rgba(255,81,0,0.2))' }}
                             />
