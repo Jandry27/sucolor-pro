@@ -1,16 +1,46 @@
 const measurementId = (import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined)?.trim();
 
+type ValorAnalytics = string | number | boolean;
+
 declare global {
     interface Window {
         dataLayer?: unknown[];
         gtag?: (...args: unknown[]) => void;
+        va?: (...args: unknown[]) => void;
     }
 }
 
 let iniciado = false;
 
+function sanitizarUrl(urlOriginal: string) {
+    try {
+        const url = new URL(urlOriginal);
+        url.searchParams.delete('token');
+
+        if (url.hash.includes('?')) {
+            const [rutaHash, queryHash = ''] = url.hash.split('?');
+            const paramsHash = new URLSearchParams(queryHash);
+            paramsHash.delete('token');
+
+            const queryLimpia = paramsHash.toString();
+            url.hash = queryLimpia ? `${rutaHash}?${queryLimpia}` : rutaHash;
+        }
+
+        return url.toString();
+    } catch {
+        return urlOriginal.replace(/([?&]token=)[^&#]*/gi, '$1[redacted]');
+    }
+}
+
 function rutaActual() {
-    return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const urlLimpia = sanitizarUrl(window.location.href);
+
+    try {
+        const url = new URL(urlLimpia);
+        return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+        return window.location.pathname;
+    }
 }
 
 function enviarVistaPagina() {
@@ -18,7 +48,7 @@ function enviarVistaPagina() {
 
     window.gtag('event', 'page_view', {
         page_title: document.title,
-        page_location: window.location.href,
+        page_location: sanitizarUrl(window.location.href),
         page_path: rutaActual(),
     });
 }
@@ -56,9 +86,14 @@ export function iniciarGoogleAnalytics() {
 
 export function registrarEventoAnalytics(
     nombre: string,
-    parametros: Record<string, string | number | boolean> = {}
+    parametros: Record<string, ValorAnalytics> = {}
 ) {
-    if (!measurementId || !window.gtag) return;
+    if (measurementId && window.gtag) {
+        window.gtag('event', nombre, parametros);
+    }
 
-    window.gtag('event', nombre, parametros);
+    window.va?.('event', {
+        name: nombre,
+        data: parametros,
+    });
 }
