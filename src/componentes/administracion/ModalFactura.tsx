@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { generarFacturaHtml } from '../../../supabase/functions/_shared/facturaHtml';
+import { DatosCompradorFactura } from './DatosCompradorFactura';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import {
     X,
@@ -8,7 +10,6 @@ import {
     CheckCircle2,
     AlertTriangle,
     Download,
-    Search,
 } from 'lucide-react';
 import type { AdminOrder, Invoice, OrdenGasto } from '@/tipos';
 
@@ -19,297 +20,6 @@ interface ModalFacturaProps {
 }
 
 // ── RIDE HTML generator (Formato SRI Oficial) ──────────────────────────────────
-function generateRideHtml(data: {
-    empresa: {
-        razon_social: string;
-        ruc: string;
-        direccion_matriz: string;
-        nombre_comercial?: string;
-        obligado_contabilidad?: boolean;
-        contribuyente_especial?: string;
-        rimpe?: boolean;
-    };
-    comprador: {
-        nombre: string;
-        identificacion: string;
-        direccion: string;
-        email: string;
-        telefono?: string;
-    };
-    factura: {
-        secuencial: string;
-        claveAcceso: string;
-        fechaEmision: string;
-        fechaAutorizacion: string;
-        numeroAutorizacion: string;
-        items: Array<{
-            codigo: string;
-            descripcion: string;
-            cantidad: string;
-            precioUnitario: string;
-            descuento: string;
-            precioTotal: string;
-        }>;
-        subtotal0: string;
-        subtotal15: string;
-        subtotalNoObjeto: string;
-        subtotalExento: string;
-        subtotalSinImpuestos: string;
-        totalDescuento: string;
-        iva15: string;
-        propina: string;
-        importeTotal: string;
-        formaPago: string;
-        formaPagoDescripcion: string;
-    };
-    vehiculo?: { placa?: string; marca?: string; modelo?: string };
-    notas?: string;
-    logoUrl?: string;
-}): string {
-    const esc = (s: string | undefined | null) =>
-        (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-    const itemsRows = data.factura.items
-        .map(
-            item => `
-        <tr>
-            <td class="tc">${esc(item.codigo)}</td>
-            <td class="tc">${item.cantidad}</td>
-            <td>${esc(item.descripcion)}</td>
-            <td></td>
-            <td class="tr">${item.precioUnitario}</td>
-            <td class="tr">0.00</td>
-            <td class="tr">${item.descuento}</td>
-            <td class="tr">${item.precioTotal}</td>
-        </tr>`
-        )
-        .join('');
-
-    const infoAdicionalRows: string[] = [];
-    if (data.comprador.telefono)
-        infoAdicionalRows.push(
-            `<tr><td class="ia-lbl">Teléfono:</td><td>${esc(data.comprador.telefono)}</td></tr>`
-        );
-    if (data.comprador.email)
-        infoAdicionalRows.push(
-            `<tr><td class="ia-lbl">Email:</td><td>${esc(data.comprador.email)}</td></tr>`
-        );
-    if (data.vehiculo?.placa) {
-        const vehicleInfo = [data.vehiculo.marca, data.vehiculo.modelo].filter(Boolean).join(' ');
-        infoAdicionalRows.push(
-            `<tr><td class="ia-lbl">Vehículo:</td><td>Placa ${data.vehiculo.placa}${vehicleInfo ? ` - ${vehicleInfo}` : ''}</td></tr>`
-        );
-    }
-    if (data.notas)
-        infoAdicionalRows.push(
-            `<tr><td class="ia-lbl">Observación:</td><td>${esc(data.notas)}</td></tr>`
-        );
-
-    // SVG barcode for Code 128B
-    const barcodeChars = data.factura.claveAcceso;
-    let barcodeSvg = '';
-    if (barcodeChars) {
-        // Simple Code128-like visual with thin/thick bars
-        const bars: string[] = [];
-        let x = 0;
-        for (let i = 0; i < barcodeChars.length; i++) {
-            const charCode = barcodeChars.charCodeAt(i);
-            const w1 = (charCode % 3) + 1;
-            const w2 = (charCode % 2) + 1;
-            bars.push(`<rect x="${x}" y="0" width="${w1}" height="50" fill="black"/>`);
-            x += w1 + w2;
-        }
-        const totalW = x;
-        barcodeSvg = `<svg viewBox="0 0 ${totalW} 50" style="width:100%;max-width:380px;height:50px" xmlns="http://www.w3.org/2000/svg">${bars.join('')}</svg>`;
-    }
-
-    const logoImg = data.logoUrl
-        ? `<img src="${data.logoUrl}" alt="Logo" style="max-height:80px;max-width:200px;object-fit:contain">`
-        : `<div style="font-size:32px;font-weight:900;color:#ea580c;font-family:Arial,sans-serif">SuColor</div>`;
-
-    return `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<title>RIDE - ${data.factura.secuencial}</title>
-<style>
-  @page { size: A4; margin: 12mm; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #000; background: #fff; padding: 15px; }
-  .ride { max-width: 780px; margin: 0 auto; }
-
-  /* ── TOP SECTION: 2 columns ── */
-  .top-section { display: flex; border: 1.5px solid #000; margin-bottom: 0; }
-  .top-left { flex: 1; padding: 12px 15px; border-right: 1.5px solid #000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; }
-  .top-left .logo { margin-bottom: 4px; text-align: center; }
-  .top-left .empresa-info { text-align: center; width: 100%; }
-  .empresa-razon { font-size: 11px; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; }
-  .empresa-detail { font-size: 10px; margin-bottom: 3px; }
-  .empresa-detail b { min-width: 110px; display: inline-block; text-align: left; }
-  .obligado { margin-top: 8px; font-size: 10px; font-weight: bold; display: flex; gap: 20px; }
-
-  .top-right { min-width: 300px; width: 42%; padding: 12px 15px; }
-  .ruc-line { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
-  .ruc-line span { font-weight: normal; }
-  .factura-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
-  .factura-num { font-size: 13px; font-weight: bold; color: #000; margin-bottom: 8px; }
-  .right-detail { font-size: 10px; margin-bottom: 3px; }
-  .right-detail b { display: inline-block; min-width: 130px; }
-
-  /* ── CLAVE ACCESO ── */
-  .clave-section { border: 1.5px solid #000; border-top: 0; padding: 10px 15px; text-align: center; }
-  .clave-title { font-size: 10px; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; }
-  .clave-barcode { margin: 6px auto; }
-  .clave-value { font-family: 'Courier New', monospace; font-size: 10px; word-break: break-all; letter-spacing: 0.5px; }
-
-  /* ── DATOS COMPRADOR ── */
-  .comprador-section { border: 1.5px solid #000; border-top: 0; padding: 10px 15px; }
-  .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 20px; font-size: 10px; }
-  .comp-grid .comp-item { display: flex; gap: 4px; }
-  .comp-grid .comp-item b { min-width: 135px; flex-shrink: 0; }
-
-  /* ── TABLA ITEMS ── */
-  .items-section { border: 1.5px solid #000; border-top: 0; }
-  table.items { width: 100%; border-collapse: collapse; }
-  table.items th { background: #f0f0f0; padding: 5px 6px; font-size: 9px; text-transform: uppercase; font-weight: bold; border: 1px solid #000; text-align: center; }
-  table.items td { padding: 5px 6px; font-size: 10px; border: 1px solid #ccc; vertical-align: top; }
-  table.items td.tc { text-align: center; }
-  table.items td.tr { text-align: right; font-family: 'Courier New', monospace; }
-
-  /* ── BOTTOM: Info Adicional + Totales ── */
-  .bottom-section { display: flex; border: 1.5px solid #000; border-top: 0; }
-  .bottom-left { flex: 1; border-right: 1.5px solid #000; padding: 8px 12px; }
-  .bottom-right { min-width: 280px; width: 38%; padding: 0; }
-
-  .ia-title { font-size: 10px; font-weight: bold; text-align: center; background: #f0f0f0; border: 1px solid #ccc; padding: 3px; margin-bottom: 4px; text-transform: uppercase; }
-  table.ia { width: 100%; font-size: 10px; border-collapse: collapse; }
-  table.ia td { padding: 2px 4px; vertical-align: top; }
-  table.ia .ia-lbl { font-weight: bold; min-width: 80px; white-space: nowrap; }
-
-  .pago-title { font-size: 10px; font-weight: bold; text-align: center; background: #f0f0f0; border: 1px solid #ccc; padding: 3px; margin-top: 8px; text-transform: uppercase; }
-  table.pago { width: 100%; font-size: 10px; border-collapse: collapse; margin-top: 0; }
-  table.pago th { background: #f0f0f0; padding: 3px 6px; font-size: 9px; border: 1px solid #ccc; font-weight: bold; }
-  table.pago td { padding: 3px 6px; border: 1px solid #ccc; }
-
-  /* Totals */
-  table.totals { width: 100%; border-collapse: collapse; }
-  table.totals td { padding: 3px 8px; font-size: 10px; border-bottom: 1px solid #eee; }
-  table.totals .t-lbl { font-weight: bold; text-transform: uppercase; }
-  table.totals .t-val { text-align: right; font-family: 'Courier New', monospace; }
-  table.totals .t-total { font-weight: bold; font-size: 12px; border-top: 2px solid #000; border-bottom: 2px solid #000; }
-
-  @media print {
-    body { padding: 0; }
-    .ride { max-width: 100%; }
-  }
-</style>
-</head>
-<body>
-<div class="ride">
-
-  <!-- TOP SECTION -->
-  <div class="top-section">
-    <div class="top-left">
-      <div class="logo">${logoImg}</div>
-      <div class="empresa-info">
-        <div class="empresa-razon">${esc(data.empresa.razon_social)}</div>
-        ${data.empresa.nombre_comercial && data.empresa.nombre_comercial !== data.empresa.razon_social ? `<div class="empresa-detail" style="font-weight:bold;font-size:11px;margin-bottom:6px">${esc(data.empresa.nombre_comercial)}</div>` : ''}
-        <div class="empresa-detail"><b>Dirección Matriz:</b> ${esc(data.empresa.direccion_matriz)}</div>
-        <div class="empresa-detail"><b>Dirección Sucursal:</b> ${esc(data.empresa.direccion_matriz)}</div>
-        <div class="obligado">
-          <span>OBLIGADO A LLEVAR CONTABILIDAD: ${data.empresa.obligado_contabilidad ? 'SÍ' : 'NO'}</span>
-        </div>
-        ${data.empresa.contribuyente_especial ? `<div class="empresa-detail" style="margin-top:4px"><b>Contribuyente Especial:</b> ${esc(data.empresa.contribuyente_especial)}</div>` : ''}
-        ${data.empresa.rimpe ? `<div class="empresa-detail" style="margin-top:4px;font-weight:bold">CONTRIBUYENTE RÉGIMEN RIMPE</div>` : ''}
-      </div>
-    </div>
-    <div class="top-right">
-      <div class="ruc-line">R.U.C.: ${esc(data.empresa.ruc)}</div>
-      <div class="factura-title">FACTURA</div>
-      <div class="factura-num">No. ${esc(data.factura.secuencial)}</div>
-      <div class="right-detail"><b>NÚMERO DE AUTORIZACIÓN</b></div>
-      <div style="font-family:'Courier New',monospace;font-size:9px;margin-bottom:6px;word-break:break-all">${esc(data.factura.numeroAutorizacion || data.factura.claveAcceso)}</div>
-      <div class="right-detail"><b>FECHA Y HORA DE AUTORIZACIÓN:</b> ${esc(data.factura.fechaAutorizacion)}</div>
-      <div class="right-detail" style="margin-top:8px"><b>AMBIENTE:</b> PRODUCCIÓN</div>
-      <div class="right-detail"><b>EMISIÓN:</b> NORMAL</div>
-      <div style="margin-top:10px">
-        <div class="clave-title">CLAVE DE ACCESO</div>
-        <div class="clave-barcode">${barcodeSvg}</div>
-        <div class="clave-value">${esc(data.factura.claveAcceso)}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- DATOS COMPRADOR -->
-  <div class="comprador-section">
-    <div class="comp-grid">
-      <div class="comp-item"><b>Razón Social / Nombres y Apellidos:</b> ${esc(data.comprador.nombre)}</div>
-      <div class="comp-item"><b>Identificación:</b> ${esc(data.comprador.identificacion)}</div>
-      <div class="comp-item"><b>Fecha Emisión:</b> ${esc(data.factura.fechaEmision)}</div>
-      <div class="comp-item"><b>Placa / Matrícula:</b> ${esc(data.vehiculo?.placa || '')}</div>
-      <div class="comp-item"><b>Dirección:</b> ${esc(data.comprador.direccion)}</div>
-      <div class="comp-item"><b>Guía:</b></div>
-    </div>
-  </div>
-
-  <!-- ITEMS TABLE -->
-  <div class="items-section">
-    <table class="items">
-      <thead>
-        <tr>
-          <th style="width:55px">Cod. Principal</th>
-          <th style="width:45px">Cantidad</th>
-          <th>Descripción</th>
-          <th style="width:80px">Detalle Adicional</th>
-          <th style="width:70px">Precio Unitario</th>
-          <th style="width:55px">Subsidio</th>
-          <th style="width:60px">Descuento</th>
-          <th style="width:70px">Precio Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${itemsRows}
-      </tbody>
-    </table>
-  </div>
-
-  <!-- BOTTOM: Info Adicional + Totales -->
-  <div class="bottom-section">
-    <div class="bottom-left">
-      <div class="ia-title">Información Adicional</div>
-      <table class="ia">
-        ${infoAdicionalRows.join('')}
-      </table>
-
-      <div class="pago-title">Forma de Pago</div>
-      <table class="pago">
-        <thead><tr><th>Descripción</th><th style="width:80px">Valor</th></tr></thead>
-        <tbody>
-          <tr><td>${esc(data.factura.formaPagoDescripcion)}</td><td style="text-align:right;font-family:'Courier New',monospace">${data.factura.importeTotal}</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="bottom-right">
-      <table class="totals">
-        <tr><td class="t-lbl">SUBTOTAL 0%</td><td class="t-val">${data.factura.subtotal0}</td></tr>
-        <tr><td class="t-lbl">SUBTOTAL IVA 15%</td><td class="t-val">${data.factura.subtotal15}</td></tr>
-        <tr><td class="t-lbl">SUBTOTAL NO OBJETO DE IVA</td><td class="t-val">${data.factura.subtotalNoObjeto}</td></tr>
-        <tr><td class="t-lbl">SUBTOTAL EXENTO DE IVA</td><td class="t-val">${data.factura.subtotalExento}</td></tr>
-        <tr><td class="t-lbl" style="font-weight:900">SUBTOTAL SIN IMPUESTOS</td><td class="t-val" style="font-weight:900">${data.factura.subtotalSinImpuestos}</td></tr>
-        <tr><td class="t-lbl">TOTAL DESCUENTO</td><td class="t-val">${data.factura.totalDescuento}</td></tr>
-        <tr><td class="t-lbl">IVA 15%</td><td class="t-val">${data.factura.iva15}</td></tr>
-        <tr><td class="t-lbl">PROPINA</td><td class="t-val">${data.factura.propina}</td></tr>
-        <tr class="t-total"><td class="t-lbl">VALOR TOTAL</td><td class="t-val">${data.factura.importeTotal}</td></tr>
-      </table>
-    </div>
-  </div>
-
-</div>
-<script>window.onload=()=>window.print();</script>
-</body>
-</html>`;
-}
-
 // ── Formas de pago SRI ─────────────────────────────────────────────────────────
 const FORMAS_PAGO: Record<string, string> = {
     '01': 'SIN UTILIZACIÓN DEL SISTEMA FINANCIERO',
@@ -328,6 +38,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const [existingInvoice, setExistingInvoice] = useState<Invoice | null>(null);
     const [gastos, setGastos] = useState<OrdenGasto[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [avisoCorreo, setAvisoCorreo] = useState<string | null>(null);
 
     const clienteInitial = order.cliente as any;
     const [clienteDocTipo, setClienteDocTipo] = useState(
@@ -344,6 +55,9 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     // Auto-complete state
     const [searchingCliente, setSearchingCliente] = useState(false);
     const [clienteFound, setClienteFound] = useState<boolean | null>(null);
+    const [mensajeBusqueda, setMensajeBusqueda] = useState('');
+    const consultaActual = useRef(0);
+    const emisionBloqueada = useRef(false);
     const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Form state defaults
@@ -356,7 +70,22 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             checkExistingInvoice();
             loadGastos();
             setClienteFound(null);
+            setMensajeBusqueda('');
+            setSearchingCliente(false);
+            setError(null);
+            setAvisoCorreo(null);
+            setExistingInvoice(null);
+            setClienteDocTipo(order.cliente?.tipo_identificacion || '05');
+            setClienteDoc(order.cliente?.cedula || '');
+            setClienteNombre(order.cliente?.nombres || '');
+            setClienteDireccion(order.cliente?.direccion || '');
+            setClienteEmail(order.cliente?.email || '');
+            setClienteTelefono(order.cliente?.telefono || '');
         }
+        return () => {
+            consultaActual.current += 1;
+            if (searchTimeout.current) clearTimeout(searchTimeout.current);
+        };
     }, [isOpen, order.id]);
 
     const checkExistingInvoice = async () => {
@@ -384,52 +113,56 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
         if (data) setGastos(data);
     };
 
-    // ── Auto-completar cliente por cédula ──────────────────────────────────────
-    const buscarClientePorCedula = useCallback(async (cedula: string) => {
-        if (!cedula || cedula.length < 10) {
-            setClienteFound(null);
-            return;
-        }
-
-        setSearchingCliente(true);
-        setClienteFound(null);
-
+    // Cada cambio invalida consultas pendientes para no mezclar compradores.
+    const buscarClientePorCedula = useCallback(async (documento: string, revision: number) => {
         try {
-            const { data, error } = await supabase
+            const { data, error: errorConsulta } = await supabase
                 .from('clientes')
-                .select('*')
-                .eq('cedula', cedula)
-                .limit(1)
+                .select('id, cedula, nombres, direccion, email, telefono, tipo_identificacion')
+                .eq('cedula', documento)
+                .abortSignal(AbortSignal.timeout(10000))
                 .maybeSingle();
-
-            if (!error && data) {
-                setClienteNombre(data.nombres || data.nombre || '');
+            if (revision !== consultaActual.current) return;
+            if (errorConsulta) throw errorConsulta;
+            if (data) {
+                setClienteNombre(data.nombres || '');
                 setClienteDireccion(data.direccion || '');
                 setClienteEmail(data.email || '');
                 setClienteTelefono(data.telefono || '');
-                if (data.tipo_identificacion) setClienteDocTipo(data.tipo_identificacion);
                 setClienteFound(true);
+                setMensajeBusqueda('Datos recuperados de SuColor. Revisa que estén actualizados.');
             } else {
                 setClienteFound(false);
+                setMensajeBusqueda('Cliente nuevo. Completa sus datos para esta factura.');
             }
-        } catch (err) {
-            console.error('Error buscando cliente:', err);
-            setClienteFound(false);
+        } catch {
+            if (revision !== consultaActual.current) return;
+            setClienteFound(null);
+            setMensajeBusqueda('No se pudo consultar los clientes. Puedes completar los datos manualmente.');
         } finally {
-            setSearchingCliente(false);
+            if (revision === consultaActual.current) setSearchingCliente(false);
         }
     }, []);
 
-    const handleCedulaChange = (value: string) => {
-        setClienteDoc(value);
+    const handleCedulaChange = (value: string, tipo = clienteDocTipo) => {
+        const documento = tipo === '06' ? value.trim().toUpperCase() : value.replace(/\D/g, '');
+        setClienteDoc(documento);
+        setClienteDocTipo(tipo);
         setClienteFound(null);
-
-        // Debounce: buscar después de 500ms de no tipear
+        setMensajeBusqueda('');
+        setSearchingCliente(false);
+        setClienteNombre('');
+        setClienteDireccion('');
+        setClienteEmail('');
+        setClienteTelefono('');
+        const revision = ++consultaActual.current;
         if (searchTimeout.current) clearTimeout(searchTimeout.current);
-
-        if (value.length >= 10) {
+        const completo = tipo === '05' ? /^\d{10}$/.test(documento)
+            : tipo === '04' ? /^\d{13}$/.test(documento) : documento.length >= 5;
+        if (completo) {
+            setSearchingCliente(true);
             searchTimeout.current = setTimeout(() => {
-                buscarClientePorCedula(value);
+                buscarClientePorCedula(documento, revision);
             }, 500);
         }
     };
@@ -449,7 +182,14 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             direccion_matriz: '',
             nombre_comercial: '',
         };
-        const cliente = order.cliente as any;
+        const cliente = order.cliente;
+        // El comprador del comprobante puede ser distinto al propietario de la orden.
+        const xmlFactura = existingInvoice.xml_generado
+            ? new DOMParser().parseFromString(existingInvoice.xml_generado, 'application/xml')
+            : null;
+        const datoComprador = (etiqueta: string) => xmlFactura?.querySelector(etiqueta)?.textContent || '';
+        const datoAdicional = (nombre: string) => Array.from(xmlFactura?.querySelectorAll('campoAdicional') || [])
+            .find(campo => campo.getAttribute('nombre')?.toLowerCase() === nombre)?.textContent || '';
 
         // Build items
         const totalMO = order.precio_total || 0;
@@ -483,16 +223,30 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             });
         }
 
-        const subtotalVal = invoiceItems.reduce((s, i) => s + parseFloat(i.precioTotal), 0);
-        const sub0 = subtotalVal; // Assuming IVA 0% for now based on existing behavior
-        const sub15 = 0;
-        const ivaVal = sub15 * 0.15;
+        // El documento emitido es la fuente; la orden puede cambiar después.
+        const detallesXml = Array.from(xmlFactura?.querySelectorAll('detalles > detalle') || []);
+        if (detallesXml.length) {
+            invoiceItems.splice(0, invoiceItems.length, ...detallesXml.map(detalle => {
+                const valor = (nombre: string) => detalle.querySelector(nombre)?.textContent || '';
+                return {
+                    codigo: valor('codigoPrincipal'), descripcion: valor('descripcion'),
+                    cantidad: valor('cantidad'), precioUnitario: valor('precioUnitario'),
+                    descuento: valor('descuento') || '0.00', precioTotal: valor('precioTotalSinImpuesto'),
+                };
+            }));
+        }
+        const sub0 = Number(existingInvoice.subtotal_0 || 0);
+        const sub15 = Number(existingInvoice.subtotal_15 || 0);
+        const ivaVal = Number(existingInvoice.valor_iva || 0);
+        const subtotalVal = Number(datoComprador('totalSinImpuestos') ||
+            sub0 + sub15 + Number(existingInvoice.subtotal_no_objeto || 0) + Number(existingInvoice.subtotal_exento || 0));
+        const codigoPago = datoComprador('pagos > pago > formaPago') || '01';
 
         const fechaAuth = existingInvoice.autorizacion_fecha
             ? new Date(existingInvoice.autorizacion_fecha).toLocaleString('es-EC')
             : '';
 
-        const html = generateRideHtml({
+        const html = generarFacturaHtml({
             empresa: {
                 razon_social: empresa.razon_social,
                 ruc: empresa.ruc,
@@ -503,13 +257,14 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                 rimpe: empresa.rimpe,
             },
             comprador: {
-                nombre: cliente?.nombres || cliente?.nombre || clienteNombre || 'CONSUMIDOR FINAL',
-                identificacion: cliente?.cedula || clienteDoc || '9999999999999',
-                direccion: cliente?.direccion || clienteDireccion || 'N/A',
-                email: cliente?.email || clienteEmail || '',
-                telefono: cliente?.telefono || clienteTelefono || '',
+                nombre: datoComprador('razonSocialComprador') || clienteNombre || cliente?.nombres || 'CONSUMIDOR FINAL',
+                identificacion: datoComprador('identificacionComprador') || clienteDoc || cliente?.cedula || '9999999999999',
+                direccion: datoComprador('direccionComprador') || clienteDireccion || cliente?.direccion || 'N/A',
+                email: datoAdicional('email') || clienteEmail || cliente?.email || '',
+                telefono: datoAdicional('telefono') || clienteTelefono || cliente?.telefono || '',
             },
             factura: {
+                ambiente: existingInvoice.ambiente,
                 secuencial: existingInvoice.secuencial || '',
                 claveAcceso: existingInvoice.clave_acceso || '',
                 fechaEmision: existingInvoice.fecha_emision
@@ -520,15 +275,15 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                 items: invoiceItems,
                 subtotal0: sub0.toFixed(2),
                 subtotal15: sub15.toFixed(2),
-                subtotalNoObjeto: '0.00',
-                subtotalExento: '0.00',
+                subtotalNoObjeto: Number(existingInvoice.subtotal_no_objeto || 0).toFixed(2),
+                subtotalExento: Number(existingInvoice.subtotal_exento || 0).toFixed(2),
                 subtotalSinImpuestos: subtotalVal.toFixed(2),
-                totalDescuento: '0.00',
+                totalDescuento: Number(datoComprador('totalDescuento') || existingInvoice.total_descuento || 0).toFixed(2),
                 iva15: ivaVal.toFixed(2),
-                propina: '0.00',
-                importeTotal: (subtotalVal + ivaVal).toFixed(2),
-                formaPago: '01',
-                formaPagoDescripcion: 'SIN UTILIZACIÓN DEL SISTEMA FINANCIERO',
+                propina: Number(datoComprador('propina') || 0).toFixed(2),
+                importeTotal: Number(existingInvoice.importe_total).toFixed(2),
+                formaPago: codigoPago,
+                formaPagoDescripcion: FORMAS_PAGO[codigoPago] || codigoPago,
             },
             vehiculo: order.vehiculo
                 ? {
@@ -538,8 +293,8 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                   }
                 : undefined,
             notas: notasVenta || undefined,
-            logoUrl: '/logo.png',
-        });
+            logoUrl: new URL('/logo.png', window.location.origin).href,
+        }, { imprimir: true });
 
         const printWindow = window.open('', '_blank');
         if (printWindow) {
@@ -549,6 +304,12 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     };
 
     const handleGenerateInvoice = async () => {
+        if (emisionBloqueada.current || searchingCliente) return;
+        if ((clienteDocTipo === '05' && !/^\d{10}$/.test(clienteDoc)) ||
+            (clienteDocTipo === '04' && !/^\d{13}$/.test(clienteDoc))) {
+            setError('Revisa la identificación: cédula de 10 dígitos o RUC de 13 dígitos.');
+            return;
+        }
         if (!order.cliente_id) {
             setError('La orden debe tener un cliente asignado para poder facturar.');
             return;
@@ -557,26 +318,27 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             setError('Falta ingresar la identificación del cliente (Cédula/RUC).');
             return;
         }
-        if (!clienteNombre) {
+        if (!clienteNombre.trim()) {
             setError('Falta ingresar la Razón Social / Nombre del cliente.');
             return;
         }
-        if (!clienteDireccion) {
+        if (!clienteDireccion.trim()) {
             setError('Falta ingresar la dirección del cliente.');
             return;
         }
-        if (!clienteEmail) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clienteEmail.trim())) {
             setError('Falta ingresar el correo electrónico del cliente para enviar la factura.');
             return;
         }
 
+        emisionBloqueada.current = true;
         setProcessing(true);
         setError(null);
 
         try {
-            // Update client data in BD before invoicing
-            if (order.cliente_id) {
-                await supabase
+            // Solo actualizar el cliente de la orden cuando conserva su identidad.
+            if (clienteDoc === order.cliente?.cedula && clienteDocTipo === (order.cliente?.tipo_identificacion || '05')) {
+                const { error: errorGuardado } = await supabase
                     .from('clientes')
                     .update({
                         cedula: clienteDoc,
@@ -587,6 +349,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                         tipo_identificacion: clienteDocTipo,
                     })
                     .eq('id', order.cliente_id);
+                if (errorGuardado) throw new Error('No se pudieron guardar los datos del cliente. Intenta nuevamente.');
             }
 
             const payload = {
@@ -631,11 +394,13 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                 throw new Error(data?.message || 'Error desconocido del SRI');
             }
 
+            setAvisoCorreo(data.aviso_correo || (data.email_enviado === true ? 'La factura se envió al cliente con el PDF adjunto.' : null));
             await checkExistingInvoice();
         } catch (err: any) {
             console.error(err);
             setError(err.message || 'Ocurrió un error al procesar la factura con el SRI');
         } finally {
+            emisionBloqueada.current = false;
             setProcessing(false);
         }
     };
@@ -648,16 +413,18 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => { if (!emisionBloqueada.current) onClose(); }} />
+            <div role="dialog" aria-modal="true" aria-label="Factura electrónica"
+                className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                         <FileText className="w-5 h-5 text-brand-orange" />
-                        Facturación Electrónica SRI
+                        Factura electrónica
                     </h2>
                     <button
-                        onClick={onClose}
+                        onClick={() => { if (!emisionBloqueada.current) onClose(); }}
+                        aria-label="Cerrar factura" disabled={processing}
                         className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                         <X className="w-5 h-5" />
@@ -665,7 +432,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto">
+                <div className="p-5 sm:p-7 overflow-y-auto">
                     {loading ? (
                         <div className="flex justify-center py-12">
                             <Loader2 className="w-8 h-8 animate-spin text-brand-orange" />
@@ -740,6 +507,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                     )}
                             </div>
 
+                            {avisoCorreo && <p role="status" className="rounded-xl border border-slate-200 p-4 text-sm leading-6 text-slate-600 dark:border-slate-700 dark:text-slate-300">{avisoCorreo}</p>}
                             {existingInvoice.estado === 'AUTORIZADA' && (
                                 <button
                                     onClick={() => handleDownloadRIDE()}
@@ -764,129 +532,35 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {/* Formulario Cliente */}
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                                <h3 className="text-sm font-semibold mb-3 dark:text-white">
-                                    Datos del Cliente para el SRI
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="col-span-1 md:col-span-2 flex gap-3">
-                                        <div className="w-1/3">
-                                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
-                                                Tipo Doc.
-                                            </label>
-                                            <select
-                                                value={clienteDocTipo}
-                                                onChange={e => setClienteDocTipo(e.target.value)}
-                                                className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
-                                            >
-                                                <option value="05">Cédula (05)</option>
-                                                <option value="04">RUC (04)</option>
-                                                <option value="06">Pasaporte (06)</option>
-                                            </select>
-                                        </div>
-                                        <div className="w-2/3">
-                                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
-                                                Identificación *
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    value={clienteDoc}
-                                                    onChange={e =>
-                                                        handleCedulaChange(e.target.value)
-                                                    }
-                                                    placeholder="Ingresa la cédula para buscar..."
-                                                    className="w-full text-sm p-2 pr-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
-                                                />
-                                                <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-                                                    {searchingCliente ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin text-brand-orange" />
-                                                    ) : clienteFound === true ? (
-                                                        <CheckCircle2 className="w-4 h-4 text-green-500" />
-                                                    ) : clienteFound === false ? (
-                                                        <Search className="w-4 h-4 text-slate-400" />
-                                                    ) : (
-                                                        <Search className="w-4 h-4 text-slate-300" />
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {clienteFound === true && (
-                                                <p className="text-[10px] text-green-600 dark:text-green-400 mt-1 font-medium">
-                                                    ✓ Cliente encontrado — datos autocompletados
-                                                </p>
-                                            )}
-                                            {clienteFound === false && clienteDoc.length >= 10 && (
-                                                <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
-                                                    Cliente no registrado — ingresa los datos
-                                                    manualmente
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="col-span-1 md:col-span-2">
-                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
-                                            Razón Social / Nombres y Apellidos *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={clienteNombre}
-                                            onChange={e => setClienteNombre(e.target.value)}
-                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
-                                        />
-                                    </div>
-                                    <div className="col-span-1 md:col-span-2">
-                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
-                                            Dirección *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={clienteDireccion}
-                                            onChange={e => setClienteDireccion(e.target.value)}
-                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
-                                        />
-                                    </div>
-                                    <div className="col-span-1">
-                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
-                                            Correo Electrónico *
-                                        </label>
-                                        <input
-                                            type="email"
-                                            value={clienteEmail}
-                                            onChange={e => setClienteEmail(e.target.value)}
-                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
-                                        />
-                                    </div>
-                                    <div className="col-span-1">
-                                        <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">
-                                            Teléfono
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={clienteTelefono}
-                                            onChange={e => setClienteTelefono(e.target.value)}
-                                            className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                            <DatosCompradorFactura
+                                tipo={clienteDocTipo} documento={clienteDoc}
+                                nombre={clienteNombre} direccion={clienteDireccion}
+                                email={clienteEmail} telefono={clienteTelefono}
+                                buscando={searchingCliente} encontrado={clienteFound}
+                                mensaje={mensajeBusqueda} bloqueado={processing}
+                                onDocumento={handleCedulaChange}
+                                onTipo={tipo => handleCedulaChange('', tipo)}
+                                onNombre={setClienteNombre} onDireccion={setClienteDireccion}
+                                onEmail={setClienteEmail} onTelefono={setClienteTelefono}
+                            />
 
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+                            <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
                                 <h3 className="text-sm font-semibold mb-3 dark:text-white">
-                                    Detalles a Facturar
+                                    Detalle de la factura
                                 </h3>
                                 <div className="space-y-3">
-                                    <div className="flex justify-between items-center text-sm">
+                                    <div className="flex flex-wrap justify-between items-center gap-3 text-sm">
                                         <span className="text-slate-600 dark:text-slate-300">
                                             Mano de Obra (Orden {order.codigo})
                                         </span>
                                         <div className="flex items-center gap-3">
                                             <select
+                                                aria-label="IVA de mano de obra" disabled={processing}
                                                 value={ivaManoObra}
                                                 onChange={e =>
                                                     setIvaManoObra(Number(e.target.value))
                                                 }
-                                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-xs outline-none"
+                                                className="min-h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-base outline-none"
                                             >
                                                 <option value={0}>IVA 0%</option>
                                                 <option value={15}>IVA 15%</option>
@@ -919,25 +593,26 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                     )}
 
                                     <div className="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between font-semibold text-lg dark:text-white">
-                                        <span>Subtotal sin impuestos:</span>
+                                        <span>Subtotal</span>
                                         <span>${subtotal.toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Forma de Pago */}
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+                            {/* Forma de pago */}
+                            <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
                                 <label className="text-sm font-semibold text-slate-900 dark:text-white mb-2 block">
-                                    Forma de Pago
+                                    Forma de pago
                                 </label>
                                 <select
+                                    aria-label="Forma de pago" disabled={processing}
                                     value={formaPago}
                                     onChange={e => setFormaPago(e.target.value)}
-                                    className="w-full text-sm p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
+                                    className="w-full text-base p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                 >
                                     {Object.entries(FORMAS_PAGO).map(([code, desc]) => (
                                         <option key={code} value={code}>
-                                            {code} - {desc}
+                                            {desc.charAt(0) + desc.slice(1).toLowerCase()}
                                         </option>
                                     ))}
                                 </select>
@@ -950,22 +625,25 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                 </div>
                             )}
 
-                            <div>
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                                    Notas adicionales en la factura (Opcional)
-                                </label>
+                            <details className="text-sm text-slate-600 dark:text-slate-300">
+                                <summary className="cursor-pointer py-2 font-medium">Añadir una nota · opcional</summary>
                                 <textarea
                                     className="w-full text-sm p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 resize-none focus:ring-1 focus:ring-brand-orange outline-none dark:text-white"
+                                    aria-label="Notas adicionales" disabled={processing}
                                     rows={2}
                                     placeholder="Ej. Pago con transferencia"
                                     value={notasVenta}
                                     onChange={e => setNotasVenta(e.target.value)}
                                 />
-                            </div>
+                            </details>
 
+                            <div className="flex items-center justify-between gap-4 border-t border-slate-200 pt-5 dark:border-slate-700">
+                                <div><p className="text-sm text-slate-500">Total a facturar</p><p className="mt-1 text-xs text-slate-500">IVA: ${(totalManoObra * ivaManoObra / 100).toFixed(2)}</p></div>
+                                <p className="text-3xl font-semibold tracking-tight dark:text-white">${(subtotal + totalManoObra * ivaManoObra / 100).toFixed(2)}</p>
+                            </div>
                             <button
                                 onClick={handleGenerateInvoice}
-                                disabled={processing}
+                                disabled={processing || searchingCliente || loading}
                                 className="w-full btn-primary py-3 flex items-center justify-center gap-2 text-base"
                             >
                                 {processing ? (

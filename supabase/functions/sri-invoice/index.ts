@@ -1,3 +1,5 @@
+import type { DatosFactura } from '../_shared/facturaHtml.ts';
+import { prepararCorreoFactura } from '../_shared/correoFactura.ts';
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import forge from 'npm:node-forge@1.3.1';
@@ -600,13 +602,14 @@ async function sendAutorizacion(
 
 // ============================================================
 // EMAIL — Enviar factura al cliente via Gmail SMTP
-// (Formato SRI oficial — mismo diseño que el RIDE descargable)
+// Resumen de la factura y RIDE en PDF adjunto.
 // ============================================================
 async function sendInvoiceEmail(data: {
   to: string;
   empresa: { razon_social: string; ruc: string; direccion: string; nombre_comercial?: string; obligado_contabilidad?: boolean; rimpe?: boolean; contribuyente_especial?: string };
   comprador: { nombre: string; identificacion: string; direccion: string; email: string; telefono?: string };
   factura: {
+    ambiente: number;
     secuencial: string;
     claveAcceso: string;
     fechaEmision: string;
@@ -631,157 +634,24 @@ async function sendInvoiceEmail(data: {
         return { success: false, error: 'Gmail credentials not configured' };
     }
 
-    const esc = (s: string | undefined | null) =>
-        (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-    const itemsRows = data.factura.items
-        .map(
-            item => `
-    <tr>
-      <td style="padding:5px 6px;font-size:10px;border:1px solid #ccc;text-align:center">${esc(item.codigo)}</td>
-      <td style="padding:5px 6px;font-size:10px;border:1px solid #ccc;text-align:center">${item.cantidad}</td>
-      <td style="padding:5px 6px;font-size:10px;border:1px solid #ccc">${esc(item.descripcion)}</td>
-      <td style="padding:5px 6px;font-size:10px;border:1px solid #ccc"></td>
-      <td style="padding:5px 6px;font-size:10px;border:1px solid #ccc;text-align:right;font-family:'Courier New',monospace">${item.precioUnitario}</td>
-      <td style="padding:5px 6px;font-size:10px;border:1px solid #ccc;text-align:right;font-family:'Courier New',monospace">0.00</td>
-      <td style="padding:5px 6px;font-size:10px;border:1px solid #ccc;text-align:right;font-family:'Courier New',monospace">${item.descuento || '0.00'}</td>
-      <td style="padding:5px 6px;font-size:10px;border:1px solid #ccc;text-align:right;font-family:'Courier New',monospace">${item.subtotal}</td>
-    </tr>`
-        )
-        .join('');
-
-    const infoAdicionalRows: string[] = [];
-    if (data.comprador.telefono)
-        infoAdicionalRows.push(
-            `<tr><td style="font-weight:bold;padding:2px 4px;font-size:10px;white-space:nowrap">Teléfono:</td><td style="padding:2px 4px;font-size:10px">${esc(data.comprador.telefono)}</td></tr>`
-        );
-    if (data.comprador.email)
-        infoAdicionalRows.push(
-            `<tr><td style="font-weight:bold;padding:2px 4px;font-size:10px;white-space:nowrap">Email:</td><td style="padding:2px 4px;font-size:10px">${esc(data.comprador.email)}</td></tr>`
-        );
-    if (data.vehiculo?.placa) {
-        const vInfo = [data.vehiculo.marca, data.vehiculo.modelo].filter(Boolean).join(' ');
-        infoAdicionalRows.push(
-            `<tr><td style="font-weight:bold;padding:2px 4px;font-size:10px;white-space:nowrap">Vehículo:</td><td style="padding:2px 4px;font-size:10px">Placa ${data.vehiculo.placa}${vInfo ? ` - ${vInfo}` : ''}</td></tr>`
-        );
-    }
-    if (data.notas)
-        infoAdicionalRows.push(
-            `<tr><td style="font-weight:bold;padding:2px 4px;font-size:10px;white-space:nowrap">Observación:</td><td style="padding:2px 4px;font-size:10px">${esc(data.notas)}</td></tr>`
-        );
-
-    const htmlBody = `<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Factura ${data.factura.secuencial}</title></head>
-<body style="font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#000;background:#fff;padding:10px;margin:0">
-<div style="max-width:680px;margin:0 auto">
-
-  <!-- HEADER COMPACTO -->
-  <table cellpadding="0" cellspacing="0" style="width:100%;border:1.5px solid #000;border-collapse:collapse;margin-bottom:0">
-    <tr>
-      <td style="padding:6px 10px;border-right:1.5px solid #000;vertical-align:middle;width:45%;text-align:center">
-        <div style="font-size:16px;font-weight:900;color:#ea580c;font-family:Arial,sans-serif;margin-bottom:2px">SuColor</div>
-        <div style="font-size:9px;font-weight:bold;text-transform:uppercase;margin-bottom:2px">${esc(data.empresa.razon_social)}</div>
-        <div style="font-size:8px;margin-bottom:1px">RUC: ${esc(data.empresa.ruc)}</div>
-        <div style="font-size:8px;margin-bottom:1px"><b>Dir:</b> ${esc(data.empresa.direccion)}</div>
-      </td>
-      <td style="padding:6px 10px;vertical-align:top;width:55%">
-        <div style="font-size:12px;font-weight:bold;margin-bottom:2px">FACTURA No. ${esc(data.factura.secuencial)}</div>
-        <div style="font-size:8px;margin-bottom:2px"><b>Autorización:</b> ${esc(data.factura.fechaAutorizacion)}</div>
-        <div style="font-size:8px;margin-bottom:2px;font-family:'Courier New',monospace;word-break:break-all">Clave: ${esc(data.factura.claveAcceso)}</div>
-      </td>
-    </tr>
-  </table>
-
-  <!-- DATOS COMPRADOR -->
-  <table cellpadding="0" cellspacing="0" style="width:100%;border:1.5px solid #000;border-top:0;border-collapse:collapse">
-    <tr>
-      <td style="padding:4px 8px">
-        <table cellpadding="0" cellspacing="0" style="width:100%;font-size:8px">
-          <tr>
-            <td style="padding:1px 0"><b>Cliente:</b> ${esc(data.comprador.nombre)} | <b>ID:</b> ${esc(data.comprador.identificacion)}</td>
-          </tr>
-          <tr>
-            <td style="padding:1px 0"><b>Fecha:</b> ${esc(data.factura.fechaEmision)} | <b>Dirección:</b> ${esc(data.comprador.direccion)}</td>
-          </tr>
-          ${data.vehiculo?.placa ? `<tr><td style="padding:1px 0"><b>Placa:</b> ${esc(data.vehiculo.placa)}</td></tr>` : ''}
-        </table>
-      </td>
-    </tr>
-  </table>
-
-  <!-- ITEMS TABLE COMPACTA -->
-  <table cellpadding="0" cellspacing="0" style="width:100%;border:1.5px solid #000;border-top:0;border-collapse:collapse">
-    <tr>
-      <td style="padding:0">
-        <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:8px">
-          <thead>
-            <tr style="background:#f0f0f0">
-              <th style="padding:2px 4px;font-weight:bold;border:1px solid #ccc;width:50px">Código</th>
-              <th style="padding:2px 4px;font-weight:bold;border:1px solid #ccc;width:35px">Cant</th>
-              <th style="padding:2px 4px;font-weight:bold;border:1px solid #ccc">Descripción</th>
-              <th style="padding:2px 4px;font-weight:bold;border:1px solid #ccc;width:50px">Precio</th>
-              <th style="padding:2px 4px;font-weight:bold;border:1px solid #ccc;width:55px">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.factura.items
-              .map(
-                item => `
-            <tr>
-              <td style="padding:2px 4px;border:1px solid #ccc;text-align:center">${esc(item.codigo)}</td>
-              <td style="padding:2px 4px;border:1px solid #ccc;text-align:center">${item.cantidad}</td>
-              <td style="padding:2px 4px;border:1px solid #ccc">${esc(item.descripcion || 'Servicio')}</td>
-              <td style="padding:2px 4px;border:1px solid #ccc;text-align:right;font-family:'Courier New',monospace">${item.precioUnitario}</td>
-              <td style="padding:2px 4px;border:1px solid #ccc;text-align:right;font-family:'Courier New',monospace">${item.subtotal}</td>
-            </tr>`
-              )
-              .join('')}
-          </tbody>
-        </table>
-      </td>
-    </tr>
-  </table>
-
-  <!-- RESUMEN: Info Adicional + Totales -->
-  <table cellpadding="0" cellspacing="0" style="width:100%;border:1.5px solid #000;border-top:0;border-collapse:collapse">
-    <tr>
-      <td style="border-right:1.5px solid #000;padding:4px 8px;vertical-align:top;width:55%;font-size:8px">
-        <div style="font-weight:bold;background:#f0f0f0;border:1px solid #ccc;padding:2px;margin-bottom:2px;text-align:center">Información Adicional</div>
-        <table cellpadding="0" cellspacing="0" style="width:100%;font-size:8px">
-          ${infoAdicionalRows.map(row => `<tr>${row.split('<tr>').pop()}`).join('')}
-        </table>
-        <div style="font-weight:bold;background:#f0f0f0;border:1px solid #ccc;padding:2px;margin:4px 0 2px 0;text-align:center">Forma de Pago</div>
-        <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:8px">
-          <tr><td style="border:1px solid #ccc;padding:2px">${esc(data.factura.formaPagoDescripcion)}</td><td style="border:1px solid #ccc;padding:2px;text-align:right;font-family:'Courier New',monospace">${data.factura.importeTotal}</td></tr>
-        </table>
-      </td>
-      <td style="padding:2px 6px;vertical-align:top;width:45%;font-size:8px">
-        <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">
-          <tr><td style="padding:1px 4px;font-weight:bold;border-bottom:1px solid #eee">SUBTOTAL 0%</td><td style="padding:1px 4px;text-align:right;font-family:'Courier New',monospace;border-bottom:1px solid #eee">${data.factura.subtotal0}</td></tr>
-          <tr><td style="padding:1px 4px;font-weight:bold;border-bottom:1px solid #eee">SUBTOTAL 15%</td><td style="padding:1px 4px;text-align:right;font-family:'Courier New',monospace;border-bottom:1px solid #eee">${data.factura.subtotal15}</td></tr>
-          <tr><td style="padding:1px 4px;font-weight:bold;border-bottom:1px solid #eee">SUBTOTAL</td><td style="padding:1px 4px;text-align:right;font-family:'Courier New',monospace;border-bottom:1px solid #eee;font-weight:900">${data.factura.subtotalSinImpuestos}</td></tr>
-          <tr><td style="padding:1px 4px;font-weight:bold;border-bottom:1px solid #eee">IVA 15%</td><td style="padding:1px 4px;text-align:right;font-family:'Courier New',monospace;border-bottom:1px solid #eee">${data.factura.totalIva}</td></tr>
-          <tr><td style="padding:1px 4px;font-weight:bold;border-top:2px solid #000;border-bottom:2px solid #000">TOTAL</td><td style="padding:1px 4px;text-align:right;font-family:'Courier New',monospace;font-weight:bold;border-top:2px solid #000;border-bottom:2px solid #000">${data.factura.importeTotal}</td></tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-
-  <!-- PIE Y BOTÓN PDF -->
-  <div style="text-align:center;font-size:8px;color:#666;margin-top:8px;padding:8px;border:1px solid #ddd;background:#f9f9f9;border-radius:4px">
-    <div style="margin-bottom:6px">Documento generado electrónicamente por ${esc(data.empresa.nombre_comercial || data.empresa.razon_social)}</div>
-    <div style="font-size:9px;font-weight:bold;color:#ea580c;margin-top:4px">
-      Para descargar esta factura en PDF, ingresa a tu panel de SuColor<br>
-      o solicita el RIDE al correo del proveedor.
-    </div>
-  </div>
-
-</div>
-</body>
-</html>`;
+    const datosFactura: DatosFactura = {
+        empresa: { ...data.empresa, direccion_matriz: data.empresa.direccion },
+        comprador: data.comprador,
+        factura: {
+            ...data.factura,
+            numeroAutorizacion: data.factura.claveAcceso,
+            items: data.factura.items.map(item => ({ ...item, precioTotal: item.subtotal })),
+            subtotalNoObjeto: '0.00',
+            subtotalExento: '0.00',
+            iva15: data.factura.totalIva,
+            propina: '0.00',
+        },
+        vehiculo: data.vehiculo,
+        notas: data.notas,
+    };
 
     try {
+        const correo = await prepararCorreoFactura(datosFactura);
         // Use denomailer for Gmail SMTP
         const { SMTPClient } = await import('https://deno.land/x/denomailer@1.6.0/mod.ts');
 
@@ -799,16 +669,18 @@ async function sendInvoiceEmail(data: {
 
         const empresaNombre = data.empresa.nombre_comercial || data.empresa.razon_social;
 
+        try {
         await client.send({
             from: `${empresaNombre} <${gmailUser}>`,
             to: data.to,
             subject: `Factura ${data.factura.secuencial} - ${empresaNombre}`,
-            content: 'Tu factura electrónica ha sido autorizada por el SRI.',
-            html: htmlBody,
+            ...correo,
         });
 
-        await client.close();
-        console.log('Email enviado exitosamente via Gmail a:', data.to);
+        } finally {
+            await client.close().catch(() => { console.warn('No se pudo cerrar la conexión SMTP.'); });
+        }
+        console.log('Factura con PDF enviada por correo.');
         return { success: true };
     } catch (err: any) {
         console.error('Error enviando email via Gmail:', err.message);
@@ -1197,6 +1069,7 @@ serve(async req => {
                 .neq('id', newInvoice.id);
         }
 
+        let correoEnviado: boolean | null = null;
         // --- 11. Poll Autorización if RECIBIDA ---
         if (dbStatus === 'RECIBIDA' && newInvoice) {
             // Wait longer to give SRI time to process
@@ -1250,6 +1123,7 @@ serve(async req => {
                                     telefono: comprador?.telefono || order.cliente?.telefono || '',
                                 },
                                 factura: {
+                                    ambiente: Number(ambiente),
                                     secuencial: fullNumber,
                                     claveAcceso,
                                     fechaEmision,
@@ -1285,11 +1159,13 @@ serve(async req => {
                                     : undefined,
                                 notas: notas || undefined,
                             });
+                            correoEnviado = emailResult.success;
                             console.log(
                                 'Email result:',
                                 emailResult.success ? 'SENT' : emailResult.error
                             );
                         } else {
+                            correoEnviado = false;
                             console.log('No client email provided, skipping email.');
                         }
 
@@ -1332,6 +1208,8 @@ serve(async req => {
             status: dbStatus,
             clave_acceso: claveAcceso,
             secuencial: fullNumber,
+            email_enviado: correoEnviado,
+            aviso_correo: correoEnviado === false ? 'La factura fue autorizada, pero no se pudo enviar el correo con el PDF. Descarga el RIDE para entregarlo al cliente; no vuelvas a emitir la factura.' : undefined,
         };
 
         if (signingError) {
