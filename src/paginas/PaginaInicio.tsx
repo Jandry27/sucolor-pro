@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import { FormularioBusqueda } from '@/componentes/FormularioBusqueda';
+import { registrarEventoAnalytics } from '@/biblioteca/googleAnalytics';
 
 const WHATSAPP = '593989575378';
 
@@ -186,6 +187,9 @@ export function PaginaInicio() {
                                 href={`https://wa.me/${WHATSAPP}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() =>
+                                    registrarEventoAnalytics('whatsapp_click', { ubicacion: 'header' })
+                                }
                                 className="inline-flex items-center gap-2 rounded-md bg-[#111111] px-4 py-2.5 text-xs font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F97316]"
                             >
                                 <MessageCircle className="h-4 w-4" />
@@ -472,6 +476,9 @@ export function PaginaInicio() {
                             href={`https://wa.me/${WHATSAPP}`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() =>
+                                registrarEventoAnalytics('whatsapp_click', { ubicacion: 'contacto' })
+                            }
                             className="inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111111] px-6 py-4 text-sm font-semibold text-white transition-transform hover:-translate-y-1"
                         >
                             WhatsApp
@@ -480,6 +487,9 @@ export function PaginaInicio() {
 
                         <a
                             href={`tel:+${WHATSAPP}`}
+                            onClick={() =>
+                                registrarEventoAnalytics('telefono_click', { ubicacion: 'contacto' })
+                            }
                             className="inline-flex min-w-[220px] items-center justify-between rounded-md border border-white/40 px-6 py-4 text-sm font-semibold transition-colors hover:bg-white hover:text-[#F97316]"
                         >
                             Llamar
@@ -563,6 +573,9 @@ export function PaginaInicio() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Contactar por WhatsApp"
+                onClick={() =>
+                    registrarEventoAnalytics('whatsapp_click', { ubicacion: 'flotante' })
+                }
                 initial={{
                     opacity: 0,
                     scale: 0.5,
