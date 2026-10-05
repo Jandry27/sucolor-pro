@@ -2,7 +2,6 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const ALLOWED_ORIGINS = [
   "https://sucolor.autos",
-  "https://sucolor.vercel.app",
   "https://sucolor-jandry27s-projects.vercel.app",
   "https://sucolor-git-main-jandry27s-projects.vercel.app",
   "http://localhost:5173",
