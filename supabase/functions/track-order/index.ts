@@ -7,7 +7,6 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const ALLOWED_ORIGINS = [
     'https://sucolor.autos',
-    'https://sucolor.vercel.app',
     'https://sucolor-jandry27s-projects.vercel.app',
     'https://sucolor-git-main-jandry27s-projects.vercel.app',
     'http://localhost:5173',
