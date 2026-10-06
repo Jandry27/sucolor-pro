@@ -426,7 +426,7 @@ export function PaginaInicio() {
                     alt="Ilustración de una carretera de montaña"
                     loading="lazy"
                     decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover opacity-75"
+                    className="absolute inset-0 h-full w-full object-cover object-[center_14%] opacity-75"
                     onError={event => {
                         event.currentTarget.style.display = 'none';
                     }}
