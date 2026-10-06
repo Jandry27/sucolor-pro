@@ -41,12 +41,22 @@ try {
  await page.waitForFunction(()=>document.body.textContent.includes('Ver pedidos por recoger'));
  await pulsar('Nueva solicitud');await page.waitForSelector('dialog[open]');
  await campo('Placa *','ABC-1234');await campo('Proveedor *','pepe');await campo('Color o descripción *','Azul perla');await campo('Cantidad de pintura *','1/16');await campo('Fecha para recoger','2026-10-07');await campo('Hora acordada','12:00');
- await page.click('dialog input[type=checkbox]');await campo('Cantidad dejada','3');
+
+ const etiquetas=await page.$$eval('dialog label', els=>els.map(e=>e.firstChild.textContent.trim()));
+ for(const oculta of ['Unidades de esa medida','Fecha del pedido *','Estado de la pintura','Pago al proveedor','Cantidad ya retirada'])assert.ok(!etiquetas.includes(oculta),oculta+' debe omitirse al crear');
+ assert.equal(await page.$('dialog input[type=checkbox]'),null);
+ await page.screenshot({path:'/tmp/sucolor-pinturas-nuevo-corto.png'});
+ await page.setViewport({width:320,height:844});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ await page.screenshot({path:'/tmp/sucolor-pinturas-nuevo-corto-movil.png'});
+ await page.setViewport({width:1280,height:1000});
+
  await page.evaluate(()=>{const form=document.querySelector('dialog form');for(let i=0;i<5;i++)form.requestSubmit()});
  await page.waitForFunction(()=>!document.querySelector('dialog'));assert.equal(await page.evaluate(()=>window.escrituras),1);
+ assert.equal(await page.evaluate(()=>window.pedidos[0].muestras_dejadas),1);assert.equal(await page.evaluate(()=>window.pedidos[0].muestras_retiradas),0);assert.equal(await page.evaluate(()=>window.pedidos[0].pagado),false);assert.equal(await page.evaluate(()=>window.pedidos[0].estado_pedido),'en_preparacion');assert.equal(await page.evaluate(()=>window.pedidos[0].unidades),1);
  assert.equal(await page.evaluate(()=>window.pedidos[0].valor),null);assert.equal(await page.evaluate(()=>window.pedidos[0].fraccion_galon),'1/16');assert.equal(await page.evaluate(()=>window.pedidos[0].hora_recogida_prevista),'12:00');
- await page.waitForSelector('article');assert.match(await page.$eval('article',e=>e.textContent),/3 pendientes/);
- await pulsar('Registrar recogida / editar');await campo('Cantidad ya retirada','1');await campo('Valor de la pintura (USD)','45.50');await pulsar('Guardar solicitud');
+ await page.waitForSelector('article');assert.match(await page.$eval('article',e=>e.textContent),/1 pendientes/);
+ await pulsar('Registrar recogida / editar');await campo('Cantidad dejada','3');await campo('Cantidad ya retirada','1');await campo('Valor de la pintura (USD)','45.50');await pulsar('Guardar solicitud');
  await page.waitForFunction(()=>!document.querySelector('dialog'));await page.waitForFunction(()=>document.querySelector('article')?.textContent.includes('2 pendientes'));
  assert.equal(await page.evaluate(()=>window.pedidos[0].valor),45.5);
  await page.setViewport({width:320,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

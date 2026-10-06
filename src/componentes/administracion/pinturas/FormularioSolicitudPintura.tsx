@@ -36,12 +36,11 @@ export function FormularioSolicitudPintura({
             proveedor_id: '',
             fecha_solicitud: fechaHoyEcuador(),
             valor: null,
-            muestras_dejadas: 0,
+            muestras_dejadas: 1,
             muestras_retiradas: 0,
             observaciones: '',
         }
     );
-    const [dejoMuestra, setDejoMuestra] = useState((solicitud?.muestras_dejadas ?? 0) > 0);
     const [guardando, setGuardando] = useState(false);
     const [error, setError] = useState('');
     const bloqueo = useRef(false);
@@ -102,15 +101,20 @@ export function FormularioSolicitudPintura({
                     </button>
                 </div>
                 <p className="text-sm text-slate-500">
-                    Registra el pedido ahora y completa el valor cuando te lo entregue el proveedor.
+                    {solicitud
+                        ? 'Actualiza la recogida, el pago o la devolución de la tapa.'
+                        : 'Se registra para hoy, con una tapa en el local y pago pendiente.'}
                 </p>
                 {error && (
                     <p role="alert" className="rounded-xl bg-red-50 text-red-700 p-3">
                         {error}
                     </p>
                 )}
-                <fieldset disabled={guardando} className="space-y-4 disabled:opacity-60">
-                    <div className="grid sm:grid-cols-2 gap-4">
+                <fieldset
+                    disabled={guardando}
+                    className="grid sm:grid-cols-2 gap-3 disabled:opacity-60"
+                >
+                    <div className="grid sm:grid-cols-2 gap-3 sm:col-span-2">
                         <label className="text-sm font-medium">
                             Placa *
                             <input
@@ -140,7 +144,7 @@ export function FormularioSolicitudPintura({
                             </select>
                         </label>
                     </div>
-                    <div className="rounded-xl bg-orange-50 dark:bg-orange-950/30 p-4 space-y-3">
+                    <div className="space-y-2">
                         <label className="block text-sm font-medium">
                             Cantidad de pintura *
                             <select
@@ -157,19 +161,12 @@ export function FormularioSolicitudPintura({
                                 ))}
                             </select>
                         </label>
-                        <label className="block text-sm font-medium">
-                            Unidades de esa medida
-                            <input
-                                required
-                                type="number"
-                                min="1"
-                                max="100"
-                                step="1"
-                                value={datos.unidades}
-                                onChange={e => cambiar('unidades', Number(e.target.value))}
-                                className={campo}
-                            />
-                        </label>
+                        {datos.unidades > 1 && (
+                            <p className="text-xs text-slate-500">
+                                Este pedido conserva {datos.unidades} unidades de la medida
+                                indicada.
+                            </p>
+                        )}
                     </div>
                     <label className="block text-sm font-medium">
                         Color o descripción *
@@ -182,7 +179,7 @@ export function FormularioSolicitudPintura({
                             className={campo}
                         />
                     </label>
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
                         <label className="text-sm font-medium">
                             Código de color
                             <input
@@ -192,18 +189,29 @@ export function FormularioSolicitudPintura({
                                 className={campo}
                             />
                         </label>
-                        <label className="text-sm font-medium">
-                            Fecha del pedido *
-                            <input
-                                type="date"
-                                required
-                                value={datos.fecha_solicitud}
-                                onChange={e => cambiar('fecha_solicitud', e.target.value)}
-                                className={campo}
-                            />
-                        </label>
                     </div>
-                    <div className="rounded-xl border dark:border-slate-700 p-4 space-y-4">
+                    <label className="block text-sm font-medium">
+                        Valor de la pintura (USD)
+                        <input
+                            type="number"
+                            min="0"
+                            max="9999999999.99"
+                            step="0.01"
+                            value={datos.valor ?? ''}
+                            onChange={e =>
+                                cambiar(
+                                    'valor',
+                                    e.target.value === '' ? null : Number(e.target.value)
+                                )
+                            }
+                            placeholder="Pendiente de conocer"
+                            className={campo}
+                        />
+                        <span className="mt-1 block text-xs text-slate-500">
+                            Déjalo vacío si aún no sabes el valor.
+                        </span>
+                    </label>
+                    <div className="sm:col-span-2 rounded-xl border dark:border-slate-700 p-3 space-y-3">
                         <h3 className="font-semibold">Recoger la pintura</h3>
                         <div className="grid sm:grid-cols-2 gap-3">
                             <label className="text-sm font-medium">
@@ -237,146 +245,139 @@ export function FormularioSolicitudPintura({
                                 />
                             </label>
                         </div>
+                        {solicitud && (
+                            <>
+                                <label className="block text-sm font-medium">
+                                    Estado de la pintura
+                                    <select
+                                        value={datos.estado_pedido ?? ''}
+                                        onChange={e =>
+                                            cambiar(
+                                                'estado_pedido',
+                                                (e.target.value ||
+                                                    null) as DatosSolicitudPintura['estado_pedido']
+                                            )
+                                        }
+                                        className={campo}
+                                    >
+                                        <option value="">Sin confirmar</option>
+                                        <option value="en_preparacion">
+                                            En preparación / por recoger
+                                        </option>
+                                        <option value="recogida">Recogida / en el taller</option>
+                                    </select>
+                                </label>
+                                <p className="text-xs text-slate-500">
+                                    Recoger la pintura no marca la tapa como devuelta. Confirma
+                                    abajo si también la recuperaste.
+                                </p>
+                            </>
+                        )}
+                    </div>
+
+                    {solicitud && (
                         <label className="block text-sm font-medium">
-                            Estado de la pintura
+                            Pago al proveedor
                             <select
-                                value={datos.estado_pedido ?? ''}
+                                value={
+                                    datos.pagado === null
+                                        ? ''
+                                        : datos.pagado
+                                          ? 'pagado'
+                                          : 'pendiente'
+                                }
                                 onChange={e =>
                                     cambiar(
-                                        'estado_pedido',
-                                        (e.target.value ||
-                                            null) as DatosSolicitudPintura['estado_pedido']
+                                        'pagado',
+                                        e.target.value === '' ? null : e.target.value === 'pagado'
                                     )
                                 }
                                 className={campo}
                             >
                                 <option value="">Sin confirmar</option>
-                                <option value="en_preparacion">En preparación / por recoger</option>
-                                <option value="recogida">Recogida / en el taller</option>
+                                <option value="pendiente">Pendiente de pago</option>
+                                <option value="pagado">Pagado</option>
                             </select>
                         </label>
-                        <p className="text-xs text-slate-500">
-                            Recoger la pintura no marca la tapa como devuelta. Confirma abajo si
-                            también la recuperaste.
-                        </p>
-                    </div>
-                    <label className="block text-sm font-medium">
-                        Valor de la pintura (USD)
-                        <input
-                            type="number"
-                            min="0"
-                            max="9999999999.99"
-                            step="0.01"
-                            value={datos.valor ?? ''}
-                            onChange={e =>
-                                cambiar(
-                                    'valor',
-                                    e.target.value === '' ? null : Number(e.target.value)
-                                )
-                            }
-                            placeholder="Pendiente de conocer"
-                            className={campo}
-                        />
-                        <span className="mt-1 block text-xs text-slate-500">
-                            Déjalo vacío si aún no sabes el valor.
-                        </span>
-                    </label>
-                    <label className="block text-sm font-medium">
-                        Pago al proveedor
-                        <select
-                            value={
-                                datos.pagado === null ? '' : datos.pagado ? 'pagado' : 'pendiente'
-                            }
-                            onChange={e =>
-                                cambiar(
-                                    'pagado',
-                                    e.target.value === '' ? null : e.target.value === 'pagado'
-                                )
-                            }
-                            className={campo}
-                        >
-                            <option value="">Sin confirmar</option>
-                            <option value="pendiente">Pendiente de pago</option>
-                            <option value="pagado">Pagado</option>
-                        </select>
-                    </label>
-                    <div className="rounded-xl bg-orange-50 dark:bg-orange-950/30 p-4 space-y-3">
-                        <label className="flex items-center gap-3 font-medium">
-                            <input
-                                type="checkbox"
-                                checked={dejoMuestra}
-                                onChange={e => {
-                                    setDejoMuestra(e.target.checked);
-                                    setDatos(d => ({
-                                        ...d,
-                                        muestras_dejadas: e.target.checked ? 1 : 0,
-                                        muestras_retiradas: 0,
-                                    }));
-                                }}
-                                className="h-5 w-5 accent-orange-600"
-                            />
-                            Dejé tapas o muestras en el local
-                        </label>
-                        {dejoMuestra && (
-                            <>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <label className="text-sm">
-                                        Cantidad dejada
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max="1000"
-                                            step="1"
-                                            required
-                                            value={datos.muestras_dejadas || ''}
-                                            onChange={e =>
-                                                cambiar('muestras_dejadas', Number(e.target.value))
-                                            }
-                                            className={campo}
-                                        />
-                                    </label>
-                                    <label className="text-sm">
-                                        Cantidad ya retirada
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max={datos.muestras_dejadas}
-                                            step="1"
-                                            required
-                                            value={datos.muestras_retiradas}
-                                            onChange={e =>
-                                                cambiar(
-                                                    'muestras_retiradas',
-                                                    Number(e.target.value)
-                                                )
-                                            }
-                                            className={campo}
-                                        />
-                                    </label>
-                                </div>
-                                <p className="text-sm font-semibold">
-                                    Quedan en el local:{' '}
-                                    {Math.max(0, datos.muestras_dejadas - datos.muestras_retiradas)}
-                                </p>
-                                <p className="text-xs text-slate-600 dark:text-slate-400">
-                                    Al recuperarlas, actualiza la cantidad total retirada. Puedes
-                                    registrar retiros parciales.
-                                </p>
-                            </>
+                    )}
+                    {solicitud && (
+                        <div className="sm:col-span-2 rounded-xl bg-orange-50 dark:bg-orange-950/30 p-3 space-y-3">
+                            <h3 className="font-semibold">Tapas / muestras</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                <label className="text-sm">
+                                    Cantidad dejada
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="1000"
+                                        step="1"
+                                        required
+                                        value={datos.muestras_dejadas}
+                                        onChange={e =>
+                                            cambiar('muestras_dejadas', Number(e.target.value))
+                                        }
+                                        className={campo}
+                                    />
+                                </label>
+                                <label className="text-sm">
+                                    Cantidad ya retirada
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max={datos.muestras_dejadas}
+                                        step="1"
+                                        required
+                                        value={datos.muestras_retiradas}
+                                        onChange={e =>
+                                            cambiar('muestras_retiradas', Number(e.target.value))
+                                        }
+                                        className={campo}
+                                    />
+                                </label>
+                            </div>
+                            <p className="text-sm font-semibold">
+                                Quedan en el local:{' '}
+                                {Math.max(0, datos.muestras_dejadas - datos.muestras_retiradas)}
+                            </p>
+                        </div>
+                    )}
+                    <details
+                        className="sm:col-span-2 text-sm"
+                        open={solicitud && datos.observaciones ? true : undefined}
+                    >
+                        <summary className="cursor-pointer py-2 font-medium text-slate-500">
+                            Observaciones{!solicitud ? ' / más de una tapa' : ''}
+                        </summary>
+                        {!solicitud && (
+                            <label className="block text-sm mt-2">
+                                Cantidad dejada
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="1000"
+                                    step="1"
+                                    required
+                                    value={datos.muestras_dejadas}
+                                    onChange={e =>
+                                        cambiar('muestras_dejadas', Number(e.target.value))
+                                    }
+                                    className={campo}
+                                />
+                            </label>
                         )}
-                    </div>
-                    <label className="block text-sm font-medium">
-                        Observaciones
-                        <textarea
-                            rows={3}
-                            maxLength={2000}
-                            value={datos.observaciones}
-                            onChange={e => cambiar('observaciones', e.target.value)}
-                            placeholder="Tipo de muestra, referencia del pedido, factura del proveedor…"
-                            className={campo}
-                        />
-                    </label>
-                    <div className="flex justify-end gap-3">
+                        <label className="block text-sm font-medium">
+                            Observaciones
+                            <textarea
+                                rows={2}
+                                maxLength={2000}
+                                value={datos.observaciones}
+                                onChange={e => cambiar('observaciones', e.target.value)}
+                                placeholder="Tipo de muestra, referencia del pedido, factura del proveedor…"
+                                className={campo}
+                            />
+                        </label>
+                    </details>
+                    <div className="sm:col-span-2 sticky bottom-0 bg-white dark:bg-slate-900 pt-3 flex justify-end gap-3">
                         <button
                             type="button"
                             onClick={cerrar}
