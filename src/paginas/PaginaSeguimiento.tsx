@@ -49,7 +49,7 @@ export function PaginaSeguimiento() {
                     <div className="flex items-center gap-3 sm:gap-4">
                         <Link to="/" className="flex-shrink-0">
                             <img
-                                src="/_vercel/image?url=%2Flogo.png&w=256&q=75"
+                                src="/logo.png"
                                 width="256"
                                 height="256"
                                 alt="SuColor"
@@ -121,7 +121,7 @@ export function PaginaSeguimiento() {
                         {/* Info */}
                         <div>
                             <img
-                                src="/_vercel/image?url=%2Flogo.png&w=256&q=75"
+                                src="/logo.png"
                                 width="256"
                                 height="256"
                                 alt="SuColor"

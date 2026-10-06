@@ -134,9 +134,7 @@ export function PaginaInicio() {
                             aria-label="SuColor"
                         >
                             <img
-                                src="/_vercel/image?url=%2Floja.PNG&w=128&q=75"
-                                srcSet="/_vercel/image?url=%2Floja.PNG&w=64&q=75 64w, /_vercel/image?url=%2Floja.PNG&w=128&q=75 128w, /_vercel/image?url=%2Floja.PNG&w=256&q=75 256w"
-                                sizes="128px"
+                                src="/loja.PNG"
                                 width="256"
                                 height="256"
                                 alt="SuColor"
@@ -217,9 +215,7 @@ export function PaginaInicio() {
             >
                 <div className="relative isolate mx-auto min-h-[640px] max-w-[1600px] overflow-hidden bg-[#FFF4E3]">
                     <img
-                        src="/_vercel/image?url=%2Ftaller.png&w=1080&q=75"
-                        srcSet="/_vercel/image?url=%2Ftaller.png&w=640&q=75 640w, /_vercel/image?url=%2Ftaller.png&w=828&q=75 828w, /_vercel/image?url=%2Ftaller.png&w=1080&q=75 1080w, /_vercel/image?url=%2Ftaller.png&w=1600&q=75 1600w, /_vercel/image?url=%2Ftaller.png&w=1920&q=75 1920w"
-                        sizes="100vw"
+                        src="/taller.png"
                         alt=""
                         aria-hidden="true"
                         fetchPriority="high"
@@ -426,9 +422,7 @@ export function PaginaInicio() {
                 className="scroll-mt-28 relative h-[70vh] min-h-[560px] overflow-hidden bg-[#171717]"
             >
                 <img
-                    src="/_vercel/image?url=%2Fmontan%CC%83as.png&w=1080&q=75"
-                    srcSet="/_vercel/image?url=%2Fmontan%CC%83as.png&w=640&q=75 640w, /_vercel/image?url=%2Fmontan%CC%83as.png&w=1080&q=75 1080w, /_vercel/image?url=%2Fmontan%CC%83as.png&w=1600&q=75 1600w"
-                    sizes="100vw"
+                    src="/montañas.png"
                     alt="Ilustración de una carretera de montaña"
                     loading="lazy"
                     decoding="async"
@@ -520,9 +514,7 @@ export function PaginaInicio() {
                     <div className="grid gap-10 border-b border-white/10 pb-12 md:grid-cols-3">
                         <div>
                             <img
-                                src="/_vercel/image?url=%2Floja.PNG&w=128&q=75"
-                                srcSet="/_vercel/image?url=%2Floja.PNG&w=64&q=75 64w, /_vercel/image?url=%2Floja.PNG&w=128&q=75 128w, /_vercel/image?url=%2Floja.PNG&w=256&q=75 256w"
-                                sizes="128px"
+                                src="/loja.PNG"
                                 width="256"
                                 height="256"
                                 alt="SuColor"
