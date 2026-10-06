@@ -3,6 +3,7 @@ import { Plus, RefreshCw, Package, ArrowUpRight, Pencil } from 'lucide-react';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import {
     estadoMuestras,
+    cantidadPintura,
     TAMANO_PAGINA_PINTURAS,
     type FiltrosPintura,
     type SolicitudPintura,
@@ -71,9 +72,9 @@ export function ControlPinturas() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-xl font-bold">Solicitudes y muestras</h2>
+                    <h2 className="text-xl font-bold">Encargos de pintura</h2>
                     <p className="text-sm text-slate-500 mt-1">
-                        Tu control de pedidos, incluso antes de recibir la factura.
+                        Pide el color, acuerda la hora y registra la recogida.
                     </p>
                 </div>
                 <button
@@ -95,7 +96,7 @@ export function ControlPinturas() {
             )}
             <div className="flex justify-between items-center gap-3">
                 <p className="text-sm text-slate-500">
-                    Muestras actualmente en cada local · todo el historial
+                    Pedidos y tapas en cada local · todo el historial
                 </p>
                 <button
                     onClick={() => setGestion(!gestion)}
@@ -183,7 +184,11 @@ export function ControlPinturas() {
                             <button
                                 key={p.id}
                                 onClick={() =>
-                                    filtrar({ ...inicial, proveedor: p.id, estado: 'pendientes' })
+                                    filtrar({
+                                        ...inicial,
+                                        proveedor: p.id,
+                                        estado: 'en_preparacion',
+                                    })
                                 }
                                 className="text-left rounded-2xl border border-orange-200 dark:border-orange-900 bg-gradient-to-br from-orange-50 to-white dark:from-slate-800 dark:to-slate-900 p-5 hover:border-orange-500 transition"
                             >
@@ -192,21 +197,21 @@ export function ControlPinturas() {
                                     <Package size={21} className="text-orange-600" />
                                 </div>
                                 <p className="mt-4">
-                                    <strong className="text-4xl">{p.muestras_pendientes}</strong>
+                                    <strong className="text-4xl">{p.pedidos_por_recoger}</strong>
                                     <span className="ml-2 text-sm text-slate-500">
-                                        tapas / muestras pendientes
+                                        pinturas por recoger
                                     </span>
                                 </p>
                                 <p className="mt-2 text-sm text-slate-500">
-                                    En {p.solicitudes_pendientes} pedidos · {p.solicitudes} pedidos
-                                    en total
+                                    {p.muestras_pendientes} tapas / muestras pendientes ·{' '}
+                                    {p.solicitudes} pedidos en total
                                 </p>
                                 <p className="mt-3 text-xs text-slate-500">
                                     Valor conocido: {dinero(p.valor_conocido)} ·{' '}
                                     {p.valores_pendientes} sin valor
                                 </p>
                                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-orange-700 dark:text-orange-400">
-                                    Ver vehículos pendientes <ArrowUpRight size={16} />
+                                    Ver pedidos por recoger <ArrowUpRight size={16} />
                                 </span>
                             </button>
                         ))}
@@ -216,6 +221,22 @@ export function ControlPinturas() {
                     )}
                 </>
             )}
+            <div className="flex flex-wrap gap-2" aria-label="Estado de los pedidos">
+                {[
+                    ['', 'Todos'],
+                    ['en_preparacion', 'Por recoger'],
+                    ['recogida', 'En el taller'],
+                ].map(([valor, etiqueta]) => (
+                    <button
+                        key={valor}
+                        aria-pressed={filtros.estado === valor}
+                        onClick={() => filtrar({ ...filtros, estado: valor })}
+                        className={`rounded-xl px-4 py-3 text-sm font-semibold ${filtros.estado === valor ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-800'}`}
+                    >
+                        {etiqueta}
+                    </button>
+                ))}
+            </div>
             <form
                 onSubmit={e => {
                     e.preventDefault();
@@ -255,6 +276,8 @@ export function ControlPinturas() {
                         className={control}
                     >
                         <option value="">Todos los pedidos</option>
+                        <option value="en_preparacion">Pinturas por recoger</option>
+                        <option value="recogida">Pinturas en el taller</option>
                         <option value="pendientes">Con muestras pendientes</option>
                         <option value="retiradas">Muestras retiradas</option>
                         <option value="sin_muestra">Sin muestras</option>
@@ -333,10 +356,37 @@ export function ControlPinturas() {
                                     <span
                                         className={`rounded-full px-3 py-1 text-xs font-semibold ${s.muestras_pendientes ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-600'}`}
                                     >
-                                        {estadoMuestras(s)}
+                                        {s.estado_pedido === 'recogida'
+                                            ? 'En el taller'
+                                            : s.estado_pedido === 'en_preparacion'
+                                              ? 'Por recoger'
+                                              : 'Estado sin confirmar'}
                                     </span>
                                 </div>
+                                <p className="font-semibold text-orange-700 dark:text-orange-400">
+                                    {cantidadPintura(s)}
+                                </p>
                                 <p className="font-medium break-words">{s.color}</p>
+                                {s.fecha_recogida_prevista && (
+                                    <p className="text-sm">
+                                        <strong>Recogida acordada:</strong>{' '}
+                                        {s.fecha_recogida_prevista.split('-').reverse().join('/')}
+                                        {s.hora_recogida_prevista
+                                            ? ` · ${s.hora_recogida_prevista}`
+                                            : ' · Hora por confirmar'}
+                                    </p>
+                                )}
+                                <p className="text-sm">
+                                    Pago:{' '}
+                                    <strong>
+                                        {s.pagado === null
+                                            ? 'Sin confirmar'
+                                            : s.pagado
+                                              ? 'Pagado'
+                                              : 'Pendiente'}
+                                    </strong>{' '}
+                                    · Tapas: {estadoMuestras(s)}
+                                </p>
                                 {s.codigo_color && (
                                     <p className="text-xs text-slate-500 break-words">
                                         Código: {s.codigo_color}
@@ -374,8 +424,8 @@ export function ControlPinturas() {
                                     className="inline-flex items-center gap-2 py-2 text-sm font-semibold text-orange-700 dark:text-orange-400"
                                 >
                                     <Pencil size={16} />
-                                    {s.muestras_pendientes
-                                        ? 'Editar / registrar retiro'
+                                    {s.estado_pedido === 'en_preparacion'
+                                        ? 'Registrar recogida / editar'
                                         : 'Editar pedido'}
                                 </button>
                             </article>

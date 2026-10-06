@@ -8,6 +8,12 @@ import {
 } from '@/biblioteca/solicitudesPintura';
 import { supabase } from '@/biblioteca/clienteSupabase';
 const base: DatosSolicitudPintura = {
+    fraccion_galon: '1/16',
+    unidades: 1,
+    fecha_recogida_prevista: null,
+    hora_recogida_prevista: null,
+    estado_pedido: 'en_preparacion',
+    pagado: false,
     placa: ' abc-1234 ',
     color: 'Perla',
     codigo_color: '',
@@ -59,13 +65,16 @@ describe('Control de pedidos y muestras', () => {
     });
 });
 
-
 describe('Reintentos de guardado', () => {
     function simularExistente(datos: DatosSolicitudPintura) {
         const from = vi.mocked(supabase.from);
         from.mockReset();
-        from.mockReturnValueOnce({ upsert: () => ({ select: async () => ({ data: [], error: null }) }) } as never);
-        from.mockReturnValueOnce({ select: () => ({ eq: () => ({ single: async () => ({ data: datos, error: null }) }) }) } as never);
+        from.mockReturnValueOnce({
+            upsert: () => ({ select: async () => ({ data: [], error: null }) }),
+        } as never);
+        from.mockReturnValueOnce({
+            select: () => ({ eq: () => ({ single: async () => ({ data: datos, error: null }) }) }),
+        } as never);
     }
     it('reconoce un alta ya guardada después de perder la respuesta', async () => {
         simularExistente(validarSolicitudPintura(base));
@@ -73,11 +82,42 @@ describe('Reintentos de guardado', () => {
     });
     it('no anuncia éxito si un reintento contiene cambios no guardados', async () => {
         simularExistente(validarSolicitudPintura(base));
-        await expect(guardarSolicitudPintura('id-estable', { ...base, valor: 25 })).rejects.toThrow('intento anterior');
+        await expect(guardarSolicitudPintura('id-estable', { ...base, valor: 25 })).rejects.toThrow(
+            'intento anterior'
+        );
     });
     it('advierte si otra sesión editó la solicitud', async () => {
-        const cadena = { update: () => cadena, eq: () => cadena, select: async () => ({ data: [], error: null }) };
+        const cadena = {
+            update: () => cadena,
+            eq: () => cadena,
+            select: async () => ({ data: [], error: null }),
+        };
         vi.mocked(supabase.from).mockReturnValueOnce(cadena as never);
         await expect(guardarSolicitudPintura('id', base, 1)).rejects.toThrow('otra sesión');
+    });
+});
+
+describe('Fracciones, recogida y pago', () => {
+    it.each(['1/32', '1/16', '1/8', '1/4', '1/2', '1'])('guarda %s de galón sin redondearlo', fraccion => {
+        expect(validarSolicitudPintura({ ...base, fraccion_galon: fraccion }).fraccion_galon).toBe(fraccion);
+    });
+    it.each([
+        { fraccion_galon: '1/3' }, { unidades: 0 }, { unidades: 1.5 },
+        { hora_recogida_prevista: '12:00' },
+        { fecha_recogida_prevista: '2026-10-07', hora_recogida_prevista: '25:00' },
+        { fecha_recogida_prevista: '2026-02-30' },
+        { fecha_recogida_prevista: '2026-10-05' }, { pagado: true },
+    ])('rechaza un encargo incoherente %j', cambio => {
+        expect(() => validarSolicitudPintura({ ...base, ...cambio })).toThrow();
+    });
+    it('recoger y pagar no devuelve la tapa automáticamente', () => {
+        const pedido = validarSolicitudPintura({ ...base, estado_pedido: 'recogida', valor: 12.5, pagado: true });
+        expect(pedido.muestras_retiradas).toBe(0);
+        expect(pedido.muestras_dejadas).toBe(3);
+    });
+    it('permite registrar la hora de mañana y varias unidades', () => {
+        const pedido = validarSolicitudPintura({ ...base, unidades: 2, fecha_recogida_prevista: '2026-10-07', hora_recogida_prevista: '12:00' });
+        expect(pedido.hora_recogida_prevista).toBe('12:00');
+        expect(pedido.unidades).toBe(2);
     });
 });

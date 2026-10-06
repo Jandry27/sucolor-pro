@@ -4,12 +4,19 @@ export interface ProveedorPintura {
     id: string;
     nombre: string;
     solicitudes: number;
+    pedidos_por_recoger: number;
     muestras_pendientes: number;
     solicitudes_pendientes: number;
     valores_pendientes: number;
     valor_conocido: number;
 }
 export interface DatosSolicitudPintura {
+    fraccion_galon: string | null;
+    unidades: number;
+    fecha_recogida_prevista: string | null;
+    hora_recogida_prevista: string | null;
+    estado_pedido: 'en_preparacion' | 'recogida' | null;
+    pagado: boolean | null;
     placa: string;
     color: string;
     codigo_color: string;
@@ -33,6 +40,11 @@ export interface FiltrosPintura {
     desde: string;
     hasta: string;
 }
+export const FRACCIONES_GALON = ['1/32', '1/16', '1/8', '1/4', '1/2', '1'] as const;
+export function cantidadPintura(p: Pick<DatosSolicitudPintura, 'fraccion_galon' | 'unidades'>) {
+    if (!p.fraccion_galon) return 'Cantidad sin registrar';
+    return `${p.unidades > 1 ? p.unidades + ' × ' : ''}${p.fraccion_galon} de galón`;
+}
 export const TAMANO_PAGINA_PINTURAS = 25;
 export function fechaHoyEcuador() {
     const partes = new Intl.DateTimeFormat('en', {
@@ -52,6 +64,34 @@ export function estadoMuestras(
     return p.muestras_retiradas ? 'Retiro parcial' : 'Pendientes';
 }
 export function validarSolicitudPintura(datos: DatosSolicitudPintura): DatosSolicitudPintura {
+    if (datos.fraccion_galon !== null && !FRACCIONES_GALON.some(f => f === datos.fraccion_galon))
+        throw new Error('Selecciona una fracción de galón válida.');
+    if (!Number.isInteger(datos.unidades) || datos.unidades < 1 || datos.unidades > 100)
+        throw new Error('Indica de 1 a 100 unidades.');
+    if (
+        datos.estado_pedido !== null &&
+        !['en_preparacion', 'recogida'].includes(datos.estado_pedido)
+    )
+        throw new Error('Revisa el estado del pedido.');
+    if (datos.pagado !== null && typeof datos.pagado !== 'boolean')
+        throw new Error('Revisa el estado del pago.');
+    if (datos.pagado && datos.valor === null)
+        throw new Error('Ingresa el valor pagado antes de marcar el pago.');
+    if (
+        datos.fecha_recogida_prevista &&
+        (!/^\d{4}-\d{2}-\d{2}$/.test(datos.fecha_recogida_prevista) ||
+            Number.isNaN(Date.parse(datos.fecha_recogida_prevista)) ||
+            new Date(datos.fecha_recogida_prevista).toISOString().slice(0, 10) !==
+                datos.fecha_recogida_prevista ||
+            datos.fecha_recogida_prevista < datos.fecha_solicitud)
+    )
+        throw new Error('La recogida debe tener una fecha válida, igual o posterior al pedido.');
+    if (
+        datos.hora_recogida_prevista &&
+        (!datos.fecha_recogida_prevista ||
+            !/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(datos.hora_recogida_prevista))
+    )
+        throw new Error('Indica una fecha y hora válidas para recoger.');
     const placa = datos.placa.trim().toUpperCase().replace(/\s+/g, '');
     if (!/^[A-Z0-9-]{3,20}$/.test(placa))
         throw new Error('Ingresa una placa válida de 3 a 20 caracteres.');
@@ -86,6 +126,12 @@ export function validarSolicitudPintura(datos: DatosSolicitudPintura): DatosSoli
     if (datos.observaciones.length > 2000 || datos.codigo_color.length > 80)
         throw new Error('Revisa la longitud del código y las observaciones.');
     return {
+        fraccion_galon: datos.fraccion_galon,
+        unidades: datos.unidades,
+        fecha_recogida_prevista: datos.fecha_recogida_prevista,
+        hora_recogida_prevista: datos.hora_recogida_prevista,
+        estado_pedido: datos.estado_pedido,
+        pagado: datos.pagado,
         proveedor_id: datos.proveedor_id,
         fecha_solicitud: datos.fecha_solicitud,
         valor: datos.valor,
@@ -113,6 +159,8 @@ export async function consultarSolicitudesPintura(
             `placa.ilike.%${termino}%,color.ilike.%${termino}%,codigo_color.ilike.%${termino}%`
         );
     if (filtros.proveedor) query = query.eq('proveedor_id', filtros.proveedor);
+    if (['en_preparacion', 'recogida'].includes(filtros.estado))
+        query = query.eq('estado_pedido', filtros.estado);
     if (filtros.estado === 'pendientes') query = query.gt('muestras_pendientes', 0);
     if (filtros.estado === 'retiradas')
         query = query.gt('muestras_dejadas', 0).eq('muestras_pendientes', 0);

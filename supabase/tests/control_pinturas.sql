@@ -26,6 +26,23 @@ begin
     exception when check_violation then null; end;
     update public.solicitudes_pintura set muestras_retiradas=3, valor=22.50 where id=solicitud and version=2;
     if not exists (select 1 from public.resumen_proveedores_pintura where id=proveedor and muestras_pendientes=0 and valores_pendientes=0 and valor_conocido=22.50) then raise exception 'Resumen final incorrecto'; end if;
+    update public.solicitudes_pintura set fraccion_galon='1/16', unidades=2,
+        fecha_recogida_prevista=current_date+1, hora_recogida_prevista='12:00', estado_pedido='en_preparacion' where id=solicitud;
+    if not exists(select 1 from public.resumen_proveedores_pintura where id=proveedor and pedidos_por_recoger=1) then raise exception 'Conteo por recoger incorrecto'; end if;
+    begin
+        update public.solicitudes_pintura set fraccion_galon='1/3' where id=solicitud;
+        raise exception 'Fraccion invalida aceptada';
+    exception when check_violation then null; end;
+    begin
+        update public.solicitudes_pintura set valor=null,pagado=true where id=solicitud;
+        raise exception 'Pago sin importe aceptado';
+    exception when check_violation then null; end;
+    begin
+        update public.solicitudes_pintura set hora_recogida_prevista='25:00' where id=solicitud;
+        raise exception 'Hora invalida aceptada';
+    exception when check_violation then null; end;
+    update public.solicitudes_pintura set estado_pedido='recogida', pagado=true where id=solicitud;
+    if not exists(select 1 from public.resumen_proveedores_pintura where id=proveedor and pedidos_por_recoger=0) then raise exception 'Conteo recogido incorrecto'; end if;
     begin
         delete from public.solicitudes_pintura where id=solicitud;
         raise exception 'Se permitió borrar historial';

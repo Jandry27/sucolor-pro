@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import {
     fechaHoyEcuador,
+    FRACCIONES_GALON,
     guardarSolicitudPintura,
     type DatosSolicitudPintura,
     type ProveedorPintura,
@@ -23,6 +24,12 @@ export function FormularioSolicitudPintura({
 }) {
     const [datos, setDatos] = useState<DatosSolicitudPintura>(
         solicitud ?? {
+            fraccion_galon: null,
+            unidades: 1,
+            fecha_recogida_prevista: null,
+            hora_recogida_prevista: null,
+            estado_pedido: 'en_preparacion',
+            pagado: false,
             placa: '',
             color: '',
             codigo_color: '',
@@ -133,6 +140,37 @@ export function FormularioSolicitudPintura({
                             </select>
                         </label>
                     </div>
+                    <div className="rounded-xl bg-orange-50 dark:bg-orange-950/30 p-4 space-y-3">
+                        <label className="block text-sm font-medium">
+                            Cantidad de pintura *
+                            <select
+                                required={!solicitud}
+                                value={datos.fraccion_galon ?? ''}
+                                onChange={e => cambiar('fraccion_galon', e.target.value || null)}
+                                className={campo}
+                            >
+                                <option value="">Selecciona la medida</option>
+                                {FRACCIONES_GALON.map(f => (
+                                    <option key={f} value={f}>
+                                        {f} de galón
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="block text-sm font-medium">
+                            Unidades de esa medida
+                            <input
+                                required
+                                type="number"
+                                min="1"
+                                max="100"
+                                step="1"
+                                value={datos.unidades}
+                                onChange={e => cambiar('unidades', Number(e.target.value))}
+                                className={campo}
+                            />
+                        </label>
+                    </div>
                     <label className="block text-sm font-medium">
                         Color o descripción *
                         <input
@@ -165,6 +203,63 @@ export function FormularioSolicitudPintura({
                             />
                         </label>
                     </div>
+                    <div className="rounded-xl border dark:border-slate-700 p-4 space-y-4">
+                        <h3 className="font-semibold">Recoger la pintura</h3>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            <label className="text-sm font-medium">
+                                Fecha para recoger
+                                <input
+                                    type="date"
+                                    min={datos.fecha_solicitud}
+                                    value={datos.fecha_recogida_prevista ?? ''}
+                                    onChange={e =>
+                                        setDatos(d => ({
+                                            ...d,
+                                            fecha_recogida_prevista: e.target.value || null,
+                                            hora_recogida_prevista: e.target.value
+                                                ? d.hora_recogida_prevista
+                                                : null,
+                                        }))
+                                    }
+                                    className={campo}
+                                />
+                            </label>
+                            <label className="text-sm font-medium">
+                                Hora acordada
+                                <input
+                                    type="time"
+                                    disabled={!datos.fecha_recogida_prevista}
+                                    value={datos.hora_recogida_prevista ?? ''}
+                                    onChange={e =>
+                                        cambiar('hora_recogida_prevista', e.target.value || null)
+                                    }
+                                    className={campo}
+                                />
+                            </label>
+                        </div>
+                        <label className="block text-sm font-medium">
+                            Estado de la pintura
+                            <select
+                                value={datos.estado_pedido ?? ''}
+                                onChange={e =>
+                                    cambiar(
+                                        'estado_pedido',
+                                        (e.target.value ||
+                                            null) as DatosSolicitudPintura['estado_pedido']
+                                    )
+                                }
+                                className={campo}
+                            >
+                                <option value="">Sin confirmar</option>
+                                <option value="en_preparacion">En preparación / por recoger</option>
+                                <option value="recogida">Recogida / en el taller</option>
+                            </select>
+                        </label>
+                        <p className="text-xs text-slate-500">
+                            Recoger la pintura no marca la tapa como devuelta. Confirma abajo si
+                            también la recuperaste.
+                        </p>
+                    </div>
                     <label className="block text-sm font-medium">
                         Valor de la pintura (USD)
                         <input
@@ -185,6 +280,25 @@ export function FormularioSolicitudPintura({
                         <span className="mt-1 block text-xs text-slate-500">
                             Déjalo vacío si aún no sabes el valor.
                         </span>
+                    </label>
+                    <label className="block text-sm font-medium">
+                        Pago al proveedor
+                        <select
+                            value={
+                                datos.pagado === null ? '' : datos.pagado ? 'pagado' : 'pendiente'
+                            }
+                            onChange={e =>
+                                cambiar(
+                                    'pagado',
+                                    e.target.value === '' ? null : e.target.value === 'pagado'
+                                )
+                            }
+                            className={campo}
+                        >
+                            <option value="">Sin confirmar</option>
+                            <option value="pendiente">Pendiente de pago</option>
+                            <option value="pagado">Pagado</option>
+                        </select>
                     </label>
                     <div className="rounded-xl bg-orange-50 dark:bg-orange-950/30 p-4 space-y-3">
                         <label className="flex items-center gap-3 font-medium">
