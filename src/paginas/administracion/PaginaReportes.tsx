@@ -7,6 +7,7 @@ import {
     BarChart3,
     RefreshCw,
     FileBarChart,
+    FileText,
 } from 'lucide-react';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 import { ReporteGanancias } from '@/componentes/administracion/reportes/ReporteGanancias';
@@ -15,7 +16,17 @@ import { ReporteVehiculosTaller } from '@/componentes/administracion/reportes/Re
 import { ReporteRentabilidadMarca } from '@/componentes/administracion/reportes/ReporteRentabilidadMarca';
 import { ReporteGarantiasRetrabajos } from '@/componentes/administracion/reportes/ReporteGarantiasRetrabajos';
 
+import { ReporteFacturas } from '@/componentes/administracion/reportes/ReporteFacturas';
+
 const TABS = [
+    {
+        id: 'facturas',
+        label: 'Facturas',
+        shortLabel: 'Facturas',
+        icon: FileText,
+        color: '#2563EB',
+        description: 'Historial y consulta de comprobantes emitidos',
+    },
     {
         id: 'ganancias',
         label: 'Ganancias',
@@ -62,7 +73,7 @@ type TabId = (typeof TABS)[number]['id'];
 
 export function PaginaReportes() {
     const [activeTab, setActiveTab] = useState<TabId>('ganancias');
-    const currentTab = TABS.find(t => t.id === activeTab)!;
+    const currentTab = TABS.find(t => t.id === activeTab) ?? TABS[0];
 
     return (
         <DisenoAdministracion>
@@ -80,7 +91,7 @@ export function PaginaReportes() {
                 {/* Tabs (print:hidden) */}
                 <div className="print:hidden">
                     {/* Desktop tabs */}
-                    <div className="hidden sm:flex gap-1.5 p-1.5 rounded-2xl bg-[rgba(15,23,42,0.03)] border border-[rgba(15,23,42,0.06)]">
+                    <div className="hidden sm:flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-[rgba(15,23,42,0.03)] border border-[rgba(15,23,42,0.06)]">
                         {TABS.map(tab => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -105,7 +116,11 @@ export function PaginaReportes() {
                                             layoutId="activeTabIndicator"
                                             className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
                                             style={{ background: tab.color }}
-                                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                                            transition={{
+                                                type: 'spring',
+                                                damping: 25,
+                                                stiffness: 300,
+                                            }}
                                         />
                                     )}
                                 </button>
@@ -147,7 +162,10 @@ export function PaginaReportes() {
 
                     {/* Tab description */}
                     <p className="text-xs text-[rgba(11,18,32,0.45)] mt-3 flex items-center gap-1.5">
-                        <currentTab.icon className="w-3.5 h-3.5" style={{ color: currentTab.color }} />
+                        <currentTab.icon
+                            className="w-3.5 h-3.5"
+                            style={{ color: currentTab.color }}
+                        />
                         {currentTab.description}
                     </p>
                 </div>
@@ -159,6 +177,7 @@ export function PaginaReportes() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
                 >
+                    {activeTab === 'facturas' && <ReporteFacturas />}
                     {activeTab === 'ganancias' && <ReporteGanancias />}
                     {activeTab === 'historial' && <ReporteHistorialVehiculo />}
                     {activeTab === 'taller' && <ReporteVehiculosTaller />}
