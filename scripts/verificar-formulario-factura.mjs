@@ -56,6 +56,7 @@ try {
  await page.evaluate(()=>window.consultas[0].resolve({data:{nombres:'Respuesta atrasada'},error:null}));
  assert.equal(await page.$eval('#factura-nombre',e=>e.value),'Comprador nuevo');
  await page.select('select[aria-label="IVA de mano de obra"]','15');
+ await page.select('select[aria-label="Forma de pago"]','20');
  assert.match(await page.$eval('[role="dialog"]',e=>e.textContent),/115\.00/);
  await page.screenshot({path:'/tmp/sucolor-factura-desktop.png'});
  await page.setViewport({width:390,height:844});
@@ -98,7 +99,7 @@ try {
  await page.waitForFunction(()=>document.querySelector('#factura-nombre')?.value==='Cliente original');
  await page.evaluate(()=>window.renderizar(false));
  await page.evaluate(()=>{
-  window.factura={estado:'AUTORIZADA',ambiente:1,secuencial:'DEMO',subtotal_0:0,subtotal_15:165,valor_iva:24.75,importe_total:189.75,xml_generado:'<factura><infoFactura><razonSocialComprador>Comprador del XML</razonSocialComprador><identificacionComprador>0000000002</identificacionComprador><totalSinImpuestos>165.00</totalSinImpuestos></infoFactura><detalles><detalle><codigoPrincipal>DEMO</codigoPrincipal><descripcion>Servicio histórico</descripcion><cantidad>1</cantidad><precioUnitario>165.00</precioUnitario><precioTotalSinImpuesto>165.00</precioTotalSinImpuesto></detalle></detalles></factura>'};
+  window.factura={estado:'AUTORIZADA',ambiente:1,secuencial:'DEMO',subtotal_0:0,subtotal_15:165,valor_iva:24.75,importe_total:189.75,xml_generado:'<factura><infoFactura><razonSocialComprador>Comprador del XML</razonSocialComprador><identificacionComprador>0000000002</identificacionComprador><totalSinImpuestos>165.00</totalSinImpuestos><importeTotal>189.75</importeTotal><totalConImpuestos><totalImpuesto><codigo>2</codigo><codigoPorcentaje>4</codigoPorcentaje><baseImponible>165.00</baseImponible><valor>24.75</valor></totalImpuesto></totalConImpuestos></infoFactura><detalles><detalle><codigoPrincipal>DEMO</codigoPrincipal><descripcion>Servicio histórico</descripcion><cantidad>1</cantidad><precioUnitario>165.00</precioUnitario><precioTotalSinImpuesto>165.00</precioTotalSinImpuesto></detalle></detalles></factura>'};
   window.open=()=>({document:{write:html=>{window.ride=html},close:()=>{}}});
   window.renderizar(true);
  });

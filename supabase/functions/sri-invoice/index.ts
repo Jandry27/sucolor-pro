@@ -1,3 +1,4 @@
+import { FORMAS_PAGO, validarConfiguracionFiscal, validarEmision, calcularTotalesFactura } from '../_shared/reglasFacturacion.ts';
 import type { DatosFactura } from '../_shared/facturaHtml.ts';
 import { prepararCorreoFactura } from '../_shared/correoFactura.ts';
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
@@ -119,6 +120,7 @@ function buildFacturaXml(data: {
     agenteRetencion?: string;
     fechaEmision: string;
     obligadoContabilidad: string;
+    contribuyenteEspecial?: string;
     tipoIdentificacionComprador: string;
     razonSocialComprador: string;
     identificacionComprador: string;
@@ -177,15 +179,16 @@ function buildFacturaXml(data: {
     xml += `<ptoEmi>${data.ptoEmi}</ptoEmi>`;
     xml += `<secuencial>${data.secuencial}</secuencial>`;
     xml += `<dirMatriz>${esc(data.dirMatriz)}</dirMatriz>`;
-    if (data.contribuyenteRimpe)
-        xml += `<contribuyenteRimpe>${esc(data.contribuyenteRimpe)}</contribuyenteRimpe>`;
     if (data.agenteRetencion)
         xml += `<agenteRetencion>${esc(data.agenteRetencion)}</agenteRetencion>`;
+    if (data.contribuyenteRimpe)
+        xml += `<contribuyenteRimpe>${esc(data.contribuyenteRimpe)}</contribuyenteRimpe>`;
     xml += `</infoTributaria>`;
 
     xml += `<infoFactura>`;
     xml += `<fechaEmision>${data.fechaEmision}</fechaEmision>`;
     xml += `<dirEstablecimiento>${esc(data.dirMatriz)}</dirEstablecimiento>`;
+    if (data.contribuyenteEspecial) xml += `<contribuyenteEspecial>${esc(data.contribuyenteEspecial)}</contribuyenteEspecial>`;
     xml += `<obligadoContabilidad>${data.obligadoContabilidad}</obligadoContabilidad>`;
     xml += `<tipoIdentificacionComprador>${data.tipoIdentificacionComprador}</tipoIdentificacionComprador>`;
     xml += `<razonSocialComprador>${esc(data.razonSocialComprador)}</razonSocialComprador>`;
@@ -757,7 +760,8 @@ serve(async req => {
             );
         }
 
-        const { orden_id, items, notas, comprador } = await req.json();
+        const { orden_id, items, notas, comprador, forma_pago } = await req.json();
+        validarEmision(items, forma_pago);
 
         // --- 1. Company Settings ---
         const { data: settings } = await supabase
@@ -769,7 +773,15 @@ serve(async req => {
             throw new Error(
                 'No se encontró la configuración de empresa. Ve a Configuración y llena los datos.'
             );
-        if (!settings.ruc) throw new Error('Falta configurar el RUC de la empresa.');
+        validarConfiguracionFiscal(settings);
+        if (settings.rimpe) throw new Error('La configuración RIMPE requiere confirmar la categoría tributaria antes de emitir.');
+        if (!comprador || !['04', '05', '06'].includes(comprador.tipo_identificacion) ||
+            !comprador.razon_social?.trim() || !comprador.direccion?.trim() ||
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(comprador.email || '') ||
+            (comprador.tipo_identificacion === '04' && !/^\d{13}$/.test(comprador.identificacion || '')) ||
+            (comprador.tipo_identificacion === '05' && !/^\d{10}$/.test(comprador.identificacion || '')) ||
+            (comprador.tipo_identificacion === '06' && !/^[A-Za-z0-9-]{5,20}$/.test(comprador.identificacion || '')))
+            throw new Error('Revisa la identificación, razón social, dirección y correo del comprador.');
 
         // --- 2. Order + Client ---
         const { data: order } = await supabase
@@ -794,9 +806,7 @@ serve(async req => {
             );
         }
 
-        // Nota: las facturas RECHAZADAS anteriores se borran MÁS TARDE, después de
-        // reservar el nuevo secuencial. Así evitamos que la búsqueda de duplicados
-        // encuentre el secuencial rechazado y lo reutilice en el mismo intento.
+        // Los intentos rechazados se conservan y sus secuenciales no se reutilizan.
 
         // --- 3. Secuencial - Usar contador global seguro de company_settings ---
         // Lectura del siguiente secuencial disponible
@@ -837,16 +847,11 @@ serve(async req => {
         const fullNumber = `${estab}-${ptoEmi}-${nextSeq}`;
 
         // --- 4. Tax calculations ---
-        let subtotal_15 = 0;
-        let subtotal_0 = 0;
-        for (const item of items) {
-            const price = Number(item.precio_total_sin_impuestos);
-            if (item.tarifa_iva === 15) subtotal_15 += price;
-            else if (item.tarifa_iva === 0) subtotal_0 += price;
-            else throw new Error(`Tarifa IVA no soportada: ${item.tarifa_iva}`);
-        }
-        const valorIva = subtotal_15 * 0.15;
-        const importeTotal = subtotal_15 + subtotal_0 + valorIva;
+        const totales = calcularTotalesFactura(items);
+        const subtotal_15 = totales.subtotal15;
+        const subtotal_0 = totales.subtotal0;
+        const valorIva = totales.iva;
+        const importeTotal = totales.total;
 
         // --- 5. Date (Ecuador UTC-5) ---
         const now = new Date();
@@ -908,10 +913,11 @@ serve(async req => {
             agenteRetencion: settings.agente_retencion || undefined,
             fechaEmision,
             obligadoContabilidad: settings.obligado_contabilidad ? 'SI' : 'NO',
+            contribuyenteEspecial: settings.contribuyente_especial?.trim() || undefined,
             tipoIdentificacionComprador:
                 comprador?.tipo_identificacion || order.cliente?.tipo_identificacion || '05',
             razonSocialComprador:
-                comprador?.razon_social || order.cliente?.nombre || 'CONSUMIDOR FINAL',
+                comprador?.razon_social || order.cliente?.nombres || 'CONSUMIDOR FINAL',
             identificacionComprador:
                 comprador?.identificacion || order.cliente?.cedula || '9999999999',
             direccionComprador: comprador?.direccion || order.cliente?.direccion || 'N/A',
@@ -922,7 +928,7 @@ serve(async req => {
             importeTotal: importeTotal.toFixed(2),
             pagos: [
                 {
-                    formaPago: '20',
+                    formaPago: forma_pago,
                     total: importeTotal.toFixed(2),
                     plazo: '0',
                     unidadTiempo: 'dias',
@@ -942,7 +948,7 @@ serve(async req => {
                         tarifa: item.tarifa_iva === 15 ? '15' : '0',
                         baseImponible: Number(item.precio_total_sin_impuestos).toFixed(2),
                         valor: (item.tarifa_iva === 15
-                            ? Number(item.precio_total_sin_impuestos) * 0.15
+                            ? Math.round(Math.round(Number(item.precio_total_sin_impuestos) * 100) * 15 / 100) / 100
                             : 0
                         ).toFixed(2),
                     },
@@ -962,7 +968,7 @@ serve(async req => {
         console.log('XML generado, longitud:', xmlUnsigned.length);
         console.log('Clave acceso generada:', claveAcceso);
         console.log('Secuencial:', fullNumber);
-        console.log('XML primeros 500 chars:', xmlUnsigned.substring(0, 500));
+        // No registrar el XML: contiene información fiscal y del comprador.
 
         // --- 8. Sign XML ---
         let xmlSigned = xmlUnsigned;
@@ -1059,14 +1065,8 @@ serve(async req => {
                 console.log('Secuencial actualizado a:', baseSeq + 1);
             }
 
-            // Ahora sí borramos las facturas rechazadas anteriores de esta orden,
-            // ya que el nuevo secuencial ya quedó reservado en BD e incrementado.
-            await supabase
-                .from('invoices')
-                .delete()
-                .eq('orden_id', orden_id)
-                .eq('estado', 'RECHAZADA')
-                .neq('id', newInvoice.id);
+            // Conservar los intentos rechazados como parte del historial de comprobantes.
+
         }
 
         let correoEnviado: boolean | null = null;
@@ -1113,7 +1113,7 @@ serve(async req => {
                                 comprador: {
                                     nombre:
                                         comprador?.razon_social ||
-                                        order.cliente?.nombre ||
+                                        order.cliente?.nombres ||
                                         'CONSUMIDOR FINAL',
                                     identificacion:
                                         comprador?.identificacion || order.cliente?.cedula || '',
@@ -1147,8 +1147,8 @@ serve(async req => {
                                     totalDescuento: '0.00',
                                     totalIva: valorIva.toFixed(2),
                                     importeTotal: importeTotal.toFixed(2),
-                                    formaPago: '01',
-                                    formaPagoDescripcion: 'SIN UTILIZACIÓN DEL SISTEMA FINANCIERO',
+                                    formaPago: forma_pago,
+                                    formaPagoDescripcion: FORMAS_PAGO[forma_pago],
                                 },
                                 vehiculo: order.vehiculo
                                     ? {

@@ -45,7 +45,7 @@ export function filtroBusquedaFactura(busqueda: string) {
 }
 
 export function fechaFactura(fecha: string) {
-    return new Date(fecha).toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil' });
+    return new Date(fecha).toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil', day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function htmlFacturaArchivada(factura: FacturaHistorial, imprimir = false) {

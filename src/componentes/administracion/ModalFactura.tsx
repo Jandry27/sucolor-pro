@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { generarFacturaHtml } from '../../../supabase/functions/_shared/facturaHtml';
+import { htmlFacturaArchivada } from '@/biblioteca/historialFacturas';
+import { FORMAS_PAGO, validarEmision, calcularTotalesFactura } from '../../../supabase/functions/_shared/reglasFacturacion';
 import { DatosCompradorFactura } from './DatosCompradorFactura';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import {
@@ -21,17 +22,6 @@ interface ModalFacturaProps {
 
 // ── RIDE HTML generator (Formato SRI Oficial) ──────────────────────────────────
 // ── Formas de pago SRI ─────────────────────────────────────────────────────────
-const FORMAS_PAGO: Record<string, string> = {
-    '01': 'SIN UTILIZACIÓN DEL SISTEMA FINANCIERO',
-    '15': 'COMPENSACIÓN DE DEUDAS',
-    '16': 'TARJETA DE DÉBITO',
-    '17': 'DINERO ELECTRÓNICO',
-    '18': 'TARJETA PREPAGO',
-    '19': 'TARJETA DE CRÉDITO',
-    '20': 'OTROS CON UTILIZACIÓN DEL SISTEMA FINANCIERO',
-    '21': 'ENDOSO DE TÍTULOS',
-};
-
 export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
@@ -61,13 +51,18 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Form state defaults
-    const [ivaManoObra, setIvaManoObra] = useState<number>(0);
-    const [formaPago, setFormaPago] = useState('01');
+    const [ivaManoObra, setIvaManoObra] = useState<number | ''>('');
+    const [formaPago, setFormaPago] = useState('');
+    const [ivaGastos, setIvaGastos] = useState<Record<string, number | ''>>({});
+    const [consultaFallida, setConsultaFallida] = useState(false);
     const [notasVenta, setNotasVenta] = useState('');
     const [trabajoRealizado, setTrabajoRealizado] = useState(order.notas_publicas || '');
 
     useEffect(() => {
         if (isOpen) {
+            setIvaManoObra('');
+            setIvaGastos({});
+            setFormaPago('');
             checkExistingInvoice();
             loadGastos();
             setClienteFound(null);
@@ -92,6 +87,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
 
     const checkExistingInvoice = async () => {
         setLoading(true);
+        setConsultaFallida(false);
         const { data, error } = await supabase
             .from('invoices')
             .select('*')
@@ -101,17 +97,16 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             .maybeSingle();
 
         if (error) {
-            console.warn(
-                'Tabla invoices no existe localmente, asumiendo que no hay factura:',
-                error.message
-            );
+            setConsultaFallida(true);
+            setError('No se pudo comprobar si la orden ya está facturada. Cierra y vuelve a abrir antes de emitir.');
         }
         if (data) setExistingInvoice(data);
         setLoading(false);
     };
 
     const loadGastos = async () => {
-        const { data } = await supabase.from('orden_gastos').select('*').eq('orden_id', order.id);
+        const { data, error: fallo } = await supabase.from('orden_gastos').select('*').eq('orden_id', order.id);
+        if (fallo) { setConsultaFallida(true); setError('No se pudieron cargar los repuestos. Cierra y vuelve a abrir la factura.'); }
         if (data) setGastos(data);
     };
 
@@ -170,143 +165,26 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     };
 
     // ── Descargar RIDE ─────────────────────────────────────────────────────────
-    const handleDownloadRIDE = async () => {
+    const handleDownloadRIDE = () => {
         if (!existingInvoice) return;
-
-        const { data: settings } = await supabase
-            .from('company_settings')
-            .select('*')
-            .limit(1)
-            .maybeSingle();
-        const empresa = settings || {
-            razon_social: 'Empresa',
-            ruc: '',
-            direccion_matriz: '',
-            nombre_comercial: '',
-        };
-        const cliente = order.cliente;
-        // El comprador del comprobante puede ser distinto al propietario de la orden.
-        const xmlFactura = existingInvoice.xml_generado
-            ? new DOMParser().parseFromString(existingInvoice.xml_generado, 'application/xml')
-            : null;
-        const datoComprador = (etiqueta: string) => xmlFactura?.querySelector(etiqueta)?.textContent || '';
-        const datoAdicional = (nombre: string) => Array.from(xmlFactura?.querySelectorAll('campoAdicional') || [])
-            .find(campo => campo.getAttribute('nombre')?.toLowerCase() === nombre)?.textContent || '';
-
-        // Build items
-        const totalMO = order.precio_total || 0;
-        const invoiceItems: Array<{
-            codigo: string;
-            descripcion: string;
-            cantidad: string;
-            precioUnitario: string;
-            descuento: string;
-            precioTotal: string;
-        }> = [];
-
-        if (totalMO > 0) {
-            invoiceItems.push({
-                codigo: 'MANO_OBRA',
-                descripcion: `Servicio automotriz reparación/pintura placa ${order.vehiculo?.placa || ''}`,
-                cantidad: '1.00',
-                precioUnitario: totalMO.toFixed(2),
-                descuento: '0.00',
-                precioTotal: totalMO.toFixed(2),
-            });
-        }
-        for (const g of gastos) {
-            invoiceItems.push({
-                codigo: `REP`,
-                descripcion: g.descripcion,
-                cantidad: '1.00',
-                precioUnitario: Number(g.monto).toFixed(2),
-                descuento: '0.00',
-                precioTotal: Number(g.monto).toFixed(2),
-            });
-        }
-
-        // El documento emitido es la fuente; la orden puede cambiar después.
-        const detallesXml = Array.from(xmlFactura?.querySelectorAll('detalles > detalle') || []);
-        if (detallesXml.length) {
-            invoiceItems.splice(0, invoiceItems.length, ...detallesXml.map(detalle => {
-                const valor = (nombre: string) => detalle.querySelector(nombre)?.textContent || '';
-                return {
-                    codigo: valor('codigoPrincipal'), descripcion: valor('descripcion'),
-                    cantidad: valor('cantidad'), precioUnitario: valor('precioUnitario'),
-                    descuento: valor('descuento') || '0.00', precioTotal: valor('precioTotalSinImpuesto'),
-                };
-            }));
-        }
-        const sub0 = Number(existingInvoice.subtotal_0 || 0);
-        const sub15 = Number(existingInvoice.subtotal_15 || 0);
-        const ivaVal = Number(existingInvoice.valor_iva || 0);
-        const subtotalVal = Number(datoComprador('totalSinImpuestos') ||
-            sub0 + sub15 + Number(existingInvoice.subtotal_no_objeto || 0) + Number(existingInvoice.subtotal_exento || 0));
-        const codigoPago = datoComprador('pagos > pago > formaPago') || '01';
-
-        const fechaAuth = existingInvoice.autorizacion_fecha
-            ? new Date(existingInvoice.autorizacion_fecha).toLocaleString('es-EC')
-            : '';
-
-        const html = generarFacturaHtml({
-            empresa: {
-                razon_social: empresa.razon_social,
-                ruc: empresa.ruc,
-                direccion_matriz: empresa.direccion_matriz,
-                nombre_comercial: empresa.nombre_comercial,
-                obligado_contabilidad: empresa.obligado_contabilidad,
-                contribuyente_especial: empresa.contribuyente_especial,
-                rimpe: empresa.rimpe,
-            },
-            comprador: {
-                nombre: datoComprador('razonSocialComprador') || clienteNombre || cliente?.nombres || 'CONSUMIDOR FINAL',
-                identificacion: datoComprador('identificacionComprador') || clienteDoc || cliente?.cedula || '9999999999999',
-                direccion: datoComprador('direccionComprador') || clienteDireccion || cliente?.direccion || 'N/A',
-                email: datoAdicional('email') || clienteEmail || cliente?.email || '',
-                telefono: datoAdicional('telefono') || clienteTelefono || cliente?.telefono || '',
-            },
-            factura: {
-                ambiente: existingInvoice.ambiente,
-                secuencial: existingInvoice.secuencial || '',
-                claveAcceso: existingInvoice.clave_acceso || '',
-                fechaEmision: existingInvoice.fecha_emision
-                    ? new Date(existingInvoice.fecha_emision).toLocaleDateString('es-EC')
-                    : '',
-                fechaAutorizacion: fechaAuth,
-                numeroAutorizacion: existingInvoice.clave_acceso || '',
-                items: invoiceItems,
-                subtotal0: sub0.toFixed(2),
-                subtotal15: sub15.toFixed(2),
-                subtotalNoObjeto: Number(existingInvoice.subtotal_no_objeto || 0).toFixed(2),
-                subtotalExento: Number(existingInvoice.subtotal_exento || 0).toFixed(2),
-                subtotalSinImpuestos: subtotalVal.toFixed(2),
-                totalDescuento: Number(datoComprador('totalDescuento') || existingInvoice.total_descuento || 0).toFixed(2),
-                iva15: ivaVal.toFixed(2),
-                propina: Number(datoComprador('propina') || 0).toFixed(2),
-                importeTotal: Number(existingInvoice.importe_total).toFixed(2),
-                formaPago: codigoPago,
-                formaPagoDescripcion: FORMAS_PAGO[codigoPago] || codigoPago,
-            },
-            vehiculo: order.vehiculo
-                ? {
-                      placa: order.vehiculo.placa,
-                      marca: order.vehiculo.marca,
-                      modelo: order.vehiculo.modelo,
-                  }
-                : undefined,
-            notas: notasVenta || undefined,
-            logoUrl: new URL('/logo.png', window.location.origin).href,
-        }, { imprimir: true });
-
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-            printWindow.document.write(html);
-            printWindow.document.close();
+        try {
+            const html = htmlFacturaArchivada(existingInvoice, true);
+            const ventana = window.open('', '_blank');
+            if (!ventana) throw new Error('Permite las ventanas emergentes para imprimir o guardar el PDF.');
+            ventana.opener = null;
+            ventana.document.write(html);
+            ventana.document.close();
+        } catch (fallo) {
+            setError(fallo instanceof Error ? fallo.message : 'No se pudo abrir el comprobante.');
         }
     };
 
     const handleGenerateInvoice = async () => {
-        if (emisionBloqueada.current || searchingCliente) return;
+        if (emisionBloqueada.current || searchingCliente || loading || consultaFallida) return;
+        if (ivaManoObra === '' || gastos.some(g => ivaGastos[g.id] === undefined || ivaGastos[g.id] === '') || !formaPago) {
+            setError('Selecciona la forma de pago y el IVA de cada concepto según su tratamiento tributario.');
+            return;
+        }
         if ((clienteDocTipo === '05' && !/^\d{10}$/.test(clienteDoc)) ||
             (clienteDocTipo === '04' && !/^\d{13}$/.test(clienteDoc))) {
             setError('Revisa la identificación: cédula de 10 dígitos o RUC de 13 dígitos.');
@@ -380,13 +258,14 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                         codigo_principal: `REP_${g.id.substring(0, 5)}`,
                         descripcion: g.descripcion,
                         precio_total_sin_impuestos: g.monto,
-                        tarifa_iva: 0,
+                        tarifa_iva: ivaGastos[g.id],
                     })),
                 ],
                 forma_pago: formaPago,
                 notas: notasVenta,
             };
 
+            validarEmision(payload.items, payload.forma_pago);
             const { data, error: functionError } = await supabase.functions.invoke('sri-invoice', {
                 body: payload,
             });
@@ -417,6 +296,11 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const totalManoObra = order.precio_total || 0;
     const totalGasto = gastos.reduce((sum, g) => sum + Number(g.monto), 0);
     const subtotal = totalManoObra + totalGasto;
+    const totalesVista = calcularTotalesFactura([
+        { codigo_principal: 'MO', descripcion: 'Mano de obra', precio_total_sin_impuestos: totalManoObra, tarifa_iva: ivaManoObra === 15 ? 15 : 0 },
+        ...gastos.map(g => ({ codigo_principal: g.id, descripcion: g.descripcion, precio_total_sin_impuestos: Number(g.monto), tarifa_iva: ivaGastos[g.id] === 15 ? 15 as const : 0 as const })),
+    ]);
+    const impuestosPendientes = ivaManoObra === '' || gastos.some(g => ivaGastos[g.id] === undefined || ivaGastos[g.id] === '');
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -555,6 +439,10 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                 <h3 className="text-sm font-semibold mb-3 dark:text-white">
                                     Detalle de la factura
                                 </h3>
+                                <p id="factura-iva-ayuda" className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+                                    Para servicios amparados por una calificación artesanal vigente, selecciona IVA 0%.
+                                    Revisa por separado la tarifa de productos y servicios fuera de esa calificación.
+                                </p>
                                 <div className="space-y-3">
                                     <div className="flex flex-wrap justify-between items-center gap-3 text-sm">
                                         <span className="text-slate-600 dark:text-slate-300">
@@ -562,13 +450,14 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                         </span>
                                         <div className="flex items-center gap-3">
                                             <select
-                                                aria-label="IVA de mano de obra" disabled={processing}
+                                                aria-label="IVA de mano de obra" aria-describedby="factura-iva-ayuda" disabled={processing}
                                                 value={ivaManoObra}
                                                 onChange={e =>
-                                                    setIvaManoObra(Number(e.target.value))
+                                                    setIvaManoObra(e.target.value === '' ? '' : Number(e.target.value))
                                                 }
                                                 className="min-h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-base outline-none"
                                             >
+                                                <option value="">Selecciona IVA</option>
                                                 <option value={0}>IVA 0%</option>
                                                 <option value={15}>IVA 15%</option>
                                             </select>
@@ -603,11 +492,17 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                             {gastos.map(g => (
                                                 <div
                                                     key={g.id}
-                                                    className="flex justify-between items-center text-sm mb-1.5"
+                                                    className="flex flex-wrap justify-between items-center gap-2 text-sm mb-1.5"
                                                 >
                                                     <span className="text-slate-600 dark:text-slate-300 truncate pr-4">
                                                         {g.descripcion}
                                                     </span>
+                                                    <select aria-label={`IVA de ${g.descripcion}`} disabled={processing}
+                                                        value={ivaGastos[g.id] ?? ''}
+                                                        onChange={e => setIvaGastos(actual => ({ ...actual, [g.id]: e.target.value === '' ? '' : Number(e.target.value) }))}
+                                                        className="min-h-11 rounded-lg border px-2 text-base dark:bg-slate-900">
+                                                        <option value="">Selecciona IVA</option><option value="0">IVA 0%</option><option value="15">IVA 15%</option>
+                                                    </select>
                                                     <span className="font-medium dark:text-white flex-shrink-0">
                                                         ${Number(g.monto).toFixed(2)}
                                                     </span>
@@ -634,6 +529,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                     onChange={e => setFormaPago(e.target.value)}
                                     className="w-full text-base p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-brand-orange dark:text-white"
                                 >
+                                    <option value="">Selecciona la forma de pago</option>
                                     {Object.entries(FORMAS_PAGO).map(([code, desc]) => (
                                         <option key={code} value={code}>
                                             {desc.charAt(0) + desc.slice(1).toLowerCase()}
@@ -662,12 +558,12 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                             </details>
 
                             <div className="flex items-center justify-between gap-4 border-t border-slate-200 pt-5 dark:border-slate-700">
-                                <div><p className="text-sm text-slate-500">Total a facturar</p><p className="mt-1 text-xs text-slate-500">IVA: ${(totalManoObra * ivaManoObra / 100).toFixed(2)}</p></div>
-                                <p className="text-3xl font-semibold tracking-tight dark:text-white">${(subtotal + totalManoObra * ivaManoObra / 100).toFixed(2)}</p>
+                                <div><p className="text-sm text-slate-500">Total a facturar</p><p className="mt-1 text-xs text-slate-500">IVA: {impuestosPendientes ? 'Por seleccionar' : '$' + totalesVista.iva.toFixed(2)}</p></div>
+                                <p className="text-3xl font-semibold tracking-tight dark:text-white">{impuestosPendientes ? 'Por confirmar' : '$' + totalesVista.total.toFixed(2)}</p>
                             </div>
                             <button
                                 onClick={handleGenerateInvoice}
-                                disabled={processing || searchingCliente || loading}
+                                disabled={processing || searchingCliente || loading || consultaFallida}
                                 className="w-full btn-primary py-3 flex items-center justify-center gap-2 text-base"
                             >
                                 {processing ? (

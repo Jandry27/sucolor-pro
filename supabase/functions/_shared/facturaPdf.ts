@@ -1,3 +1,4 @@
+import { formatearDecimalFactura } from './facturaHtml.ts';
 import { PDFDocument, StandardFonts, rgb } from 'npm:pdf-lib@1.17.1';
 import { LOGO_FACTURA_PNG } from './logoFactura.ts';
 import type { DatosFactura } from './facturaHtml.ts';
@@ -104,7 +105,7 @@ export async function generarFacturaPdf(data: DatosFactura): Promise<Uint8Array>
             const inicioY = y;
             fragmento.forEach((linea,i)=>texto(linea,margen,y-i*14,10,inicio+i<detalle.length-1));
             if(inicio===0) {
-                derecha(item.cantidad,350,inicioY,9); derecha(item.precioUnitario,411,inicioY,9);
+                derecha(formatearDecimalFactura(item.cantidad),350,inicioY,9); derecha(formatearDecimalFactura(item.precioUnitario, 2),411,inicioY,9);
                 derecha(item.descuento,471,inicioY,9); derecha(item.precioTotal,ancho-margen,inicioY,9,true);
             }
             y -= fragmento.length*14+4; separador(); inicio+=fragmento.length;

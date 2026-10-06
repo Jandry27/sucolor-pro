@@ -15,7 +15,8 @@ const modulo = async (archivo, reemplazos = {}) => {
  return 'data:text/javascript;base64,'+Buffer.from(js).toString('base64');
 };
 const logoUrl=await modulo('supabase/functions/_shared/logoFactura.ts');
-const pdfUrl=await modulo('supabase/functions/_shared/facturaPdf.ts',{'npm:pdf-lib@1.17.1':pdfLib,'./logoFactura.ts':logoUrl});
+const htmlUrl=await modulo('supabase/functions/_shared/facturaHtml.ts');
+const pdfUrl=await modulo('supabase/functions/_shared/facturaPdf.ts',{'npm:pdf-lib@1.17.1':pdfLib,'./logoFactura.ts':logoUrl,'./facturaHtml.ts':htmlUrl});
 const correoUrl=await modulo('supabase/functions/_shared/correoFactura.ts',{'./facturaPdf.ts':pdfUrl});
 const {prepararCorreoFactura}=await import(correoUrl);
 const {PDFDocument}=await import(pdfLib);

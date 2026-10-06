@@ -1,3 +1,4 @@
+import { validarConfiguracionFiscal } from '../../../supabase/functions/_shared/reglasFacturacion';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import { CompanySettings } from '@/tipos';
@@ -55,6 +56,7 @@ export function PaginaConfiguracion() {
         setMessage(null);
 
         try {
+            validarConfiguracionFiscal(settings);
             let p12Path = settings.p12_storage_path;
 
             // Upload p12 if selected

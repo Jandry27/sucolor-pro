@@ -1,3 +1,11 @@
+// Se eliminan solo ceros finales: no se cambia la precisión del documento emitido.
+export function formatearDecimalFactura(valor: string, minimo = 0): string {
+    if (!/^\d+(\.\d{1,6})?$/.test(valor)) return valor;
+    const [entero, fraccion = ''] = valor.split('.');
+    const decimales = fraccion.replace(/0+$/, '').padEnd(minimo, '0');
+    return entero + (decimales ? '.' + decimales : '');
+}
+
 export type DatosFactura = {
     empresa: {
         razon_social: string;
@@ -54,8 +62,8 @@ export function generarFacturaHtml(data: DatosFactura, opciones: { imprimir?: bo
     const numero = 'text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap';
     const filas = data.factura.items.map(item => `<tr>
         <td class="descripcion" style="padding:14px 10px 14px 0;border-bottom:1px solid #ece8e2;overflow-wrap:anywhere"><strong style="font-weight:600">${esc(item.descripcion)}</strong><br><span style="font-size:10px;color:#77716b">${esc(item.codigo)}</span></td>
-        <td style="padding:14px 7px;border-bottom:1px solid #ece8e2;${numero}">${esc(item.cantidad)}</td>
-        <td style="padding:14px 7px;border-bottom:1px solid #ece8e2;${numero}">${esc(item.precioUnitario)}</td>
+        <td style="padding:14px 7px;border-bottom:1px solid #ece8e2;${numero}">${esc(formatearDecimalFactura(item.cantidad))}</td>
+        <td style="padding:14px 7px;border-bottom:1px solid #ece8e2;${numero}">${esc(formatearDecimalFactura(item.precioUnitario, 2))}</td>
         <td style="padding:14px 7px;border-bottom:1px solid #ece8e2;${numero}">${esc(item.descuento)}</td>
         <td style="padding:14px 0 14px 7px;border-bottom:1px solid #ece8e2;font-weight:600;${numero}">${esc(item.precioTotal)}</td>
     </tr>`).join('');

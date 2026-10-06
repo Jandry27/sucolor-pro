@@ -66,7 +66,7 @@ describe('Historial de facturas', () => {
             '15.00',
         ])
             expect(html).toContain(dato);
-        expect(fechaFactura(factura.fecha_emision)).toBe('5/10/2026');
+        expect(fechaFactura(factura.fecha_emision)).toBe('05/10/2026');
     });
     it('rechaza XML inválido y escapa contenido en el comprobante', () => {
         expect(leerComprobante('<factura>')).toBeNull();
