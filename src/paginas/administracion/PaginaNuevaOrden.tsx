@@ -19,6 +19,7 @@ import {
     Calendar,
     CalendarCheck,
 } from 'lucide-react';
+import { esClienteRegistrado } from '@/biblioteca/clientes';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import { sanitizarTexto, sanitizarPlaca, sanitizarTelefono } from '@/biblioteca/sanitizar';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
@@ -44,7 +45,7 @@ interface VehiculoResult {
     modelo?: string;
     anio?: number;
     color?: string;
-    cliente_id?: string;
+    cliente_id?: string | null;
 }
 interface PhotoPreview {
     file: File;
@@ -120,7 +121,7 @@ export function PaginaNuevaOrden() {
         // Buscar por nombre / teléfono
         const { data: byNombre } = await supabase
             .from('clientes')
-            .select('id, nombres, telefono')
+            .select('id, nombres, telefono, email, cedula, notas')
             .or(`nombres.ilike.%${q}%,telefono.ilike.%${q}%`)
             .limit(5);
 
@@ -137,7 +138,7 @@ export function PaginaNuevaOrden() {
             if (ids.length) {
                 const { data: clientesPorPlaca } = await supabase
                     .from('clientes')
-                    .select('id, nombres, telefono')
+                    .select('id, nombres, telefono, email, cedula, notas')
                     .in('id', ids);
                 extra = clientesPorPlaca ?? [];
             }
@@ -146,7 +147,7 @@ export function PaginaNuevaOrden() {
         // Unir y deduplicar
         const todos = [...(byNombre ?? []), ...extra];
         const uniq = todos.filter((c, i) => todos.findIndex(x => x.id === c.id) === i);
-        setClientesEncontrados(uniq);
+        setClientesEncontrados(uniq.filter(esClienteRegistrado));
         setBuscandoCliente(false);
     };
 
@@ -173,7 +174,7 @@ export function PaginaNuevaOrden() {
         // 1. Buscar por nombre exacto (case-insensitive), limit(1) para tolerar duplicados ya existentes
         const { data: porNombre } = await supabase
             .from('clientes')
-            .select('id, nombres, telefono')
+            .select('id, nombres, telefono, email, cedula, notas')
             .ilike('nombres', nombreNorm)
             .limit(1);
 
@@ -182,7 +183,7 @@ export function PaginaNuevaOrden() {
         if (!existente && telefonoNorm) {
             const { data: porTel } = await supabase
                 .from('clientes')
-                .select('id, nombres, telefono')
+                .select('id, nombres, telefono, email, cedula, notas')
                 .eq('telefono', telefonoNorm)
                 .limit(1);
             existente = porTel?.[0] ?? null;
@@ -200,7 +201,7 @@ export function PaginaNuevaOrden() {
         const { data, error } = await supabase
             .from('clientes')
             .insert({ nombres: nombreNorm, telefono: telefonoNorm })
-            .select('id, nombres, telefono')
+            .select('id, nombres, telefono, email, cedula, notas')
             .single();
         setSaving(false);
         if (error) {
@@ -259,6 +260,23 @@ export function PaginaNuevaOrden() {
         setBuscandoVehiculo(false);
     };
 
+    const usarClienteDelVehiculo = async (id: string) => {
+        const { data, error } = await supabase
+            .from('clientes')
+            .select('id, nombres, telefono, email, cedula, notas')
+            .eq('id', id)
+            .maybeSingle();
+        if (error) {
+            setErrorMsg('No se pudo comprobar el cliente del vehículo. Intenta nuevamente.');
+            return false;
+        }
+        if (data && esClienteRegistrado(data)) {
+            setClienteId(data.id);
+            setClienteSeleccionado(data);
+        }
+        return true;
+    };
+
     // ── Guardar vehículo (nuevo o usar existente) ─────────────────────────────
     const guardarVehiculo = async () => {
         setErrorMsg(null);
@@ -266,7 +284,7 @@ export function PaginaNuevaOrden() {
             setVehiculoId(vehiculoExistente.id);
             // Usar el cliente del vehículo si no se seleccionó uno
             if (!clienteId && vehiculoExistente.cliente_id) {
-                setClienteId(vehiculoExistente.cliente_id);
+                if (!(await usarClienteDelVehiculo(vehiculoExistente.cliente_id))) return;
             }
             setStep('orden');
             return;
@@ -293,33 +311,11 @@ export function PaginaNuevaOrden() {
             setVehiculoId(existente.id);
             // Usar el cliente del vehículo si no se seleccionó uno
             if (!clienteId && existente.cliente_id) {
-                setClienteId(existente.cliente_id);
+                if (!(await usarClienteDelVehiculo(existente.cliente_id))) return;
             }
             cargarHistorial(existente.id);
             setStep('orden');
             return;
-        }
-
-        let currentClienteId = clienteId;
-
-        // Si no se asignó cliente, creamos uno temporal/anónimo para satisfacer la DB
-        if (!currentClienteId) {
-            const { data: anonCliente, error: errAnon } = await supabase
-                .from('clientes')
-                .insert({
-                    nombres: placaNorm,
-                    notas: 'Generado automáticamente por sistema al omitir cliente',
-                })
-                .select('id')
-                .single();
-            if (errAnon) {
-                setSaving(false);
-                sonidoError();
-                setErrorMsg('Error al generar cliente anónimo: ' + errAnon.message);
-                return;
-            }
-            currentClienteId = anonCliente.id;
-            setClienteId(currentClienteId);
         }
 
         const { data, error } = await supabase
@@ -330,7 +326,7 @@ export function PaginaNuevaOrden() {
                 modelo: sanitizarTexto(vModelo) || null,
                 anio: vAnio ? parseInt(vAnio) : null,
                 color: sanitizarTexto(vColor) || null,
-                cliente_id: currentClienteId,
+                cliente_id: clienteId,
             })
             .select('id')
             .single();
@@ -699,7 +695,7 @@ export function PaginaNuevaOrden() {
                             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(15,23,42,0.04)] border border-[rgba(15,23,42,0.08)]">
                                 <User className="w-3.5 h-3.5 text-[rgba(11,18,32,0.40)] flex-shrink-0" />
                                 <span className="text-xs font-medium text-[rgba(11,18,32,0.50)]">
-                                    Cliente anónimo (No registrado)
+                                    Sin datos del cliente · No se creará un contacto
                                 </span>
                             </div>
                         )}

@@ -151,11 +151,11 @@ serve(async (req: Request) => {
 
         // 2. Obtener cliente y vehículo (queries separadas, sin FK joins)
         const [{ data: cliente }, { data: vehiculo }] = await Promise.all([
-            supabase
+            orden.cliente_id ? supabase
                 .from('clientes')
                 .select('nombres, telefono')
                 .eq('id', orden.cliente_id)
-                .single(),
+                .single() : Promise.resolve({ data: null }),
             supabase
                 .from('vehiculos')
                 .select('marca, modelo, anio, color, placa')

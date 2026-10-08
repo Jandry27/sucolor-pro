@@ -105,7 +105,7 @@ export interface AdminOrder {
     precio_total: number | null;
     monto_pagado: number | null;
     updated_at: string;
-    cliente_id: string;
+    cliente_id: string | null;
     vehiculo_id: string;
     cliente: Cliente;
     vehiculo: Vehiculo;

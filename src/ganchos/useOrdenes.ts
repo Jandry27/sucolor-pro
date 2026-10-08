@@ -119,7 +119,7 @@ export function useOrdenes(filterEstado?: OrderStatus) {
             // Step 3: merge
             const merged: AdminOrder[] = ordenes.map(o => ({
                 ...o,
-                cliente: clienteMap[o.cliente_id] ?? { id: o.cliente_id, nombres: '—' },
+                cliente: (o.cliente_id ? clienteMap[o.cliente_id] : null) ?? { id: o.cliente_id ?? '', nombres: 'Sin datos del cliente', created_at: '' },
                 vehiculo: vehiculoMap[o.vehiculo_id] ?? {
                     id: o.vehiculo_id,
                     marca: '—',

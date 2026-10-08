@@ -1,0 +1,151 @@
+.admin-pinturas main {
+    background-color: #f3ece2;
+    background-image:
+        radial-gradient(ellipse at 85% 5%, #ffdab0 0%, transparent 45%),
+        radial-gradient(ellipse at 5% 65%, #fbd9be 0%, transparent 38%),
+        linear-gradient(rgba(166, 112, 57, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(166, 112, 57, 0.045) 1px, transparent 1px);
+    background-size:
+        auto,
+        auto,
+        48px 48px,
+        48px 48px;
+}
+
+.pinturas-trazos {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    stroke: #d98337;
+    stroke-width: 1.5;
+    opacity: 0.22;
+}
+
+.pinturas-portada {
+    background: linear-gradient(120deg, rgba(255, 250, 243, 0.96), rgba(255, 234, 208, 0.9));
+    box-shadow:
+        0 16px 48px -28px rgba(125, 72, 29, 0.3),
+        inset 0 1px 0 #fff;
+}
+
+.pinturas-ilustracion {
+    background: #fff6e8;
+    box-shadow: 0 12px 32px -18px rgba(145, 75, 24, 0.4);
+}
+
+.pinturas-superficie {
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 28px;
+    background: rgba(255, 250, 244, 0.72);
+    box-shadow: 0 16px 48px -32px rgba(84, 57, 28, 0.25);
+}
+
+.pinturas-tarjeta {
+    @apply rounded-[24px] border border-orange-200/40 bg-white/85 shadow-[0_8px_28px_-16px_rgba(125,72,29,0.16)] dark:border-slate-700 dark:bg-slate-900;
+}
+
+.pinturas-proveedor {
+    @apply relative overflow-hidden transition-colors hover:border-orange-300 hover:bg-orange-50/40 dark:hover:border-orange-700 dark:hover:bg-slate-800;
+}
+
+.pinturas-proveedor::before {
+    content: '';
+    @apply absolute inset-y-6 left-0 w-1 rounded-r-full bg-orange-400;
+}
+
+.pinturas-campo {
+    @apply min-w-0 rounded-xl border border-slate-200 bg-[#F7F8FA] px-3 py-3 text-base text-slate-800 placeholder:text-slate-400 transition-colors focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:bg-slate-900;
+}
+
+.pinturas-campo-busqueda {
+    padding-inline: 2.5rem;
+}
+
+.pinturas-boton-primario {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#EA6C0A] disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.pinturas-boton-oscuro {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#111111] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600;
+}
+
+.pinturas-boton-secundario {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-orange-200 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
+}
+
+.pinturas-modulo button:focus-visible,
+.pinturas-panel:focus-visible {
+    outline: 2px solid #f97316;
+    outline-offset: 3px;
+}
+
+.dark .admin-pinturas main {
+    background-color: #101827;
+    background-image:
+        radial-gradient(ellipse at 85% 5%, rgba(137, 71, 27, 0.3), transparent 45%),
+        linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px);
+    background-size:
+        auto,
+        48px 48px,
+        48px 48px;
+}
+
+.dark .pinturas-portada,
+.dark .pinturas-superficie {
+    background: rgba(30, 41, 59, 0.88);
+    border-color: #334155;
+    box-shadow: 0 16px 48px -28px rgba(0, 0, 0, 0.4);
+}
+
+.dark .pinturas-modulo .text-slate-500 {
+    color: #94a3b8;
+}
+
+@supports (backdrop-filter: blur(12px)) {
+    .pinturas-superficie {
+        backdrop-filter: blur(12px);
+    }
+}
+
+@media (max-width: 639px) {
+    .pinturas-inventario,
+    .pinturas-inventario tbody {
+        display: block;
+    }
+
+    .pinturas-inventario thead {
+        @apply sr-only;
+    }
+
+    .pinturas-inventario tr {
+        display: grid;
+        padding: 16px;
+    }
+
+    .pinturas-inventario td {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 8px 0;
+        overflow-wrap: anywhere;
+    }
+
+    .pinturas-inventario td::before {
+        content: attr(data-label);
+        @apply shrink-0 text-xs font-medium text-slate-500 dark:text-slate-400;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pinturas-modulo *,
+    .pinturas-modulo *::before,
+    .pinturas-modulo *::after {
+        transition: none !important;
+    }
+}

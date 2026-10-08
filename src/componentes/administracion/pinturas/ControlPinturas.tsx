@@ -12,8 +12,7 @@ import { useSolicitudesPintura } from '@/ganchos/useSolicitudesPintura';
 import { FormularioSolicitudPintura } from './FormularioSolicitudPintura';
 
 const inicial: FiltrosPintura = { busqueda: '', proveedor: '', estado: '', desde: '', hasta: '' };
-const control =
-    'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-base';
+const control = 'pinturas-campo w-full';
 const dinero = (valor: number) =>
     new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' }).format(valor);
 export function ControlPinturas() {
@@ -72,7 +71,7 @@ export function ControlPinturas() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-xl font-bold">Encargos de pintura</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">Encargos de pintura</h2>
                     <p className="text-sm text-slate-500 mt-1">
                         Pide el color, acuerda la hora y registra la recogida.
                     </p>
@@ -83,7 +82,7 @@ export function ControlPinturas() {
                         setMensaje('');
                         setModal({ solicitud: null });
                     }}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 font-semibold text-white disabled:opacity-50"
+                    className="pinturas-boton-primario"
                 >
                     <Plus size={18} />
                     Nueva solicitud
@@ -94,22 +93,19 @@ export function ControlPinturas() {
                     {mensaje}
                 </p>
             )}
-            <div className="flex justify-between items-center gap-3">
+            <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                 <p className="text-sm text-slate-500">
                     Pedidos y tapas en cada local · todo el historial
                 </p>
                 <button
                     onClick={() => setGestion(!gestion)}
-                    className="text-sm text-orange-700 dark:text-orange-400 py-2 font-semibold"
+                    className="pinturas-boton-secundario text-sm"
                 >
                     {gestion ? 'Cerrar proveedores' : 'Gestionar proveedores'}
                 </button>
             </div>
             {gestion && (
-                <form
-                    onSubmit={guardarProveedor}
-                    className="rounded-2xl border dark:border-slate-700 p-4 space-y-3"
-                >
+                <form onSubmit={guardarProveedor} className="pinturas-tarjeta p-5 space-y-4">
                     <h3 className="font-semibold">Locales / proveedores</h3>
                     <div className="flex gap-2 flex-wrap">
                         {proveedores.map(p => (
@@ -141,7 +137,7 @@ export function ControlPinturas() {
                         </label>
                         <button
                             disabled={guardandoProveedor}
-                            className="self-end rounded-xl bg-slate-800 text-white px-4 py-3"
+                            className="self-end pinturas-boton-oscuro"
                         >
                             {guardandoProveedor ? 'Guardando…' : 'Guardar proveedor'}
                         </button>
@@ -190,14 +186,18 @@ export function ControlPinturas() {
                                         estado: 'en_preparacion',
                                     })
                                 }
-                                className="text-left rounded-2xl border border-orange-200 dark:border-orange-900 bg-gradient-to-br from-orange-50 to-white dark:from-slate-800 dark:to-slate-900 p-5 hover:border-orange-500 transition"
+                                className="pinturas-tarjeta pinturas-proveedor text-left p-5 sm:p-6"
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="font-semibold text-lg">{p.nombre}</span>
+                                    <span className="font-semibold text-lg break-words">
+                                        {p.nombre}
+                                    </span>
                                     <Package size={21} className="text-orange-600" />
                                 </div>
                                 <p className="mt-4">
-                                    <strong className="text-4xl">{p.pedidos_por_recoger}</strong>
+                                    <strong className="text-4xl tracking-tight">
+                                        {p.pedidos_por_recoger}
+                                    </strong>
                                     <span className="ml-2 text-sm text-slate-500">
                                         pinturas por recoger
                                     </span>
@@ -231,7 +231,7 @@ export function ControlPinturas() {
                         key={valor}
                         aria-pressed={filtros.estado === valor}
                         onClick={() => filtrar({ ...filtros, estado: valor })}
-                        className={`rounded-xl px-4 py-3 text-sm font-semibold ${filtros.estado === valor ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-800'}`}
+                        className={`rounded-xl px-4 py-3 text-sm font-semibold ${filtros.estado === valor ? 'bg-[#111111] text-white dark:bg-orange-500' : 'bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700'}`}
                     >
                         {etiqueta}
                     </button>
@@ -242,7 +242,7 @@ export function ControlPinturas() {
                     e.preventDefault();
                     filtrar(borrador);
                 }}
-                className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                className="pinturas-tarjeta p-5 sm:p-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
             >
                 <label className="text-sm">
                     Buscar
@@ -304,12 +304,12 @@ export function ControlPinturas() {
                         className={control}
                     />
                 </label>
-                <div className="flex items-end gap-2">
-                    <button className="rounded-xl bg-slate-800 text-white px-4 py-3">Buscar</button>
+                <div className="flex flex-wrap items-end gap-2">
+                    <button className="pinturas-boton-oscuro">Buscar</button>
                     <button
                         type="button"
                         onClick={() => filtrar(inicial)}
-                        className="rounded-xl border px-3 py-3"
+                        className="pinturas-boton-secundario"
                     >
                         Limpiar
                     </button>
@@ -317,7 +317,7 @@ export function ControlPinturas() {
                         type="button"
                         aria-label="Actualizar pedidos"
                         onClick={recargar}
-                        className="p-3"
+                        className="pinturas-boton-secundario"
                     >
                         <RefreshCw size={18} />
                     </button>
@@ -340,9 +340,9 @@ export function ControlPinturas() {
                         {solicitudes.map(s => (
                             <article
                                 key={s.id}
-                                className="min-w-0 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3"
+                                className="pinturas-tarjeta min-w-0 p-5 sm:p-6 space-y-3"
                             >
-                                <div className="flex justify-between items-start gap-2">
+                                <div className="flex flex-wrap justify-between items-start gap-2">
                                     <div className="min-w-0">
                                         <p className="font-mono font-bold tracking-wide text-lg break-words">
                                             {s.placa}
@@ -431,11 +431,11 @@ export function ControlPinturas() {
                             </article>
                         ))}
                     </div>
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                         <button
                             disabled={!pagina}
                             onClick={() => setPagina(p => p - 1)}
-                            className="border rounded-xl px-4 py-2 disabled:opacity-40"
+                            className="pinturas-boton-secundario disabled:opacity-40"
                         >
                             Anterior
                         </button>
@@ -446,7 +446,7 @@ export function ControlPinturas() {
                         <button
                             disabled={(pagina + 1) * TAMANO_PAGINA_PINTURAS >= total}
                             onClick={() => setPagina(p => p + 1)}
-                            className="border rounded-xl px-4 py-2 disabled:opacity-40"
+                            className="pinturas-boton-secundario disabled:opacity-40"
                         >
                             Siguiente
                         </button>

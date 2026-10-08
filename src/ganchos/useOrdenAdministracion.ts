@@ -77,13 +77,13 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
 
             // Fetch cliente & vehiculo in parallel
             const [{ data: cliente }, { data: vehiculo }] = await Promise.all([
-                supabase
+                ord.cliente_id ? supabase
                     .from('clientes')
                     .select(
                         'id, nombres, telefono, email, cedula, direccion, tipo_identificacion, notas, created_at'
                     )
                     .eq('id', ord.cliente_id)
-                    .single(),
+                    .single() : Promise.resolve({ data: null }),
                 supabase
                     .from('vehiculos')
                     .select('id, anio, color, marca, placa, modelo')
@@ -93,7 +93,7 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
 
             setOrder({
                 ...ord,
-                cliente: cliente ?? { id: ord.cliente_id, nombres: '—', created_at: '' },
+                cliente: cliente ?? { id: ord.cliente_id ?? '', nombres: 'Sin datos del cliente', created_at: '' },
                 vehiculo: vehiculo ?? {
                     id: ord.vehiculo_id,
                     marca: '—',
@@ -214,7 +214,7 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                         cliente: {
                             ...prev.cliente,
                             ...(updates.nombres !== undefined && {
-                                nombres: updates.nombres || 'Cliente anónimo (No registrado)',
+                                nombres: updates.nombres || 'Sin datos del cliente',
                             }),
                             ...(updates.telefono !== undefined && { telefono: updates.telefono }),
                         },

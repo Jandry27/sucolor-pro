@@ -9,8 +9,7 @@ import {
     type SolicitudPintura,
 } from '@/biblioteca/solicitudesPintura';
 
-const campo =
-    'mt-1 w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-3 text-base';
+const campo = 'pinturas-campo mt-2 w-full';
 export function FormularioSolicitudPintura({
     solicitud,
     proveedores,
@@ -83,10 +82,10 @@ export function FormularioSolicitudPintura({
                 e.preventDefault();
                 if (!bloqueo.current) cerrar();
             }}
-            className="m-auto w-[calc(100%_-_2rem)] max-w-xl max-h-[90dvh] rounded-2xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-0 backdrop:bg-black/50"
+            className="m-auto w-[calc(100%_-_2rem)] max-w-xl max-h-[90dvh] overflow-y-auto rounded-[24px] border border-slate-200 shadow-2xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-0 backdrop:bg-slate-950/50 backdrop:backdrop-blur-sm"
         >
             <form onSubmit={guardar} className="p-5 sm:p-6 space-y-4">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-3 border-b border-orange-100 pb-4 dark:border-slate-700">
                     <h2 id="titulo-solicitud" className="text-xl font-bold">
                         {solicitud ? 'Editar solicitud' : 'Nueva solicitud de pintura'}
                     </h2>
@@ -95,7 +94,7 @@ export function FormularioSolicitudPintura({
                         aria-label="Cerrar formulario"
                         disabled={guardando}
                         onClick={cerrar}
-                        className="p-3"
+                        className="pinturas-boton-secundario"
                     >
                         <X size={20} />
                     </button>
@@ -381,14 +380,11 @@ export function FormularioSolicitudPintura({
                         <button
                             type="button"
                             onClick={cerrar}
-                            className="rounded-xl border px-4 py-3"
+                            className="pinturas-boton-secundario"
                         >
                             Cancelar
                         </button>
-                        <button
-                            type="submit"
-                            className="rounded-xl bg-orange-600 text-white font-semibold px-4 py-3"
-                        >
+                        <button type="submit" className="pinturas-boton-primario">
                             {guardando ? 'Guardando…' : 'Guardar solicitud'}
                         </button>
                     </div>

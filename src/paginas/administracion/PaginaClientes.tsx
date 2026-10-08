@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Loader2, AlertTriangle, Phone, Users, Trash2, Edit2, X, Save, CalendarDays, GitMerge, Copy } from 'lucide-react';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
+import { esClienteRegistrado } from '@/biblioteca/clientes';
 import type { Cliente } from '@/tipos';
 import { sonidoDetallesGuardados, sonidoOrdenEliminada, sonidoError } from '@/biblioteca/sonidos';
 import { useNotif } from '@/componentes/SistemaNotificaciones';
@@ -92,7 +93,7 @@ export function PaginaClientes() {
             .order('nombres', { ascending: true })
             .then(({ data, error: err }) => {
                 if (err) setError('No se pudo cargar los clientes.');
-                else setClientes(data ?? []);
+                else setClientes((data ?? []).filter(esClienteRegistrado));
                 setLoading(false);
             });
     }, []);

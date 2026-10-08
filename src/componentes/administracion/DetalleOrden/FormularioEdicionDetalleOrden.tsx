@@ -33,7 +33,7 @@ export function FormularioEdicionDetalleOrden({
     useEffect(() => {
         const clienteNombre = (order.cliente as any).nombres;
         setNombres(
-            clienteNombre === 'Cliente anónimo (No registrado)' || clienteNombre === '—'
+            !order.cliente_id || clienteNombre === 'Cliente anónimo (No registrado)' || clienteNombre === '—'
                 ? ''
                 : clienteNombre
         );
@@ -72,7 +72,7 @@ export function FormularioEdicionDetalleOrden({
                     />
                     {!order.cliente_id && (
                         <p className="text-[10px] text-orange-500 mt-1">
-                            Orden registrada sin cliente (Anónimo)
+                            Orden registrada sin datos del cliente
                         </p>
                     )}
                 </div>
