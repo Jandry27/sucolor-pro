@@ -69,11 +69,7 @@ export function PaginaConfiguracion() {
                 const { error: uploadError } = await supabase.storage
                     .from('firmas')
                     .upload(filePath, p12File);
-                if (uploadError)
-                    console.warn(
-                        'Supabase storage upload failed, ignoring for local test:',
-                        uploadError.message
-                    );
+                if (uploadError) throw new Error('No se pudo guardar la firma electrónica: ' + uploadError.message);
 
                 p12Path = filePath;
             }

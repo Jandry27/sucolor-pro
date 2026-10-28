@@ -19,7 +19,7 @@ export function RutaProtegida({ children }: RutaProtegidaProps) {
     }
 
     if (!user) {
-        return <Navigate to="/administracion/login" replace />;
+        return <Navigate to="/admin" replace />;
     }
 
     return <>{children}</>;

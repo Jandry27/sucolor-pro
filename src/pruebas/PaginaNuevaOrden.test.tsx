@@ -10,6 +10,7 @@ const {
     insertarVehiculo,
     buscarCliente,
     insertarCliente,
+    insertarFoto,
 } = vi.hoisted(() => ({
     insertarOrden: vi.fn(),
     guardarOrden: vi.fn(),
@@ -17,6 +18,7 @@ const {
     insertarVehiculo: vi.fn(),
     buscarCliente: vi.fn(),
     insertarCliente: vi.fn(),
+    insertarFoto: vi.fn(),
 }));
 vi.mock('@/componentes/administracion/DisenoAdministracion', () => ({
     DisenoAdministracion: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -35,7 +37,7 @@ vi.mock('@/biblioteca/clienteSupabase', () => ({
                     select: () => ({ eq: () => ({ maybeSingle: buscarCliente }) }),
                     insert: insertarCliente,
                 };
-            if (tabla === 'media') return { insert: async () => ({ error: null }) };
+            if (tabla === 'media') return { insert: insertarFoto };
             return {
                 insert: insertarOrden,
                 select: () => ({
@@ -74,6 +76,7 @@ async function prepararOrden(conFoto = false) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    insertarFoto.mockReset().mockResolvedValue({ error: null });
     buscarVehiculo.mockResolvedValue({
         data: { id: 'vehiculo-1', placa: 'ABC-1234', marca: 'Toyota', cliente_id: 'cliente-1' },
     });
@@ -95,6 +98,17 @@ afterEach(() => {
 });
 
 describe('Creación de órdenes sin envíos duplicados', () => {
+    it('avisa si Cloudinary sube la foto pero la base de datos rechaza su registro', async () => {
+        insertarFoto.mockResolvedValueOnce({ error: { message: 'Permiso denegado' } });
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ secure_url: 'https://example.com/foto.jpg' }),
+        }));
+        fireEvent.click(await prepararOrden(true));
+        expect(await screen.findByText('¡Orden creada!')).toBeInTheDocument();
+        expect(screen.getByText(/La foto se subió, pero no se guardó en la orden: Permiso denegado/)).toBeInTheDocument();
+        expect(insertarOrden).toHaveBeenCalledTimes(1);
+    });
     it('envía una sola orden ante clics repetidos mientras espera la respuesta', async () => {
         const respuesta = pendiente<typeof creada>();
         guardarOrden.mockReturnValue(respuesta.promesa);

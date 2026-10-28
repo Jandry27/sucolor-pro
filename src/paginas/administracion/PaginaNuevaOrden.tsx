@@ -398,7 +398,7 @@ export function PaginaNuevaOrden() {
                 if (!secureUrl) throw new Error('Cloudinary no devolvió una secure_url');
 
                 // Guardar la URL optimizada en la base de datos (anulando bucket y path de supabase)
-                await supabase.from('media').insert({
+                const { error: errorFoto } = await supabase.from('media').insert({
                     orden_id: oid,
                     tipo: 'FOTO',
                     categoria: 'ANTES',
@@ -406,6 +406,7 @@ export function PaginaNuevaOrden() {
                     storage_path: null,
                     url: secureUrl,
                 });
+                if (errorFoto) throw new Error('La foto se subió, pero no se guardó en la orden: ' + errorFoto.message);
             } catch (err: any) {
                 setPhotoError(`Error al subir foto: ${err.message}`);
                 console.error('Cloudinary upload error:', err);

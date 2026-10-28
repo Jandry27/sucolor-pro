@@ -13,6 +13,7 @@ import { TarjetaEstadoDetalleOrden } from '@/componentes/administracion/DetalleO
 import { TarjetaNotasDetalleOrden } from '@/componentes/administracion/DetalleOrden/TarjetaNotasDetalleOrden';
 import { useOrdenAdministracion } from '@/ganchos/useOrdenAdministracion';
 import { useNotif } from '@/componentes/SistemaNotificaciones';
+import { crearEnlaceSeguimiento } from '@/biblioteca/rutas';
 
 export function PaginaDetalleOrden() {
     const { id } = useParams<{ id: string }>();
@@ -60,16 +61,15 @@ export function PaginaDetalleOrden() {
 
     const handleCopyLink = () => {
         if (!order?.share_token) return;
-        const baseUrl = window.location.origin + window.location.pathname.replace(/\/admin.*/, '');
         navigator.clipboard.writeText(
-            `${baseUrl}#/track/${order.codigo}?token=${order.share_token}`
+            crearEnlaceSeguimiento(order.codigo, order.share_token)
         );
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
     const trackUrl = order?.share_token
-        ? `${window.location.origin}${window.location.pathname.replace(/\/admin.*/, '')}#/track/${order.codigo}?token=${order.share_token}`
+        ? crearEnlaceSeguimiento(order.codigo, order.share_token)
         : null;
 
     if (loading)

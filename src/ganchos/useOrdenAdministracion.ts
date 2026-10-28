@@ -181,13 +181,14 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                     order.cliente_id &&
                     (updates.nombres !== undefined || updates.telefono !== undefined)
                 ) {
-                    await supabase
+                    const { error: errorCliente } = await supabase
                         .from('clientes')
                         .update({
                             ...(updates.nombres !== undefined && { nombres: sanitizarTexto(updates.nombres) }),
                             ...(updates.telefono !== undefined && { telefono: sanitizarTelefono(updates.telefono) }),
                         })
                         .eq('id', order.cliente_id);
+                    if (errorCliente) throw errorCliente;
                 }
                 if (
                     order.vehiculo_id &&
@@ -195,7 +196,7 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                         updates.marca !== undefined ||
                         updates.modelo !== undefined)
                 ) {
-                    await supabase
+                    const { error: errorVehiculo } = await supabase
                         .from('vehiculos')
                         .update({
                             ...(updates.placa !== undefined && {
@@ -205,6 +206,7 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                             ...(updates.modelo !== undefined && { modelo: sanitizarTexto(updates.modelo) }),
                         })
                         .eq('id', order.vehiculo_id);
+                    if (errorVehiculo) throw errorVehiculo;
                 }
 
                 setOrder(prev => {
@@ -231,6 +233,7 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                 sonidoDetallesGuardados();
             } catch (e) {
                 console.error('Error updating details:', e);
+                setError('No se pudieron guardar los datos del cliente o vehículo. Recarga la orden para revisar los datos guardados.');
                 sonidoError();
             } finally {
                 setSaving(false);
@@ -246,11 +249,13 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
             setSaving(true);
             try {
                 const notasSanitizadas = notas ? sanitizarTexto(notas) : null;
-                await supabase.from('ordenes').update({ notas_publicas: notasSanitizadas }).eq('id', order.id);
+                const { error: errorNotas } = await supabase.from('ordenes').update({ notas_publicas: notasSanitizadas }).eq('id', order.id);
+                if (errorNotas) throw errorNotas;
                 setOrder(prev => (prev ? { ...prev, notas_publicas: notasSanitizadas } : prev));
                 sonidoBitacoraGuardada();
             } catch (e) {
                 console.error('Error updating notes:', e);
+                setError('No se pudo guardar la descripción de la orden.');
                 sonidoError();
             } finally {
                 setSaving(false);
@@ -274,14 +279,16 @@ export function useOrdenAdministracion(id: string | undefined): UseAdminOrderRet
                 const updatedNotes = order.notas_publicas
                     ? `${newLine}\n${order.notas_publicas}`
                     : newLine;
-                await supabase
+                const { error: errorNota } = await supabase
                     .from('ordenes')
                     .update({ notas_publicas: updatedNotes })
                     .eq('id', order.id);
+                if (errorNota) throw errorNota;
                 setOrder(prev => (prev ? { ...prev, notas_publicas: updatedNotes } : prev));
                 sonidoBitacoraEntrada();
             } catch (e) {
                 console.error('Error adding note entry:', e);
+                setError('No se pudo guardar la entrada de la bitácora.');
                 sonidoError();
             } finally {
                 setSaving(false);

@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react';
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { enviarVistaPagina } from '@/biblioteca/googleAnalytics';
 
 import { PaginaInicio } from '@/paginas/PaginaInicio';
 import { RutaProtegida } from '@/componentes/administracion/RutaProtegida';
@@ -67,6 +68,19 @@ const PaginaPinturas = lazy(() =>
     }))
 );
 
+function RegistrarNavegacion() {
+    const { pathname, search, hash } = useLocation();
+    useEffect(() => {
+        document.title = pathname === '/admin' || pathname.startsWith('/administracion/')
+            ? 'Administración | SuColor'
+            : pathname.startsWith('/track/')
+                ? 'Seguimiento de tu vehículo | SuColor'
+                : 'SuColor — Taller Automotriz en Loja';
+        enviarVistaPagina();
+    }, [pathname, search, hash]);
+    return null;
+}
+
 function CargandoRuta() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-[#FAFAF9]">
@@ -83,7 +97,8 @@ export default function App() {
     return (
         <ProveedorTema>
             <ProveedorNotificaciones>
-                <HashRouter>
+                <BrowserRouter>
+                    <RegistrarNavegacion />
                     <Suspense fallback={<CargandoRuta />}>
                         <Routes>
                             {/* ── Public ──────────────────────────────────────────────── */}
@@ -92,7 +107,7 @@ export default function App() {
 
                             {/* ── Admin ───────────────────────────────────────────────── */}
                             <Route
-                                path="/administracion/login"
+                                path="/admin"
                                 element={<PaginaInicioSesion />}
                             />
                             <Route
@@ -170,15 +185,15 @@ export default function App() {
 
                             {/* ── Legacy redirect ─────────────────────────────────────── */}
                             <Route
-                                path="/admin"
-                                element={<Navigate to="/administracion/orders" replace />}
+                                path="/administracion/login"
+                                element={<Navigate to="/admin" replace />}
                             />
 
                             {/* ── Catch-all ───────────────────────────────────────────── */}
                             <Route path="*" element={<PaginaNoEncontrada />} />
                         </Routes>
                     </Suspense>
-                </HashRouter>
+                </BrowserRouter>
             </ProveedorNotificaciones>
         </ProveedorTema>
     );

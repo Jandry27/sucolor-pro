@@ -42,7 +42,7 @@ export function DisenoAdministracion({
 
     const handleLogout = async () => {
         await logout();
-        navigate('/administracion/login');
+        navigate('/admin');
     };
 
     const SidebarContent = () => (

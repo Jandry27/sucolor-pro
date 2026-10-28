@@ -1,0 +1,101 @@
+BEGIN;
+CREATE TEMP TABLE resultados_revision (prueba text, correcto boolean);
+GRANT ALL ON resultados_revision TO authenticated, anon;
+SELECT set_config('request.jwt.claim.sub',(SELECT user_id::text FROM public.user_roles WHERE role='admin' LIMIT 1),true);
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE c uuid; v uuid; o uuid; f uuid; m uuid; g uuid; p uuid; pr uuid; s uuid; token text;
+BEGIN
+ IF NOT public.is_admin() THEN RAISE EXCEPTION 'No es administrador'; END IF;
+ INSERT INTO clientes(nombres,telefono) VALUES ('QA TEMPORAL','0990000000') RETURNING id INTO c;
+ UPDATE clientes SET nombres='QA EDITADO',telefono='0990000001',email='qa@example.invalid',cedula='0000000000',direccion='PRUEBA' WHERE id=c;
+ IF NOT EXISTS(SELECT 1 FROM clientes WHERE id=c AND telefono='0990000001') THEN RAISE EXCEPTION 'Edición cliente'; END IF;
+ INSERT INTO resultados_revision VALUES ('Cliente: crear, leer y editar teléfono/datos',true);
+ INSERT INTO vehiculos(cliente_id,placa,marca,modelo,color,anio) VALUES(c,'QA-0001','PRUEBA',null,null,null) RETURNING id INTO v;
+ UPDATE vehiculos SET marca='EDITADA',modelo='MODELO',color='AZUL',anio=2026,placa='QA-0002' WHERE id=v;
+ IF NOT EXISTS(SELECT 1 FROM vehiculos WHERE id=v AND placa='QA-0002') THEN RAISE EXCEPTION 'Edición vehículo'; END IF;
+ INSERT INTO resultados_revision VALUES ('Vehículo: opcionales vacíos y edición',true);
+ INSERT INTO ordenes(cliente_id,vehiculo_id,precio_total,monto_entrada,monto_pagado) VALUES(c,v,115,20,20) RETURNING id,share_token INTO o,token;
+ IF token IS NULL OR length(token)<20 THEN RAISE EXCEPTION 'Falta token'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM ordenes WHERE id=o AND codigo ~ '^SC-[0-9]{4}-[0-9]+$') THEN RAISE EXCEPTION 'Falta código'; END IF;
+ FOREACH token IN ARRAY ARRAY['LATONERIA','PREPARACION','PINTURA','SECADO','PULIDO_DETALLES','TERMINADO','ENTREGADO','RECIBIDO'] LOOP
+ UPDATE ordenes SET estado=token::orden_estado WHERE id=o;
+ END LOOP;
+ UPDATE ordenes SET prioridad='URGENTE',fecha_estimada=CURRENT_DATE+5,notas_publicas='QA publica',notas_internas='QA privada',precio_total=230,monto_pagado=50,share_enabled=false WHERE id=o;
+ IF NOT EXISTS(SELECT 1 FROM ordenes WHERE id=o AND monto_pagado=50 AND NOT share_enabled) THEN RAISE EXCEPTION 'Edición orden'; END IF;
+ INSERT INTO resultados_revision VALUES ('Orden: código, token, estados, edición, pagos y compartir',true);
+ INSERT INTO media(orden_id,url,categoria) VALUES(o,'https://example.invalid/qa.png','ANTES') RETURNING id INTO m;
+ UPDATE media SET categoria='DESPUES',caption='QA editada' WHERE id=m;
+ IF NOT EXISTS(SELECT 1 FROM media WHERE id=m AND categoria='DESPUES') THEN RAISE EXCEPTION 'Edición foto'; END IF;
+ DELETE FROM media WHERE id=m;
+ IF EXISTS(SELECT 1 FROM media WHERE id=m) THEN RAISE EXCEPTION 'Borrado foto'; END IF;
+ INSERT INTO resultados_revision VALUES ('Fotos: guardar vínculo, leer, editar y eliminar registro',true);
+ INSERT INTO orden_gastos(orden_id,descripcion,monto) VALUES(o,'QA gasto',10) RETURNING id INTO g;
+ UPDATE orden_gastos SET monto=15 WHERE id=g;
+ DELETE FROM orden_gastos WHERE id=g;
+ IF EXISTS(SELECT 1 FROM orden_gastos WHERE id=g) THEN RAISE EXCEPTION 'Gasto'; END IF;
+ INSERT INTO resultados_revision VALUES ('Gastos: crear, editar y borrar',true);
+ INSERT INTO invoices(orden_id,secuencial,estado,importe_total,xml_generado) VALUES(o,'QA-TEMPORAL','CREADA',115,'<factura/>') RETURNING id INTO f;
+ INSERT INTO invoice_items(invoice_id,codigo_principal,descripcion,cantidad,precio_unitario,precio_total_sin_impuestos) VALUES(f,'QA','PRUEBA',1,100,100);
+ UPDATE invoices SET estado='RECHAZADA',mensajes_sri='{"prueba":true}' WHERE id=f;
+ IF NOT EXISTS(SELECT 1 FROM invoices WHERE id=f AND estado='RECHAZADA') THEN RAISE EXCEPTION 'Factura'; END IF;
+ INSERT INTO resultados_revision VALUES ('Facturas: guardar, leer, editar e ítems, sin envío SRI',true);
+ DELETE FROM clientes WHERE id=c;
+ IF EXISTS(SELECT 1 FROM clientes WHERE id=c) OR NOT EXISTS(SELECT 1 FROM ordenes WHERE id=o AND cliente_id IS NULL) OR NOT EXISTS(SELECT 1 FROM vehiculos WHERE id=v AND cliente_id IS NULL) THEN RAISE EXCEPTION 'Relaciones al borrar cliente'; END IF;
+ INSERT INTO resultados_revision VALUES ('Eliminar cliente conserva vehículo y orden sin referencias huérfanas',true);
+ INSERT INTO media(orden_id,url) VALUES(o,'https://example.invalid/qa.png');
+ INSERT INTO orden_gastos(orden_id,descripcion,monto) VALUES(o,'QA cascada',1);
+ DELETE FROM ordenes WHERE id=o;
+ IF EXISTS(SELECT 1 FROM media WHERE orden_id=o) OR EXISTS(SELECT 1 FROM orden_gastos WHERE orden_id=o) OR NOT EXISTS(SELECT 1 FROM invoices WHERE id=f AND orden_id IS NULL) THEN RAISE EXCEPTION 'Cascada orden'; END IF;
+ INSERT INTO resultados_revision VALUES ('Eliminar orden borra fotos/gastos y conserva factura',true);
+ INSERT INTO ordenes(codigo,vehiculo_id) VALUES('QA-CASCADA',v) RETURNING id INTO o;
+ INSERT INTO media(orden_id,url) VALUES(o,'https://example.invalid/qa.png');
+ DELETE FROM vehiculos WHERE id=v;
+ IF EXISTS(SELECT 1 FROM ordenes WHERE id=o) OR EXISTS(SELECT 1 FROM media WHERE orden_id=o) THEN RAISE EXCEPTION 'Cascada vehículo'; END IF;
+ INSERT INTO resultados_revision VALUES ('Eliminar vehículo borra órdenes y sus fotos',true);
+ DELETE FROM invoices WHERE id=f;
+ IF EXISTS(SELECT 1 FROM invoice_items WHERE invoice_id=f) THEN RAISE EXCEPTION 'Ítems huérfanos'; END IF;
+ INSERT INTO inventario_pinturas(placa,color,codigo_color) VALUES('QA-0001','QA','QA') RETURNING id INTO p;
+ UPDATE inventario_pinturas SET color='QA EDITADA' WHERE id=p;
+ DELETE FROM inventario_pinturas WHERE id=p;
+ INSERT INTO proveedores_pintura(nombre) VALUES('QA TEMPORAL') RETURNING id INTO pr;
+ INSERT INTO solicitudes_pintura(proveedor_id,placa,color,fecha_solicitud,muestras_dejadas) VALUES(pr,'QA-0001','QA',CURRENT_DATE,2) RETURNING id INTO s;
+ UPDATE solicitudes_pintura SET muestras_retiradas=1,estado_pedido='recogida',valor=10,pagado=true WHERE id=s;
+ IF NOT EXISTS(SELECT 1 FROM solicitudes_pintura WHERE id=s AND muestras_pendientes=1 AND version=2) THEN RAISE EXCEPTION 'Pinturas'; END IF;
+ DELETE FROM solicitudes_pintura WHERE id=s;
+ DELETE FROM proveedores_pintura WHERE id=pr;
+ INSERT INTO resultados_revision VALUES ('Pinturas: inventario, proveedores, solicitudes, versión y borrado',true);
+ INSERT INTO audit_log(user_id,action,table_name) VALUES(auth.uid(),'QA','QA') RETURNING id INTO g;
+ DELETE FROM audit_log WHERE id=g;
+ INSERT INTO resultados_revision VALUES ('Auditoría: escritura por administrador',true);
+END $$;
+RESET ROLE;
+SELECT set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
+SET LOCAL ROLE authenticated;
+DO $$
+BEGIN
+ IF public.is_admin() THEN RAISE EXCEPTION 'Usuario ajeno reconocido admin'; END IF;
+ IF EXISTS(SELECT 1 FROM clientes) OR EXISTS(SELECT 1 FROM company_settings) THEN RAISE EXCEPTION 'Filtración a no admin'; END IF;
+ BEGIN
+  INSERT INTO clientes(nombres) VALUES('QA NO AUTORIZADO');
+  RAISE EXCEPTION 'Escritura no admin permitida';
+ EXCEPTION WHEN insufficient_privilege THEN NULL;
+ END;
+ INSERT INTO resultados_revision VALUES ('No administrador: sin acceso a clientes/configuración ni escritura',true);
+END $$;
+RESET ROLE;
+SELECT set_config('request.jwt.claim.sub','',true);
+SET LOCAL ROLE anon;
+DO $$
+BEGIN
+ IF EXISTS(SELECT 1 FROM clientes) OR EXISTS(SELECT 1 FROM invoices) THEN RAISE EXCEPTION 'Filtración pública'; END IF;
+ BEGIN
+  PERFORM public.consume_rate_limit('qa','qa',1);
+  RAISE EXCEPTION 'RPC interna accesible anónimamente';
+ EXCEPTION WHEN insufficient_privilege THEN NULL;
+ END;
+ INSERT INTO resultados_revision VALUES ('Anónimo: datos privados y RPC interna protegidos',true);
+END $$;
+RESET ROLE;
+SELECT * FROM resultados_revision;
+ROLLBACK;

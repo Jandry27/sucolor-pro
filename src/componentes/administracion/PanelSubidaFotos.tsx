@@ -33,11 +33,12 @@ export function PanelSubidaFotos({ ordenId }: PanelSubidaFotosProps) {
 
     const loadMedia = useCallback(async () => {
         setLoading(true);
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('media')
             .select('id, url, categoria, caption, storage_path, storage_bucket')
             .eq('orden_id', ordenId)
             .order('created_at', { ascending: true });
+        if (error) setUploadError('No se pudieron cargar las fotos: ' + error.message);
         if (data) {
             const items = await Promise.all(
                 data.map(async m => {
@@ -152,7 +153,11 @@ export function PanelSubidaFotos({ ordenId }: PanelSubidaFotosProps) {
     };
 
     const deleteMedia = async (id: string) => {
-        await supabase.from('media').delete().eq('id', id);
+        const { data, error } = await supabase.from('media').delete().eq('id', id).eq('orden_id', ordenId).select('id');
+        if (error || !data?.length) {
+            setUploadError('No se pudo eliminar la foto. Intenta nuevamente.');
+            return;
+        }
         setMedia(prev => prev.filter(m => m.id !== id));
     };
 

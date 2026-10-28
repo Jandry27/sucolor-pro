@@ -143,7 +143,12 @@ export function PanelGastos({ ordenId }: PanelGastosProps) {
         });
         if (!ok) return;
 
-        await supabase.from('orden_gastos').delete().eq('id', id);
+        const { data, error: errorEliminar } = await supabase.from('orden_gastos').delete().eq('id', id).eq('orden_id', ordenId).select('id');
+        if (errorEliminar || !data?.length) {
+            sonidoError();
+            setError('No se pudo eliminar el gasto. Intenta nuevamente.');
+            return;
+        }
         setGastos(prev => prev.filter(g => g.id !== id));
         sonidoGastoEliminado();
         toast('success', 'Gasto eliminado', 'El registro fue removido correctamente.');

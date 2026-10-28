@@ -178,13 +178,6 @@ export function PaginaInicio() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Link
-                                to="/administracion/login"
-                                className="hidden rounded-md px-4 py-2.5 text-xs font-bold text-black/55 transition-colors hover:bg-black/[0.04] hover:text-black sm:block"
-                            >
-                                Panel Admin
-                            </Link>
-
                             <a
                                 aria-label="Contactar por WhatsApp"
                                 href={`https://wa.me/${WHATSAPP}`}
@@ -568,12 +561,6 @@ export function PaginaInicio() {
                             Automotriz
                         </p>
 
-                        <Link
-                            to="/administracion/login"
-                            className="transition-colors hover:text-[#F97316]"
-                        >
-                            Panel administrativo
-                        </Link>
                     </div>
                 </div>
             </footer>

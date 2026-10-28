@@ -1,6 +1,18 @@
 {
   "headers": [
     {
+      "source": "/admin",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/administracion/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/track/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -29,6 +41,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/administracion/:path*", "destination": "/index.html" },
+    { "source": "/track/:path*", "destination": "/index.html" }
   ],
   "images": {
     "sizes": [

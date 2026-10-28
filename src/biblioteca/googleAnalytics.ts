@@ -43,7 +43,7 @@ function rutaActual() {
     }
 }
 
-function enviarVistaPagina() {
+export function enviarVistaPagina() {
     if (!measurementId || !window.gtag) return;
 
     window.gtag('event', 'page_view', {
@@ -80,8 +80,6 @@ export function iniciarGoogleAnalytics() {
     script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
     document.head.appendChild(script);
 
-    enviarVistaPagina();
-    window.addEventListener('hashchange', enviarVistaPagina);
 }
 
 export function registrarEventoAnalytics(
