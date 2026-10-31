@@ -1,3 +1,4 @@
+import { AvisoSuscripcion } from './AvisoSuscripcion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
@@ -147,7 +148,10 @@ export function DisenoAdministracion({
                     </div>
                 </div>
 
-                <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+                <main className="flex-1 p-4 sm:p-6 lg:p-8">
+                    <AvisoSuscripcion usuarioId={user?.id} />
+                    {children}
+                </main>
             </div>
         </div>
     );
