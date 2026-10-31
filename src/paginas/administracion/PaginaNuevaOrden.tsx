@@ -72,16 +72,34 @@ export function PaginaNuevaOrden() {
 
     useEffect(() => {
         let vigente = true;
-        supabase.functions
-            .invoke('aviso-suscripcion', { body: {} })
-            .then(({ data, error }) => {
-                if (vigente && !error) setSuscripcionVencida(avisoVigencia(data)?.vencida === true);
-            })
-            .catch(() => {
-                // La regla definitiva vive en RLS; esta consulta solo mejora el aviso visual.
-            });
+        let consultando = false;
+        const consultarVigencia = async () => {
+            if (!vigente || consultando) return;
+            consultando = true;
+            try {
+                const { data, error } = await supabase.functions.invoke('aviso-suscripcion', {
+                    body: {},
+                });
+                if (vigente && !error)
+                    setSuscripcionVencida(avisoVigencia(data)?.vencida === true);
+            } catch {
+                // RLS mantiene el control definitivo aunque falle la consulta visual.
+            } finally {
+                consultando = false;
+            }
+        };
+        const alVolver = () => {
+            if (document.visibilityState === 'visible') void consultarVigencia();
+        };
+        void consultarVigencia();
+        const intervalo = window.setInterval(() => void consultarVigencia(), 120_000);
+        window.addEventListener('focus', consultarVigencia);
+        document.addEventListener('visibilitychange', alVolver);
         return () => {
             vigente = false;
+            window.clearInterval(intervalo);
+            window.removeEventListener('focus', consultarVigencia);
+            document.removeEventListener('visibilitychange', alVolver);
         };
     }, []);
 
