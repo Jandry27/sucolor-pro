@@ -2,8 +2,13 @@ import { validarVigencia } from './contrato.ts';
 interface Dependencias {
     autorizar: (token: string) => Promise<'admin' | 'denegado' | 'sin_sesion'>;
     consultar: () => Promise<unknown>;
+    guardarVigencia: (vigencia: {
+        fecha_inicio: string;
+        fecha_fin: string;
+        consultado_en: string;
+    }) => Promise<void>;
 }
-export function crearHandler({ autorizar, consultar }: Dependencias) {
+export function crearHandler({ autorizar, consultar, guardarVigencia }: Dependencias) {
     return async (req: Request): Promise<Response> => {
         const headers = {
             'Access-Control-Allow-Origin': '*',
@@ -26,6 +31,11 @@ export function crearHandler({ autorizar, consultar }: Dependencias) {
             const valor = await consultar();
             if (!validarVigencia(valor) || Date.now() - Date.parse(valor.consultado_en) > 30_000)
                 throw new Error('Respuesta inválida');
+            await guardarVigencia({
+                fecha_inicio: valor.fecha_inicio,
+                fecha_fin: valor.fecha_fin,
+                consultado_en: valor.consultado_en,
+            });
             // Proyección explícita: nunca retransmitir otros campos del servidor comercial.
             return responder({
                 version: valor.version,

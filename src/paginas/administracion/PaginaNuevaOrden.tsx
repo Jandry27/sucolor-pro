@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -24,6 +24,7 @@ import { supabase } from '@/biblioteca/clienteSupabase';
 import { sanitizarTexto, sanitizarPlaca, sanitizarTelefono } from '@/biblioteca/sanitizar';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 import { sonidoOrdenCreada, sonidoError } from '@/biblioteca/sonidos';
+import { avisoVigencia } from '@/dominio/vigenciaSuColor';
 
 type Step = 'cliente' | 'vehiculo' | 'orden' | 'confirmado';
 const PRIORIDADES = ['NORMAL', 'URGENTE'];
@@ -67,6 +68,22 @@ export function PaginaNuevaOrden() {
     const [saving, setSaving] = useState(false);
     const envioOrdenBloqueado = useRef(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [suscripcionVencida, setSuscripcionVencida] = useState(false);
+
+    useEffect(() => {
+        let vigente = true;
+        supabase.functions
+            .invoke('aviso-suscripcion', { body: {} })
+            .then(({ data, error }) => {
+                if (vigente && !error) setSuscripcionVencida(avisoVigencia(data)?.vencida === true);
+            })
+            .catch(() => {
+                // La regla definitiva vive en RLS; esta consulta solo mejora el aviso visual.
+            });
+        return () => {
+            vigente = false;
+        };
+    }, []);
 
     // IDs guardados
     const [clienteId, setClienteId] = useState<string | null>(null);
@@ -497,6 +514,32 @@ export function PaginaNuevaOrden() {
         photos.forEach(p => URL.revokeObjectURL(p.preview));
         setPhotos([]);
     };
+
+    if (suscripcionVencida) {
+        return (
+            <DisenoAdministracion>
+                <section className="mx-auto max-w-xl rounded-2xl border border-rose-200 bg-rose-50 p-6 text-rose-950 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-100">
+                    <div className="flex items-start gap-3">
+                        <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
+                        <div>
+                            <h1 className="text-xl font-semibold">Suscripción vencida</h1>
+                            <p className="mt-2 text-sm leading-relaxed">
+                                No puedes ingresar órdenes nuevas hasta renovar tu suscripción.
+                                Puedes consultar y terminar las órdenes que ya están en el taller.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/administracion/orders')}
+                                className="mt-5 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-700"
+                            >
+                                Ver órdenes actuales
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </DisenoAdministracion>
+        );
+    }
 
     return (
         <DisenoAdministracion>

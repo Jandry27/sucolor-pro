@@ -11,6 +11,7 @@ const {
     buscarCliente,
     insertarCliente,
     insertarFoto,
+    consultarVigencia,
 } = vi.hoisted(() => ({
     insertarOrden: vi.fn(),
     guardarOrden: vi.fn(),
@@ -19,6 +20,7 @@ const {
     buscarCliente: vi.fn(),
     insertarCliente: vi.fn(),
     insertarFoto: vi.fn(),
+    consultarVigencia: vi.fn(),
 }));
 vi.mock('@/componentes/administracion/DisenoAdministracion', () => ({
     DisenoAdministracion: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -26,6 +28,7 @@ vi.mock('@/componentes/administracion/DisenoAdministracion', () => ({
 vi.mock('@/biblioteca/sonidos', () => ({ sonidoOrdenCreada: vi.fn(), sonidoError: vi.fn() }));
 vi.mock('@/biblioteca/clienteSupabase', () => ({
     supabase: {
+        functions: { invoke: consultarVigencia },
         from: (tabla: string) => {
             if (tabla === 'vehiculos')
                 return {
@@ -76,6 +79,17 @@ async function prepararOrden(conFoto = false) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    consultarVigencia.mockResolvedValue({
+        data: {
+            version: 1,
+            producto: 'sucolor',
+            fecha_inicio: '2026-01-01',
+            fecha_fin: '2099-12-31',
+            dias_aviso: 7,
+            consultado_en: new Date().toISOString(),
+        },
+        error: null,
+    });
     insertarFoto.mockReset().mockResolvedValue({ error: null });
     buscarVehiculo.mockResolvedValue({
         data: { id: 'vehiculo-1', placa: 'ABC-1234', marca: 'Toyota', cliente_id: 'cliente-1' },
@@ -90,6 +104,30 @@ beforeEach(() => {
     vi.stubEnv('VITE_CLOUDINARY_UPLOAD_PRESET', 'pruebas');
     URL.createObjectURL = vi.fn(() => 'blob:foto-prueba');
     URL.revokeObjectURL = vi.fn();
+});
+
+it('impide ingresar a la creación de órdenes cuando la suscripción ya venció', async () => {
+    consultarVigencia.mockResolvedValue({
+        data: {
+            version: 1,
+            producto: 'sucolor',
+            fecha_inicio: '2026-01-01',
+            fecha_fin: '2026-10-29',
+            dias_aviso: 7,
+            consultado_en: new Date().toISOString(),
+        },
+        error: null,
+    });
+    render(
+        <MemoryRouter>
+            <PaginaNuevaOrden />
+        </MemoryRouter>
+    );
+    expect(await screen.findByRole('heading', { name: 'Suscripción vencida' })).toBeInTheDocument();
+    expect(screen.getByText(/no puedes ingresar órdenes nuevas/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver órdenes actuales' })).toBeInTheDocument();
+    expect(screen.queryByText('Ingresa un vehículo al taller')).toBeNull();
+    expect(insertarOrden).not.toHaveBeenCalled();
 });
 afterEach(() => {
     cleanup();

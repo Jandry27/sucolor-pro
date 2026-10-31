@@ -55,7 +55,12 @@ describe('Servidor SuColor', () => {
         'rechaza %s antes de consultar SIXELA',
         async permiso => {
             const consultar = vi.fn();
-            const res = await crearHandler({ autorizar: async () => permiso, consultar })(req());
+            const guardarVigencia = vi.fn();
+            const res = await crearHandler({
+                autorizar: async () => permiso,
+                consultar,
+                guardarVigencia,
+            })(req());
             expect(res.status).toBe(permiso === 'sin_sesion' ? 401 : 403);
             expect(consultar).not.toHaveBeenCalled();
         }
@@ -63,7 +68,7 @@ describe('Servidor SuColor', () => {
     it('no consulta sin sesión y respeta preflight', async () => {
         const autorizar = vi.fn(),
             consultar = vi.fn();
-        const handler = crearHandler({ autorizar, consultar });
+        const handler = crearHandler({ autorizar, consultar, guardarVigencia: vi.fn() });
         expect(
             (await handler(new Request('https://example.test', { method: 'POST' }))).status
         ).toBe(401);
@@ -74,14 +79,22 @@ describe('Servidor SuColor', () => {
         expect(consultar).not.toHaveBeenCalled();
     });
     it('proyecta solo campos permitidos y propaga la vigencia renovada', async () => {
+        const guardarVigencia = vi.fn().mockResolvedValue(undefined);
+        const vigencia = datos('2026-12-31', Date.now());
         const res = await crearHandler({
             autorizar: async () => 'admin',
-            consultar: async () => ({ ...datos('2026-12-31', Date.now()), secreto: 'oculto' }),
+            consultar: async () => ({ ...vigencia, secreto: 'oculto' }),
+            guardarVigencia,
         })(req());
         expect(res.status).toBe(200);
         const body = await res.json();
         expect(body.fecha_fin).toBe('2026-12-31');
         expect(body.secreto).toBeUndefined();
+        expect(guardarVigencia).toHaveBeenCalledWith({
+            fecha_inicio: '2026-01-01',
+            fecha_fin: '2026-12-31',
+            consultado_en: vigencia.consultado_en,
+        });
     });
     it('falla sin revelar detalles cuando SIXELA cae o devuelve datos antiguos', async () => {
         for (const consultar of [
@@ -90,7 +103,11 @@ describe('Servidor SuColor', () => {
             },
             async () => datos('2026-11-06', Date.now() - 31000),
         ]) {
-            const res = await crearHandler({ autorizar: async () => 'admin', consultar })(req());
+            const res = await crearHandler({
+                autorizar: async () => 'admin',
+                consultar,
+                guardarVigencia: vi.fn(),
+            })(req());
             expect(res.status).toBe(503);
             expect(await res.text()).not.toContain('token privado');
         }

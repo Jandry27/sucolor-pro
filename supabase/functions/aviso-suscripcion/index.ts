@@ -30,5 +30,16 @@ Deno.serve(
             if (!respuesta.ok) throw new Error('Consulta fallida');
             return respuesta.json();
         },
+        async guardarVigencia(vigencia) {
+            const clientePrivado = createClient(
+                Deno.env.get('SUPABASE_URL')!,
+                Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+                { auth: { persistSession: false, autoRefreshToken: false } }
+            );
+            const { error } = await clientePrivado
+                .from('estado_suscripcion_sucolor')
+                .upsert({ unico: true, ...vigencia, actualizado_en: new Date().toISOString() });
+            if (error) throw error;
+        },
     })
 );
