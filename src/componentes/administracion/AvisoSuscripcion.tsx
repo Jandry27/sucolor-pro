@@ -27,6 +27,7 @@ export function AvisoSuscripcion({
         let vigente = true;
         let pendiente = false;
         let primeraRespuesta = true;
+        let estadoAvisoAnterior: string | null = null;
         let caducidad: ReturnType<typeof setTimeout> | undefined;
         let controlador: AbortController | undefined;
         async function consultar() {
@@ -46,8 +47,20 @@ export function AvisoSuscripcion({
                     return;
                 }
                 setRespuesta({ usuario: usuarioId!, vigencia: data });
-                setAbierto(primeraRespuesta);
-                primeraRespuesta = false;
+                const aviso = avisoVigencia(data);
+                const estadoAviso = aviso
+                    ? `${aviso.vencida ? 'vencida' : 'por_vencer'}:${aviso.dias_restantes}`
+                    : null;
+                if (primeraRespuesta) {
+                    setAbierto(true);
+                    primeraRespuesta = false;
+                } else if (
+                    estadoAviso !== estadoAvisoAnterior &&
+                    estadoAviso !== null
+                ) {
+                    setAbierto(true);
+                }
+                estadoAvisoAnterior = estadoAviso;
                 caducidad = setTimeout(
                     () => {
                         setRespuesta(null);

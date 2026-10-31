@@ -1,11 +1,13 @@
-export interface VigenciaSuColor {
-    version: 1;
+interface VigenciaSuColorBase {
     producto: 'sucolor';
     fecha_inicio: string;
     fecha_fin: string;
-    dias_aviso: 7;
     consultado_en: string;
 }
+export type VigenciaSuColor = VigenciaSuColorBase & (
+    | { version: 1; dias_aviso: 7 }
+    | { version: 2; dias_aviso: 3 }
+);
 export const VIGENCIA_MAXIMA_MS = 240_000;
 function fechaValida(valor: unknown): valor is string {
     return (
@@ -20,9 +22,9 @@ export function validarVigencia(valor: unknown, ahora = Date.now()): valor is Vi
     const v = valor as VigenciaSuColor;
     const antiguedad = ahora - Date.parse(v.consultado_en);
     return (
-        v.version === 1 &&
+        ((v.version === 1 && v.dias_aviso === 7) ||
+            (v.version === 2 && v.dias_aviso === 3)) &&
         v.producto === 'sucolor' &&
-        v.dias_aviso === 7 &&
         fechaValida(v.fecha_inicio) &&
         fechaValida(v.fecha_fin) &&
         v.fecha_fin >= v.fecha_inicio &&

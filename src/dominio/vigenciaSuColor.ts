@@ -1,11 +1,13 @@
-export interface VigenciaSuColor {
-    version: 1;
+interface VigenciaSuColorBase {
     producto: 'sucolor';
     fecha_inicio: string;
     fecha_fin: string;
-    dias_aviso: 7;
     consultado_en: string;
 }
+export type VigenciaSuColor = VigenciaSuColorBase & (
+    | { version: 1; dias_aviso: 7 }
+    | { version: 2; dias_aviso: 3 }
+);
 export const VIGENCIA_MAXIMA_MS = 240_000;
 function fechaValida(valor: unknown): valor is string {
     return (
@@ -20,9 +22,9 @@ export function validarVigencia(valor: unknown, ahora = Date.now()): valor is Vi
     const v = valor as VigenciaSuColor;
     const antiguedad = ahora - Date.parse(v.consultado_en);
     return (
-        v.version === 1 &&
+        ((v.version === 1 && v.dias_aviso === 7) ||
+            (v.version === 2 && v.dias_aviso === 3)) &&
         v.producto === 'sucolor' &&
-        v.dias_aviso === 7 &&
         fechaValida(v.fecha_inicio) &&
         fechaValida(v.fecha_fin) &&
         v.fecha_fin >= v.fecha_inicio &&
@@ -40,8 +42,10 @@ export function avisoVigencia(valor: unknown, ahora = Date.now()) {
         day: '2-digit',
     }).format(new Date(ahora));
     if (valor.fecha_inicio > hoy) return null;
-    const dias = Math.round((Date.parse(valor.fecha_fin) - Date.parse(hoy)) / 86_400_000);
-    if (dias > 7) return null;
+    const dias = Math.round(
+        (Date.parse(valor.fecha_fin) - Date.parse(hoy)) / 86_400_000
+    );
+    if (dias > valor.dias_aviso) return null;
     const fecha = new Intl.DateTimeFormat('es-EC', {
         timeZone: 'UTC',
         day: '2-digit',
@@ -53,10 +57,23 @@ export function avisoVigencia(valor: unknown, ahora = Date.now()) {
             titulo: 'Tu suscripción está vencida',
             mensaje: `Tu suscripción a SuColor venció el ${fecha}. Comunícate con SIXELA para gestionar tu renovación.`,
             vencida: true,
+            dias_restantes: dias,
         };
+    const detalle =
+        dias === 0
+            ? `vence hoy, ${fecha}`
+            : dias === 1
+                ? `vence mañana, ${fecha}`
+                : `vence en ${dias} días, ${fecha}`;
     return {
-        titulo: dias === 0 ? 'Tu suscripción vence hoy' : 'Tu suscripción está por vencer',
-        mensaje: `Tu suscripción a SuColor ${dias === 0 ? 'vence hoy' : `vence el ${fecha}`}. Realiza tu pago para gestionar la renovación. Si ya pagaste, comunícate con SIXELA.`,
+        titulo:
+            dias === 0
+                ? 'Tu suscripción vence hoy'
+                : dias === 1
+                    ? 'Tu suscripción vence mañana'
+                    : 'Tu suscripción está por vencer',
+        mensaje: `Tu suscripción a SuColor ${detalle}. Realiza tu pago para gestionar la renovación. Si ya pagaste, comunícate con SIXELA.`,
         vencida: false,
+        dias_restantes: dias,
     };
 }
