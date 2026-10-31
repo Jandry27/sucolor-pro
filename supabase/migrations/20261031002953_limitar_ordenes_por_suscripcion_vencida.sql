@@ -37,6 +37,19 @@ drop policy if exists "Solo admin crea ordenes" on public.ordenes;
 -- El snapshot histórico también pudo instalar una política FOR ALL; RLS
 -- combina políticas permisivas, así que debe retirarse para que no eluda INSERT.
 drop policy if exists "Admin todo ordenes" on public.ordenes;
+drop policy if exists "Solo admin lee ordenes" on public.ordenes;
+drop policy if exists "Solo admin actualiza ordenes" on public.ordenes;
+drop policy if exists "Solo admin borra ordenes" on public.ordenes;
+create policy "Solo admin lee ordenes"
+    on public.ordenes for select to authenticated
+    using ((select public.is_admin()));
+create policy "Solo admin actualiza ordenes"
+    on public.ordenes for update to authenticated
+    using ((select public.is_admin()))
+    with check ((select public.is_admin()));
+create policy "Solo admin borra ordenes"
+    on public.ordenes for delete to authenticated
+    using ((select public.is_admin()));
 create policy "Solo admin crea ordenes"
     on public.ordenes for insert to authenticated
     with check (
