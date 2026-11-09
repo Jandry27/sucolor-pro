@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BellRing, CalendarDays, X } from 'lucide-react';
+import { BellRing, X } from 'lucide-react';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import {
     avisoVigencia,
@@ -7,6 +7,19 @@ import {
     VIGENCIA_MAXIMA_MS,
     type VigenciaSuColor,
 } from '@/dominio/vigenciaSuColor';
+
+const avisosMostrados = new Set<string>();
+
+function marcarAvisoComoMostrado(clave: string): boolean {
+    try {
+        if (localStorage.getItem(clave) === 'mostrado') return false;
+        localStorage.setItem(clave, 'mostrado');
+    } catch {
+        if (avisosMostrados.has(clave)) return false;
+        avisosMostrados.add(clave);
+    }
+    return true;
+}
 
 export function AvisoSuscripcion({
     usuarioId,
@@ -26,7 +39,6 @@ export function AvisoSuscripcion({
         if (!habilitado || !usuarioId) return;
         let vigente = true;
         let pendiente = false;
-        let primeraRespuesta = true;
         let estadoAvisoAnterior: string | null = null;
         let caducidad: ReturnType<typeof setTimeout> | undefined;
         let controlador: AbortController | undefined;
@@ -48,19 +60,25 @@ export function AvisoSuscripcion({
                 }
                 setRespuesta({ usuario: usuarioId!, vigencia: data });
                 const aviso = avisoVigencia(data);
-                const estadoAviso = aviso
-                    ? `${aviso.vencida ? 'vencida' : 'por_vencer'}:${aviso.dias_restantes}`
+                const etapaAviso = aviso
+                    ? aviso.vencida
+                        ? 'vencida'
+                        : aviso.dias_restantes === 0
+                            ? 'vence-hoy'
+                            : 'proximo-vencimiento'
                     : null;
-                if (primeraRespuesta) {
-                    setAbierto(true);
-                    primeraRespuesta = false;
-                } else if (
-                    estadoAviso !== estadoAvisoAnterior &&
-                    estadoAviso !== null
+                const claveAviso = etapaAviso
+                    ? `sucolor:aviso-suscripcion:${usuarioId}:${data.fecha_fin}:${etapaAviso}`
+                    : null;
+                if (
+                    etapaAviso !== null &&
+                    etapaAviso !== estadoAvisoAnterior &&
+                    claveAviso !== null &&
+                    marcarAvisoComoMostrado(claveAviso)
                 ) {
                     setAbierto(true);
                 }
-                estadoAvisoAnterior = estadoAviso;
+                estadoAvisoAnterior = etapaAviso;
                 caducidad = setTimeout(
                     () => {
                         setRespuesta(null);
@@ -114,32 +132,26 @@ export function AvisoSuscripcion({
     const vigencia = respuesta && respuesta.usuario === usuarioId ? respuesta.vigencia : null;
     if (!vigencia || !habilitado) return null;
     const aviso = avisoVigencia(vigencia);
+    if (!aviso) return null;
     const fechaFin = new Intl.DateTimeFormat('es-EC', {
         timeZone: 'UTC',
         day: 'numeric',
         month: 'long',
         year: 'numeric',
     }).format(new Date(`${vigencia.fecha_fin}T00:00:00Z`));
-    const cercano = aviso !== null;
     const cerrar = () => setAbierto(false);
     return (
         <>
             <section
                 role="status"
                 aria-live="polite"
-                className={`mb-5 flex items-start gap-3 rounded-xl border p-4 ${cercano ? (aviso.vencida ? 'border-rose-200 bg-rose-50 text-rose-950 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-100' : 'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100') : 'border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100'}`}
+                className={`mb-5 flex items-start gap-3 rounded-xl border p-4 ${aviso.vencida ? 'border-rose-200 bg-rose-50 text-rose-950 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-100' : 'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100'}`}
             >
-                {cercano ? (
-                    <BellRing className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-                ) : (
-                    <CalendarDays className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-                )}
+                <BellRing className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
                 <div className="min-w-0">
-                    <h2 className="text-sm font-semibold">
-                        {aviso?.titulo ?? 'Suscripción de SuColor'}
-                    </h2>
+                    <h2 className="text-sm font-semibold">{aviso.titulo}</h2>
                     <p className="mt-1 text-sm leading-relaxed">
-                        {aviso?.mensaje ?? `Tu suscripción está vigente hasta el ${fechaFin}.`}
+                        {aviso.mensaje}
                     </p>
                     <button
                         type="button"
@@ -164,13 +176,9 @@ export function AvisoSuscripcion({
                         className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
                     >
                         <div
-                            className={`mb-5 flex h-12 w-12 items-center justify-center rounded-full ${cercano ? (aviso.vencida ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-700') : 'bg-emerald-100 text-emerald-700'}`}
+                            className={`mb-5 flex h-12 w-12 items-center justify-center rounded-full ${aviso.vencida ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-700'}`}
                         >
-                            {cercano ? (
-                                <BellRing aria-hidden="true" />
-                            ) : (
-                                <CalendarDays aria-hidden="true" />
-                            )}
+                            <BellRing aria-hidden="true" />
                         </div>
                         <button
                             type="button"
@@ -184,11 +192,10 @@ export function AvisoSuscripcion({
                             id="sucolor-suscripcion-titulo"
                             className="text-xl font-semibold text-slate-950 dark:text-white"
                         >
-                            {aviso?.titulo ?? 'Estado de tu suscripción'}
+                            {aviso.titulo}
                         </h2>
                         <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                            {aviso?.mensaje ??
-                                `Tu suscripción de SuColor está vigente hasta el ${fechaFin}.`}
+                            {aviso.mensaje}
                         </p>
                         <p className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
                             <strong>Fecha de vencimiento:</strong> {fechaFin}
