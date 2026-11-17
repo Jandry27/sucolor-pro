@@ -13,3 +13,8 @@ enabled = true
 verify_jwt = true
 import_map = "./functions/sri-invoice/deno.json"
 entrypoint = "./functions/sri-invoice/index.ts"
+
+[functions.consulta-placa]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/consulta-placa/index.ts"

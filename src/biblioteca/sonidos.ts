@@ -39,7 +39,11 @@ interface ToneConfig {
 const playSound = (tones: ToneConfig[], vibratePattern?: number | number[]) => {
     try {
         if (vibratePattern && typeof navigator !== 'undefined' && navigator.vibrate) {
-            try { navigator.vibrate(vibratePattern); } catch {}
+            try {
+                navigator.vibrate(vibratePattern);
+            } catch {
+                // Un fallo de la vibración no debe impedir el sonido.
+            }
         }
         const ac = getCtx();
         if (!ac) return;

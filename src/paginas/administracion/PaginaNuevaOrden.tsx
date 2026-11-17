@@ -12,7 +12,6 @@ import {
     AlertTriangle,
     Search,
     Upload,
-    X,
     Camera,
     Trash2,
     ClipboardList,
@@ -21,10 +20,19 @@ import {
 } from 'lucide-react';
 import { esClienteRegistrado } from '@/biblioteca/clientes';
 import { supabase } from '@/biblioteca/clienteSupabase';
-import { sanitizarTexto, sanitizarPlaca, sanitizarTelefono } from '@/biblioteca/sanitizar';
+import { sanitizarTexto, sanitizarTelefono } from '@/biblioteca/sanitizar';
 import { DisenoAdministracion } from '@/componentes/administracion/DisenoAdministracion';
 import { sonidoOrdenCreada, sonidoError } from '@/biblioteca/sonidos';
+import { consultarPlacaExterna } from '@/servicios/consultarPlaca';
 import { avisoVigencia } from '@/dominio/vigenciaSuColor';
+import {
+    extraerResultadoPlaca,
+    normalizarPlaca,
+    URL_CONSULTAS_ECUADOR,
+} from '@/dominio/consultaPlaca';
+
+const fichaVacia = { marca: '', modelo: '', anio: '', color: '' };
+type CampoVehiculo = keyof typeof fichaVacia;
 
 type Step = 'cliente' | 'vehiculo' | 'orden' | 'confirmado';
 const PRIORIDADES = ['NORMAL', 'URGENTE'];
@@ -105,7 +113,6 @@ export function PaginaNuevaOrden() {
 
     // IDs guardados
     const [clienteId, setClienteId] = useState<string | null>(null);
-    const [vehiculoId, setVehiculoId] = useState<string | null>(null);
     const [ordenId, setOrdenId] = useState<string | null>(null);
     const [nuevaOrdenCodigo, setNuevaOrdenCodigo] = useState('');
 
@@ -118,14 +125,18 @@ export function PaginaNuevaOrden() {
     const [cTel, setCTel] = useState('');
 
     // ── Paso 2: Vehículo ─────────────────────────────────────────────────────
-    const [placaBusqueda, setPlacaBusqueda] = useState('');
-    const [buscandoVehiculo, setBuscandoVehiculo] = useState(false);
-    const [vehiculoExistente, setVehiculoExistente] = useState<VehiculoResult | null>(null);
     const [vPlaca, setVPlaca] = useState('');
-    const [vMarca, setVMarca] = useState('');
-    const [vModelo, setVModelo] = useState('');
-    const [vAnio, setVAnio] = useState('');
-    const [vColor, setVColor] = useState('');
+    const [ficha, setFicha] = useState(fichaVacia);
+    const camposEditados = useRef<Partial<Record<CampoVehiculo, true>>>({});
+    const consultaPlaca = useRef<AbortController | null>(null);
+    const [buscandoVehiculo, setBuscandoVehiculo] = useState(false);
+    const [estadoPlaca, setEstadoPlaca] = useState('');
+    const [mostrarRespaldo, setMostrarRespaldo] = useState(false);
+    const [mostrarPegado, setMostrarPegado] = useState(false);
+    const [resultadoPegado, setResultadoPegado] = useState('');
+    const [vehiculoExistente, setVehiculoExistente] = useState<VehiculoResult | null>(null);
+
+    useEffect(() => () => consultaPlaca.current?.abort(), []);
 
     // ── Paso 3: Orden ────────────────────────────────────────────────────────
     const [oPrioridad, setOPrioridad] = useState('NORMAL');
@@ -255,123 +266,197 @@ export function PaginaNuevaOrden() {
         setStep('vehiculo');
     };
 
-    // ── Cargar historial de un vehículo ───────────────────────────────────────
-    const cargarHistorial = async (vehiculoId: string) => {
-        setCargandoHistorial(true);
-        setHistorialVehiculo([]);
-        const { data } = await supabase
-            .from('ordenes')
-            .select('id, codigo, estado, fecha_ingreso, fecha_estimada, notas_publicas, precio_total')
-            .eq('vehiculo_id', vehiculoId)
-            .order('fecha_ingreso', { ascending: false })
-            .limit(10);
-        setHistorialVehiculo(data ?? []);
-        setCargandoHistorial(false);
-        setHistorialAbierto(true);
+    const editarFicha = (campo: CampoVehiculo, valor: string) => {
+        camposEditados.current[campo] = true;
+        setFicha(actual => ({ ...actual, [campo]: valor }));
     };
 
-    // ── Buscar vehículo existente por placa ───────────────────────────────────
-    const buscarVehiculo = async () => {
-        const q = placaBusqueda.trim();
-        if (q.length < 2) return;
-        setBuscandoVehiculo(true);
+    const aplicarFicha = (datos: Partial<typeof fichaVacia>) => {
+        const sugerencias = { ...datos };
+        for (const campo of Object.keys(camposEditados.current) as CampoVehiculo[]) {
+            delete sugerencias[campo];
+        }
+        setFicha(actual => ({ ...actual, ...sugerencias }));
+    };
+
+    const cambiarPlaca = (placa: string) => {
+        setVPlaca(placa);
+        if (normalizarPlaca(placa) === normalizarPlaca(vPlaca)) return;
+
+        consultaPlaca.current?.abort();
+        consultaPlaca.current = null;
+        setBuscandoVehiculo(false);
         setVehiculoExistente(null);
         setHistorialVehiculo([]);
-        const { data } = await supabase
-            .from('vehiculos')
-            .select('id, placa, marca, modelo, anio, color, cliente_id')
-            .ilike('placa', `%${q}%`)
-            .limit(1)
-            .single();
-        if (data) {
-            setVehiculoExistente(data);
-            setVPlaca(data.placa ?? '');
-            setVMarca(data.marca ?? '');
-            setVModelo(data.modelo ?? '');
-            setVAnio(data.anio ? String(data.anio) : '');
-            setVColor(data.color ?? '');
-            cargarHistorial(data.id);
-        }
-        setBuscandoVehiculo(false);
+        setCargandoHistorial(false);
+        setEstadoPlaca('');
+        setMostrarRespaldo(false);
+        setMostrarPegado(false);
+        setResultadoPegado('');
+        aplicarFicha(fichaVacia);
     };
 
-    const usarClienteDelVehiculo = async (id: string) => {
+    const buscarFichaPorPlaca = async (placa: string, signal?: AbortSignal) => {
+        const rpc = supabase.rpc('buscar_vehiculo_por_placa', { p_placa: placa });
+        const { data, error } = await (signal ? rpc.abortSignal(signal) : rpc).maybeSingle<VehiculoResult>();
+        if (!error) return data;
+        if (error.code !== 'PGRST202') throw error;
+
+        // Permite consultar la tabla con la sesión actual mientras se instala la migración.
+        const patron = `%${[...placa].join('%')}%`;
+        const porPagina = 100;
+        for (let inicio = 0; ; inicio += porPagina) {
+            const consulta = supabase
+                .from('vehiculos')
+                .select('id, placa, marca, modelo, anio, color, cliente_id')
+                .ilike('placa', patron)
+                .order('id')
+                .range(inicio, inicio + porPagina - 1);
+            if (signal) consulta.abortSignal(signal);
+            const { data: fichas, error: fallo } = await consulta;
+            if (fallo) throw fallo;
+            const ficha = fichas.find(vehiculo => normalizarPlaca(vehiculo.placa) === placa);
+            if (ficha) return ficha;
+            if (fichas.length < porPagina) return null;
+        }
+    };
+
+    const buscarVehiculo = async () => {
+        if (consultaPlaca.current || saving) return;
+        const placa = normalizarPlaca(vPlaca);
+        if (!/^[A-Z0-9]{2,10}$/.test(placa)) {
+            setEstadoPlaca('Ingresa una placa válida. Ejemplo: ABC-1234.');
+            return;
+        }
+
+        const consulta = new AbortController();
+        consultaPlaca.current = consulta;
+        const vigente = () => consultaPlaca.current === consulta && !consulta.signal.aborted;
+        setBuscandoVehiculo(true);
+        setEstadoPlaca('Buscando en el taller…');
+        setMostrarRespaldo(false);
+
+        try {
+            const vehiculo = await buscarFichaPorPlaca(placa, consulta.signal);
+            if (!vigente()) return;
+
+            setVehiculoExistente(vehiculo);
+            setHistorialVehiculo([]);
+            if (!vehiculo) {
+                setEstadoPlaca('Consultando datos del vehículo…');
+                try {
+                    const resultado = await consultarPlacaExterna(placa, consulta.signal);
+                    if (!vigente()) return;
+                    if (resultado.marca && resultado.modelo && resultado.anio) {
+                        aplicarFicha({ marca: resultado.marca, modelo: resultado.modelo, anio: resultado.anio });
+                        setEstadoPlaca('Datos encontrados. Revisa la ficha y completa el color si lo necesitas.');
+                        return;
+                    }
+                    const mensajes: Record<string, string> = {
+                        sin_resultado: 'La fuente externa no encontró la placa. Puedes completar los campos.',
+                        cupo_agotado: 'Se agotó el cupo de consultas de hoy. Puedes completar los campos.',
+                    };
+                    setEstadoPlaca(mensajes[resultado.codigo ?? ''] ??
+                        'Placa nueva para el taller. La consulta automática no está disponible. Puedes completar los campos.');
+                } catch {
+                    if (!vigente()) return;
+                    setEstadoPlaca('Placa nueva para el taller. La consulta automática no respondió. Puedes completar los campos.');
+                }
+                setMostrarRespaldo(true);
+                return;
+            }
+
+            setBuscandoVehiculo(false);
+            aplicarFicha({
+                marca: vehiculo.marca,
+                modelo: vehiculo.modelo ?? '',
+                anio: vehiculo.anio ? String(vehiculo.anio) : '',
+                color: vehiculo.color ?? '',
+            });
+            setMostrarPegado(false);
+            setResultadoPegado('');
+            setEstadoPlaca('Vehículo registrado en el taller.');
+            setCargandoHistorial(true);
+            const { data: historial } = await supabase
+                .from('ordenes')
+                .select('id, codigo, estado, fecha_ingreso, fecha_estimada, notas_publicas, precio_total')
+                .eq('vehiculo_id', vehiculo.id)
+                .order('fecha_ingreso', { ascending: false })
+                .limit(10)
+                .abortSignal(consulta.signal);
+            if (!vigente()) return;
+            setHistorialVehiculo(historial ?? []);
+            setHistorialAbierto(true);
+        } catch {
+            if (vigente()) {
+                setEstadoPlaca('No pudimos consultar el taller. Puedes pegar el resultado del portal o llenar los campos.');
+                setMostrarRespaldo(true);
+            }
+        } finally {
+            if (vigente()) {
+                consultaPlaca.current = null;
+                setBuscandoVehiculo(false);
+                setCargandoHistorial(false);
+            }
+        }
+    };
+
+    const copiarPlaca = () => {
+        const texto = normalizarPlaca(vPlaca);
+        const consulta = navigator.clipboard?.writeText(texto);
+        if (!consulta) {
+            setEstadoPlaca(`Copia esta placa para consultarla: ${texto}.`);
+            return;
+        }
+        void consulta.catch(() => {
+            setEstadoPlaca(`Copia esta placa para consultarla: ${texto}.`);
+        });
+    };
+
+    const aplicarResultado = (texto: string) => {
+        const { placa, marca, modelo, anio } = extraerResultadoPlaca(texto);
+        if (placa && normalizarPlaca(placa) !== normalizarPlaca(vPlaca)) {
+            setEstadoPlaca('El resultado corresponde a otra placa.');
+            return;
+        }
+        if (!marca && !modelo && !anio) {
+            setEstadoPlaca('No encontramos marca, modelo ni año. Copia los datos con sus etiquetas o ingrésalos a mano.');
+            return;
+        }
+        aplicarFicha({
+            ...(marca && { marca }),
+            ...(modelo && { modelo }),
+            ...(anio && { anio }),
+        });
+        setEstadoPlaca(marca && modelo && anio
+            ? 'Resultado importado. Revisa los datos del vehículo.'
+            : 'Resultado parcial. Completa los datos que falten.');
+        setMostrarPegado(false);
+        setResultadoPegado('');
+    };
+
+    const obtenerClienteDelVehiculo = async (vehiculo: VehiculoResult | null) => {
+        if (clienteId || !vehiculo?.cliente_id) return clienteId;
         const { data, error } = await supabase
             .from('clientes')
             .select('id, nombres, telefono, email, cedula, notas')
-            .eq('id', id)
+            .eq('id', vehiculo.cliente_id)
             .maybeSingle();
-        if (error) {
-            setErrorMsg('No se pudo comprobar el cliente del vehículo. Intenta nuevamente.');
-            return false;
-        }
-        if (data && esClienteRegistrado(data)) {
-            setClienteId(data.id);
-            setClienteSeleccionado(data);
-        }
-        return true;
+        if (error) throw new Error('No se pudo comprobar el cliente del vehículo. Intenta nuevamente.');
+        return data && esClienteRegistrado(data) ? data.id : null;
     };
 
-    // ── Guardar vehículo (nuevo o usar existente) ─────────────────────────────
-    const guardarVehiculo = async () => {
+    const continuarConVehiculo = () => {
+        const placa = normalizarPlaca(vPlaca);
+        if (!/^[A-Z0-9]{2,10}$/.test(placa) || !sanitizarTexto(ficha.marca)) {
+            setErrorMsg('Ingresa una placa válida y la marca del vehículo.');
+            return;
+        }
+        if (ficha.anio && !/^\d{4}$/.test(ficha.anio)) {
+            setErrorMsg('Ingresa un año de cuatro dígitos.');
+            return;
+        }
         setErrorMsg(null);
-        if (vehiculoExistente) {
-            setVehiculoId(vehiculoExistente.id);
-            // Usar el cliente del vehículo si no se seleccionó uno
-            if (!clienteId && vehiculoExistente.cliente_id) {
-                if (!(await usarClienteDelVehiculo(vehiculoExistente.cliente_id))) return;
-            }
-            setStep('orden');
-            return;
-        }
-        if (!vPlaca.trim() || !vMarca.trim()) {
-            setErrorMsg('Placa y marca son obligatorios.');
-            return;
-        }
-
-        setSaving(true);
-
-        // ── Verificar si la placa ya existe antes de intentar insertar ────────
-        const placaNorm = sanitizarPlaca(vPlaca);
-        const { data: existente } = await supabase
-            .from('vehiculos')
-            .select('id, placa, marca, modelo, anio, color, cliente_id')
-            .eq('placa', placaNorm)
-            .maybeSingle();
-
-        if (existente) {
-            // El vehículo ya estaba registrado → lo reutilizamos sin crear duplicado
-            setSaving(false);
-            setVehiculoExistente(existente);
-            setVehiculoId(existente.id);
-            // Usar el cliente del vehículo si no se seleccionó uno
-            if (!clienteId && existente.cliente_id) {
-                if (!(await usarClienteDelVehiculo(existente.cliente_id))) return;
-            }
-            cargarHistorial(existente.id);
-            setStep('orden');
-            return;
-        }
-
-        const { data, error } = await supabase
-            .from('vehiculos')
-            .insert({
-                placa: placaNorm,
-                marca: sanitizarTexto(vMarca),
-                modelo: sanitizarTexto(vModelo) || null,
-                anio: vAnio ? parseInt(vAnio) : null,
-                color: sanitizarTexto(vColor) || null,
-                cliente_id: clienteId,
-            })
-            .select('id')
-            .single();
-        setSaving(false);
-        if (error) {
-            sonidoError();
-            setErrorMsg('Error al guardar el vehículo: ' + error.message);
-            return;
-        }
-        setVehiculoId(data.id);
         setStep('orden');
     };
 
@@ -460,22 +545,35 @@ export function PaginaNuevaOrden() {
         let ordenCreada = false;
 
         try {
+            let vehiculo = vehiculoExistente;
+            if (!vehiculo && !clienteId) {
+                // También conserva el propietario al continuar sin pulsar «Buscar placa».
+                vehiculo = await buscarFichaPorPlaca(normalizarPlaca(vPlaca));
+            }
+            const clienteOrden = await obtenerClienteDelVehiculo(vehiculo);
             const { data, error } = await supabase
-                .from('ordenes')
-                .insert({
-                    cliente_id: clienteId,
-                    vehiculo_id: vehiculoId,
-                    prioridad: oPrioridad,
-                    fecha_estimada: oFechaEst || null,
-                    notas_publicas: oNotasPublicas ? sanitizarTexto(oNotasPublicas) : null,
-                    notas_internas: oNotasInternas ? sanitizarTexto(oNotasInternas) : null,
-                    precio_total: oPrecio ? parseFloat(oPrecio) : null,
-                    monto_entrada: oEntrada ? parseFloat(oEntrada) : null,
-                    monto_pagado: oEntrada ? parseFloat(oEntrada) : null,
-                    share_enabled: true,
+                .rpc('crear_orden_con_vehiculo', {
+                    p_vehiculo: {
+                        placa: normalizarPlaca(vPlaca),
+                        marca: sanitizarTexto(ficha.marca),
+                        modelo: sanitizarTexto(ficha.modelo) || null,
+                        anio: ficha.anio ? Number(ficha.anio) : null,
+                        color: sanitizarTexto(ficha.color) || null,
+                    },
+                    p_vehiculo_editado: vehiculoExistente?.id ?? null,
+                    p_ediciones: camposEditados.current,
+                    p_orden: {
+                        cliente_id: clienteOrden,
+                        prioridad: oPrioridad,
+                        fecha_estimada: oFechaEst || null,
+                        notas_publicas: oNotasPublicas ? sanitizarTexto(oNotasPublicas) : null,
+                        notas_internas: oNotasInternas ? sanitizarTexto(oNotasInternas) : null,
+                        precio_total: oPrecio ? Number(oPrecio) : null,
+                        monto_entrada: oEntrada ? Number(oEntrada) : null,
+                        monto_pagado: oEntrada ? Number(oEntrada) : null,
+                    },
                 })
-                .select('codigo, id')
-                .single();
+                .single<{ codigo: string; id: string }>();
             if (error) throw new Error(error.message);
             if (!data) throw new Error('No se recibió la confirmación de la orden.');
 
@@ -510,19 +608,15 @@ export function PaginaNuevaOrden() {
         setOEntrada('');
         setStep('cliente');
         setClienteId(null);
-        setVehiculoId(null);
         setOrdenId(null);
         setClienteSeleccionado(null);
         setVehiculoExistente(null);
         setCNombres('');
         setCTel('');
         setClienteBusqueda('');
-        setVPlaca('');
-        setVMarca('');
-        setVModelo('');
-        setVAnio('');
-        setVColor('');
-        setPlacaBusqueda('');
+        camposEditados.current = {};
+        cambiarPlaca('');
+        setFicha(fichaVacia);
         setHistorialVehiculo([]);
         setOPrioridad('NORMAL');
         setOFechaEst('');
@@ -573,15 +667,15 @@ export function PaginaNuevaOrden() {
 
                 {/* Stepper */}
                 {step !== 'confirmado' && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                         {PASOS.map((p, i) => {
                             const done =
                                 (step === 'vehiculo' && i === 0) || (step === 'orden' && i <= 1);
                             const active = p.id === step;
                             return (
-                                <div key={p.id} className="flex items-center gap-2 flex-1">
+                                <div key={p.id} className="flex flex-1 items-center gap-1 sm:gap-2">
                                     <div
-                                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all ${active ? 'text-white' : done ? 'text-[#F97316]' : 'text-[rgba(15,23,42,0.50)] bg-[rgba(15,23,42,0.05)]'}`}
+                                        className={`flex items-center gap-1 text-xs font-semibold px-2 py-1.5 rounded-full transition-all sm:gap-1.5 sm:px-3 ${active ? 'text-white' : done ? 'text-[#F97316]' : 'text-[rgba(15,23,42,0.50)] bg-[rgba(15,23,42,0.05)]'}`}
                                         style={
                                             active
                                                 ? { background: '#F97316' }
@@ -764,34 +858,94 @@ export function PaginaNuevaOrden() {
 
                         <h2 className="text-sm font-semibold text-[#0B1220]">Datos del vehículo</h2>
 
-                        {/* Búsqueda por placa existente */}
                         <div className="space-y-2">
-                            <label className="form-label">
-                                ¿Vehículo ya registrado? Busca por placa
-                            </label>
-                            <div className="flex gap-2">
+                            <label className="form-label" htmlFor="orden-placa">Placa *</label>
+                            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 max-[359px]:grid-cols-1">
                                 <input
-                                    value={placaBusqueda}
-                                    onChange={e => setPlacaBusqueda(e.target.value.toUpperCase())}
-                                    onKeyDown={e => e.key === 'Enter' && buscarVehiculo()}
-                                    placeholder="Ej: ABC-1234"
-                                    className="input-field flex-1 font-mono uppercase"
+                                    id="orden-placa"
+                                    value={vPlaca}
+                                    onChange={e => cambiarPlaca(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key !== 'Enter' || e.nativeEvent.isComposing) return;
+                                        e.preventDefault();
+                                        void buscarVehiculo();
+                                    }}
+                                    placeholder="ABC-1234"
+                                    autoCapitalize="characters"
+                                    autoComplete="off"
+                                    aria-describedby="orden-estado-placa"
+                                    className="input-field min-w-0 font-mono uppercase"
                                 />
                                 <motion.button
+                                    type="button"
                                     whileTap={{ scale: 0.96 }}
                                     onClick={buscarVehiculo}
-                                    disabled={buscandoVehiculo}
-                                    className="btn-secondary text-sm px-4 flex items-center gap-1.5"
+                                    disabled={buscandoVehiculo || cargandoHistorial}
+                                    className="btn-secondary flex items-center justify-center gap-1.5 whitespace-nowrap px-3 text-sm"
                                 >
                                     {buscandoVehiculo ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                                     ) : (
-                                        <>
-                                            <Search className="w-3.5 h-3.5" /> Buscar
-                                        </>
+                                        <Search className="w-3.5 h-3.5" aria-hidden="true" />
                                     )}
+                                    Buscar placa
                                 </motion.button>
                             </div>
+                            <p id="orden-estado-placa" role="status" className="text-sm text-slate-600">
+                                {estadoPlaca}
+                            </p>
+                            {mostrarRespaldo && (
+                                <div className="space-y-3 rounded-xl border border-slate-200 p-3">
+                                    <p className="text-sm text-slate-600">
+                                        Consulta la placa en la otra pestaña y copia los datos con sus etiquetas.
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <a
+                                            href={URL_CONSULTAS_ECUADOR}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={copiarPlaca}
+                                            className="btn-secondary inline-flex text-sm"
+                                        >
+                                            Copiar placa y abrir Consultas Ecuador
+                                        </a>
+                                        <button
+                                            type="button"
+                                            onClick={() => setMostrarPegado(!mostrarPegado)}
+                                            aria-expanded={mostrarPegado}
+                                            className="btn-secondary text-sm"
+                                        >
+                                            Pegar resultado
+                                        </button>
+                                    </div>
+                                    {mostrarPegado && (
+                                        <div className="space-y-2">
+                                            <label className="form-label" htmlFor="orden-resultado-placa">
+                                                Resultado de Consultas Ecuador
+                                            </label>
+                                            <textarea
+                                                id="orden-resultado-placa"
+                                                className="input-field"
+                                                rows={4}
+                                                maxLength={12000}
+                                                value={resultadoPegado}
+                                                onChange={e => setResultadoPegado(e.target.value)}
+                                                onPaste={e => {
+                                                    const texto = e.clipboardData.getData('text/plain').slice(0, 12000);
+                                                    if (!texto) return;
+                                                    e.preventDefault();
+                                                    setResultadoPegado(texto);
+                                                    aplicarResultado(texto);
+                                                }}
+                                                placeholder={'Marca: …\nModelo: …\nAño: …'}
+                                            />
+                                            <button type="button" onClick={() => aplicarResultado(resultadoPegado)} className="btn-secondary text-sm">
+                                                Aplicar resultado
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             {vehiculoExistente && (
                                 <motion.div
                                     initial={{ opacity: 0, y: -4 }}
@@ -810,16 +964,6 @@ export function PaginaNuevaOrden() {
                                                 {vehiculoExistente.anio} · {vehiculoExistente.color}
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                setVehiculoExistente(null);
-                                                setPlacaBusqueda('');
-                                                setHistorialVehiculo([]);
-                                            }}
-                                            className="text-[rgba(11,18,32,0.35)] hover:text-[#EF4444] transition-colors"
-                                        >
-                                            <X className="w-3.5 h-3.5" />
-                                        </button>
                                     </div>
 
                                     {/* Historial médico del vehículo */}
@@ -951,62 +1095,42 @@ export function PaginaNuevaOrden() {
                             )}
                         </div>
 
-                        {/* Formulario de vehículo — oculto si ya hay uno existente */}
-                        {!vehiculoExistente && (
-                            <div className="space-y-3">
-                                <p className="text-[11px] font-semibold text-[rgba(11,18,32,0.40)] uppercase tracking-wider">
-                                    O ingresa uno nuevo
-                                </p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="col-span-2">
-                                        <label className="form-label">Placa *</label>
-                                        <input
-                                            value={vPlaca}
-                                            onChange={e => setVPlaca(e.target.value)}
-                                            placeholder="ABC-1234"
-                                            className="input-field font-mono uppercase"
-                                        />
+                        <div className="grid grid-cols-2 gap-3">
+                            {([
+                                ['marca', 'Marca *', 'Toyota'],
+                                ['modelo', 'Modelo', 'Corolla'],
+                                ['anio', 'Año', '2020'],
+                                ['color', 'Color', 'Rojo'],
+                            ] as const).map(([campo, etiqueta, ejemplo]) => {
+                                const id = `orden-vehiculo-${campo}`;
+                                const filaCompleta = campo === 'modelo' || campo === 'marca';
+                                return (
+                                    <div key={campo} className={filaCompleta ? 'col-span-2 sm:col-span-1' : ''}>
+                                        <label className="form-label" htmlFor={id}>{etiqueta}</label>
+                                        {campo === 'modelo' ? (
+                                            <textarea
+                                                id={id}
+                                                value={ficha.modelo}
+                                                onChange={e => editarFicha('modelo', e.target.value.replace(/[\r\n]+/g, ' '))}
+                                                placeholder={ejemplo}
+                                                rows={2}
+                                                className="input-field block resize-y"
+                                            />
+                                        ) : (
+                                            <input
+                                                id={id}
+                                                value={ficha[campo]}
+                                                onChange={e => editarFicha(campo, e.target.value)}
+                                                placeholder={ejemplo}
+                                                inputMode={campo === 'anio' ? 'numeric' : undefined}
+                                                maxLength={campo === 'anio' ? 4 : undefined}
+                                                className="input-field"
+                                            />
+                                        )}
                                     </div>
-                                    <div>
-                                        <label className="form-label">Marca *</label>
-                                        <input
-                                            value={vMarca}
-                                            onChange={e => setVMarca(e.target.value)}
-                                            placeholder="Toyota"
-                                            className="input-field"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="form-label">Modelo</label>
-                                        <input
-                                            value={vModelo}
-                                            onChange={e => setVModelo(e.target.value)}
-                                            placeholder="Corolla"
-                                            className="input-field"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="form-label">Año</label>
-                                        <input
-                                            value={vAnio}
-                                            onChange={e => setVAnio(e.target.value)}
-                                            placeholder="2020"
-                                            className="input-field"
-                                            maxLength={4}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="form-label">Color</label>
-                                        <input
-                                            value={vColor}
-                                            onChange={e => setVColor(e.target.value)}
-                                            placeholder="Rojo"
-                                            className="input-field"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                                );
+                            })}
+                        </div>
 
                         {/* Fotos del ANTES */}
                         <div className="space-y-3 border-t border-slate-200/50 pt-4">
@@ -1076,24 +1200,25 @@ export function PaginaNuevaOrden() {
 
                         <div className="flex gap-3">
                             <button
-                                onClick={() => setStep('cliente')}
+                                onClick={() => {
+                                    consultaPlaca.current?.abort();
+                                    consultaPlaca.current = null;
+                                    setBuscandoVehiculo(false);
+                                    setCargandoHistorial(false);
+                                    if (buscandoVehiculo) setEstadoPlaca('');
+                                    setStep('cliente');
+                                }}
                                 className="btn-secondary flex-1"
                             >
                                 ← Volver
                             </button>
                             <motion.button
                                 whileTap={{ scale: 0.96 }}
-                                onClick={guardarVehiculo}
-                                disabled={saving}
+                                onClick={continuarConVehiculo}
+                                disabled={buscandoVehiculo}
                                 className="btn-primary flex-1 flex items-center justify-center gap-2"
                             >
-                                {saving ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <>
-                                        Continuar <ChevronRight className="w-4 h-4" />
-                                    </>
-                                )}
+                                Continuar <ChevronRight className="w-4 h-4" aria-hidden="true" />
                             </motion.button>
                         </div>
                     </motion.div>

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import contratoServidor from '../../supabase/functions/aviso-suscripcion/contrato.ts?raw';
-import contratoCliente from '../dominio/vigenciaSuColor.ts?raw';
+import { validarVigencia as validarVigenciaServidor } from '../../supabase/functions/aviso-suscripcion/contrato';
 import { avisoVigencia, validarVigencia } from '../dominio/vigenciaSuColor';
 import { crearHandler } from '../../supabase/functions/aviso-suscripcion/handler';
 const ahora = Date.parse('2026-10-30T17:00:00Z');
@@ -16,7 +15,7 @@ describe('Aviso de vigencia', () => {
     it.each([
         ['2026-11-07', null],
         ['2026-11-06', 'Tu suscripción está por vencer'],
-        ['2026-10-31', 'Tu suscripción está por vencer'],
+        ['2026-10-31', 'Tu suscripción vence mañana'],
         ['2026-10-30', 'Tu suscripción vence hoy'],
         ['2026-10-29', 'Tu suscripción está vencida'],
     ])('frontera %s', (fin, titulo) =>
@@ -40,8 +39,19 @@ describe('Aviso de vigencia', () => {
         ])
             expect(validarVigencia(v, ahora)).toBe(false);
     });
-    it('mantiene idénticos los contratos del servidor y navegador', () => {
-        expect(contratoServidor).toBe(contratoCliente);
+    it('valida las mismas versiones del contrato en el servidor y el navegador', () => {
+        const versionActual = { ...datos('2026-11-02'), version: 2, dias_aviso: 3 };
+        for (const [valor, esperado] of [
+            [datos(), true],
+            [versionActual, true],
+            [{ ...versionActual, dias_aviso: 7 }, false],
+            [datos('2026-12-31', ahora - 250000), false],
+        ] as const) {
+            expect(validarVigenciaServidor(valor, ahora)).toBe(esperado);
+            expect(validarVigencia(valor, ahora)).toBe(esperado);
+        }
+        expect(avisoVigencia(versionActual, ahora)?.dias_restantes).toBe(3);
+        expect(avisoVigencia({ ...versionActual, fecha_fin: '2026-11-03' }, ahora)).toBeNull();
     });
 });
 describe('Servidor SuColor', () => {

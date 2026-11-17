@@ -17,15 +17,20 @@ vi.mock('@/biblioteca/clienteSupabase', () => ({
         },
     },
 }));
-const datos = (fin = '2026-11-06') => ({
-    version: 1,
+const datos = (fin = '2026-11-02') => ({
+    version: 2,
     producto: 'sucolor',
     fecha_inicio: '2026-01-01',
     fecha_fin: fin,
-    dias_aviso: 7,
+    dias_aviso: 3,
     consultado_en: new Date().toISOString(),
 });
 beforeEach(() => {
+    const almacenamiento = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+        getItem: (clave: string) => almacenamiento.get(clave) ?? null,
+        setItem: (clave: string, valor: string) => almacenamiento.set(clave, valor),
+    });
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-10-30T17:00:00Z'));
     mocks.invoke.mockReset();
@@ -34,6 +39,7 @@ beforeEach(() => {
 afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
 });
 async function montar() {
     await act(async () => {
@@ -44,25 +50,27 @@ describe('Aviso administrativo', () => {
     it('se actualiza al renovar dentro de dos minutos', async () => {
         await montar();
         expect(screen.getByRole('dialog')).toHaveTextContent('está por vencer');
-        expect(screen.getByRole('dialog')).toHaveTextContent('06 nov 2026');
+        expect(screen.getByRole('dialog')).toHaveTextContent('2 de noviembre');
         mocks.invoke.mockImplementation(async () => ({ data: datos('2026-12-31'), error: null }));
         await act(async () => {
             vi.advanceTimersByTime(120000);
         });
-        expect(screen.queryByRole('status')).toHaveTextContent('Suscripción de SuColor');
+        expect(screen.queryByRole('status')).toBeNull();
         expect(screen.queryByRole('dialog')).toBeNull();
     });
-    it('al iniciar siempre muestra una ventana con la fecha y el aviso condicionado a siete días', async () => {
+    it('oculta el aviso lejos del vencimiento y no repite la ventana de la misma etapa', async () => {
         mocks.invoke.mockResolvedValue({ data: datos('2026-12-31'), error: null });
         await montar();
-        expect(screen.getByRole('dialog')).toHaveTextContent(
-            'Tu suscripción de SuColor está vigente hasta el 31 de diciembre de 2026.'
-        );
-        expect(screen.getByRole('dialog')).toHaveTextContent('Fecha de vencimiento:');
-        expect(screen.queryByText('Tu suscripción está por vencer')).toBeNull();
-        await act(async () => screen.getByRole('button', { name: 'Entendido' }).click());
         expect(screen.queryByRole('dialog')).toBeNull();
-        expect(screen.getByRole('status')).toHaveTextContent('Suscripción de SuColor');
+        expect(screen.queryByRole('status')).toBeNull();
+
+        mocks.invoke.mockImplementation(async () => ({ data: datos(), error: null }));
+        await act(async () => vi.advanceTimersByTime(120000));
+        expect(screen.getByRole('dialog')).toHaveTextContent('Fecha de vencimiento:');
+        await act(async () => screen.getByRole('button', { name: 'Entendido' }).click());
+        await act(async () => vi.advanceTimersByTime(120000));
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(screen.getByRole('status')).toHaveTextContent('está por vencer');
     });
     it('retira el aviso ante fallo, pérdida de red y cierre de sesión', async () => {
         await montar();
