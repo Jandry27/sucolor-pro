@@ -30,13 +30,13 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const [error, setError] = useState<string | null>(null);
     const [avisoCorreo, setAvisoCorreo] = useState<string | null>(null);
 
-    const clienteInitial = order.cliente as any;
+    const clienteInitial = order.cliente_id ? order.cliente : null;
     const [clienteDocTipo, setClienteDocTipo] = useState(
         clienteInitial?.tipo_identificacion || '05'
     );
     const [clienteDoc, setClienteDoc] = useState(clienteInitial?.cedula || '');
     const [clienteNombre, setClienteNombre] = useState(
-        clienteInitial?.nombres || clienteInitial?.nombre || ''
+        clienteInitial?.nombres || ''
     );
     const [clienteDireccion, setClienteDireccion] = useState(clienteInitial?.direccion || '');
     const [clienteTelefono, setClienteTelefono] = useState(clienteInitial?.telefono || '');
@@ -74,7 +74,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             setTrabajoRealizado(order.notas_publicas || '');
             setClienteDocTipo(order.cliente?.tipo_identificacion || '05');
             setClienteDoc(order.cliente?.cedula || '');
-            setClienteNombre(order.cliente?.nombres || '');
+            setClienteNombre(order.cliente_id ? order.cliente?.nombres || '' : '');
             setClienteDireccion(order.cliente?.direccion || '');
             setClienteEmail(order.cliente?.email || '');
             setClienteTelefono(order.cliente?.telefono || '');
@@ -190,10 +190,6 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             setError('Revisa la identificación: cédula de 10 dígitos o RUC de 13 dígitos.');
             return;
         }
-        if (!order.cliente_id) {
-            setError('La orden debe tener un cliente asignado para poder facturar.');
-            return;
-        }
         if (!clienteDoc) {
             setError('Falta ingresar la identificación del cliente (Cédula/RUC).');
             return;
@@ -222,7 +218,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
 
         try {
             // Solo actualizar el cliente de la orden cuando conserva su identidad.
-            if (clienteDoc === order.cliente?.cedula && clienteDocTipo === (order.cliente?.tipo_identificacion || '05')) {
+            if (order.cliente_id && clienteDoc === order.cliente?.cedula && clienteDocTipo === (order.cliente?.tipo_identificacion || '05')) {
                 const { error: errorGuardado } = await supabase
                     .from('clientes')
                     .update({
@@ -271,10 +267,12 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             });
 
             if (functionError) {
-                console.error('Edge function call error:', functionError);
-                throw new Error(
-                    functionError.message || 'Error de conexión con el servidor de facturación'
-                );
+                let mensaje = functionError.message;
+                if (functionError.context instanceof Response) {
+                    const detalle = await functionError.context.clone().json().catch(() => null);
+                    mensaje = detalle?.message || detalle?.error || mensaje;
+                }
+                throw new Error(mensaje || 'Error de conexión con el servidor de facturación');
             }
             if (!data || !data.success) {
                 throw new Error(data?.message || 'Error desconocido del SRI');

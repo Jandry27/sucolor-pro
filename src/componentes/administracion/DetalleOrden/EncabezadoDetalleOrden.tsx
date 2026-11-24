@@ -71,9 +71,10 @@ export function EncabezadoDetalleOrden({
 
                 <button
                     onClick={onOpenInvoice}
-                    disabled={saving || !order.cliente_id}
+                    disabled={saving}
                     className="p-2 text-brand-orange bg-[rgba(255,81,0,0.05)] border border-[rgba(255,81,0,0.1)] hover:bg-[rgba(255,81,0,0.1)] hover:border-[rgba(255,81,0,0.2)] rounded-lg transition-colors ml-1"
                     title="Emitir Factura Electrónica SRI"
+                    aria-label="Abrir factura electrónica"
                 >
                     <FileText className="w-4 h-4" />
                 </button>
