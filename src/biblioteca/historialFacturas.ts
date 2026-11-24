@@ -132,6 +132,8 @@ export function htmlFacturaArchivada(factura: FacturaHistorial, imprimir = false
                 formaPago: pago,
                 formaPagoDescripcion: pagos[pago] || pago,
             },
+            vehiculo: adicional('placa') ? { placa: adicional('placa'), marca: adicional('vehiculo'), modelo: '' } : undefined,
+            notas: adicional('observacion') || undefined,
             logoUrl: new URL('/logo.png', window.location.origin).href,
         },
         { imprimir }

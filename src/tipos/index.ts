@@ -148,7 +148,7 @@ export interface CompanySettings {
 
 export interface Invoice {
     id: string;
-    orden_id: string;
+    orden_id: string | null;
     secuencial: string | null;
     clave_acceso: string | null;
     estado: 'CREADA' | 'FIRMADA' | 'RECIBIDA' | 'AUTORIZADA' | 'RECHAZADA';

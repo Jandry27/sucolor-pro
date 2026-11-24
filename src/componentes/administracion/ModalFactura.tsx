@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { htmlFacturaArchivada } from '@/biblioteca/historialFacturas';
-import { FORMAS_PAGO, validarEmision, calcularTotalesFactura } from '../../../supabase/functions/_shared/reglasFacturacion';
+import { FORMAS_PAGO, validarEmision, calcularTotalesFactura, type ItemFacturable } from '../../../supabase/functions/_shared/reglasFacturacion';
 import { DatosCompradorFactura } from './DatosCompradorFactura';
 import { supabase } from '@/biblioteca/clienteSupabase';
 import {
@@ -17,12 +17,18 @@ import type { AdminOrder, Invoice, OrdenGasto } from '@/tipos';
 interface ModalFacturaProps {
     isOpen: boolean;
     onClose: () => void;
-    order: AdminOrder;
+    order?: AdminOrder;
+    facturaLibre?: {
+        items: ItemFacturable[];
+        vehiculo?: { placa: string; marca: string; modelo: string; anio: string; color: string };
+        guardarVehiculo: boolean;
+    };
+    onEmitida?: () => void;
 }
 
 // ── RIDE HTML generator (Formato SRI Oficial) ──────────────────────────────────
 // ── Formas de pago SRI ─────────────────────────────────────────────────────────
-export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
+export function ModalFactura({ isOpen, onClose, order, facturaLibre, onEmitida }: ModalFacturaProps) {
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [existingInvoice, setExistingInvoice] = useState<Invoice | null>(null);
@@ -30,7 +36,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const [error, setError] = useState<string | null>(null);
     const [avisoCorreo, setAvisoCorreo] = useState<string | null>(null);
 
-    const clienteInitial = order.cliente_id ? order.cliente : null;
+    const clienteInitial = order?.cliente_id ? order?.cliente : null;
     const [clienteDocTipo, setClienteDocTipo] = useState(
         clienteInitial?.tipo_identificacion || '05'
     );
@@ -48,6 +54,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const [mensajeBusqueda, setMensajeBusqueda] = useState('');
     const consultaActual = useRef(0);
     const emisionBloqueada = useRef(false);
+    const solicitudId = useRef(crypto.randomUUID());
     const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Form state defaults
@@ -56,42 +63,50 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     const [ivaGastos, setIvaGastos] = useState<Record<string, number | ''>>({});
     const [consultaFallida, setConsultaFallida] = useState(false);
     const [notasVenta, setNotasVenta] = useState('');
-    const [trabajoRealizado, setTrabajoRealizado] = useState(order.notas_publicas || '');
+    const [trabajoRealizado, setTrabajoRealizado] = useState(order?.notas_publicas || '');
 
     useEffect(() => {
         if (isOpen) {
+            solicitudId.current = crypto.randomUUID();
+            setNotasVenta('');
+            setGastos([]);
             setIvaManoObra('');
             setIvaGastos({});
             setFormaPago('');
             checkExistingInvoice();
-            loadGastos();
+            if (order) loadGastos();
             setClienteFound(null);
             setMensajeBusqueda('');
             setSearchingCliente(false);
             setError(null);
             setAvisoCorreo(null);
             setExistingInvoice(null);
-            setTrabajoRealizado(order.notas_publicas || '');
-            setClienteDocTipo(order.cliente?.tipo_identificacion || '05');
-            setClienteDoc(order.cliente?.cedula || '');
-            setClienteNombre(order.cliente_id ? order.cliente?.nombres || '' : '');
-            setClienteDireccion(order.cliente?.direccion || '');
-            setClienteEmail(order.cliente?.email || '');
-            setClienteTelefono(order.cliente?.telefono || '');
+            setTrabajoRealizado(order?.notas_publicas || '');
+            setClienteDocTipo(order?.cliente?.tipo_identificacion || '05');
+            setClienteDoc(order?.cliente?.cedula || '');
+            setClienteNombre(order?.cliente_id ? order?.cliente?.nombres || '' : '');
+            setClienteDireccion(order?.cliente?.direccion || '');
+            setClienteEmail(order?.cliente?.email || '');
+            setClienteTelefono(order?.cliente?.telefono || '');
         }
         return () => {
             consultaActual.current += 1;
             if (searchTimeout.current) clearTimeout(searchTimeout.current);
         };
-    }, [isOpen, order.id]);
+    }, [isOpen, order?.id]);
 
-    const checkExistingInvoice = async () => {
+    const checkExistingInvoice = async (facturaId?: string) => {
+        if (!order && !facturaId) {
+            setLoading(false);
+            setConsultaFallida(false);
+            return;
+        }
         setLoading(true);
         setConsultaFallida(false);
-        const { data, error } = await supabase
-            .from('invoices')
-            .select('*')
-            .eq('orden_id', order.id)
+        const consulta = supabase.from('invoices').select('*');
+        const { data, error } = await (facturaId
+            ? consulta.eq('id', facturaId)
+            : consulta.eq('orden_id', order!.id))
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -105,7 +120,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     };
 
     const loadGastos = async () => {
-        const { data, error: fallo } = await supabase.from('orden_gastos').select('*').eq('orden_id', order.id);
+        const { data, error: fallo } = await supabase.from('orden_gastos').select('*').eq('orden_id', order?.id);
         if (fallo) { setConsultaFallida(true); setError('No se pudieron cargar los repuestos. Cierra y vuelve a abrir la factura.'); }
         if (data) setGastos(data);
     };
@@ -180,8 +195,8 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
     };
 
     const handleGenerateInvoice = async () => {
-        if (emisionBloqueada.current || searchingCliente || loading || consultaFallida) return;
-        if (ivaManoObra === '' || gastos.some(g => ivaGastos[g.id] === undefined || ivaGastos[g.id] === '') || !formaPago) {
+        if (emisionBloqueada.current || searchingCliente || loading || consultaFallida || (!order && !facturaLibre)) return;
+        if ((!facturaLibre && (ivaManoObra === '' || gastos.some(g => ivaGastos[g.id] === undefined || ivaGastos[g.id] === ''))) || !formaPago) {
             setError('Selecciona la forma de pago y el IVA de cada concepto según su tratamiento tributario.');
             return;
         }
@@ -207,7 +222,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             return;
         }
 
-        if (!trabajoRealizado.trim() || trabajoRealizado.trim().length > 250) {
+        if (!facturaLibre && (!trabajoRealizado.trim() || trabajoRealizado.trim().length > 250)) {
             setError('Describe el trabajo realizado en un máximo de 250 caracteres.');
             return;
         }
@@ -218,7 +233,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
 
         try {
             // Solo actualizar el cliente de la orden cuando conserva su identidad.
-            if (order.cliente_id && clienteDoc === order.cliente?.cedula && clienteDocTipo === (order.cliente?.tipo_identificacion || '05')) {
+            if (order?.cliente_id && clienteDoc === order?.cliente?.cedula && clienteDocTipo === (order?.cliente?.tipo_identificacion || '05')) {
                 const { error: errorGuardado } = await supabase
                     .from('clientes')
                     .update({
@@ -229,12 +244,17 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                         telefono: clienteTelefono,
                         tipo_identificacion: clienteDocTipo,
                     })
-                    .eq('id', order.cliente_id);
+                    .eq('id', order?.cliente_id);
                 if (errorGuardado) throw new Error('No se pudieron guardar los datos del cliente. Intenta nuevamente.');
             }
 
             const payload = {
-                orden_id: order.id,
+                orden_id: order?.id ?? null,
+                solicitud_id: solicitudId.current,
+                ...(facturaLibre && {
+                    vehiculo: facturaLibre.vehiculo,
+                    guardar_vehiculo: facturaLibre.guardarVehiculo,
+                }),
                 comprador: {
                     tipo_identificacion: clienteDocTipo,
                     identificacion: clienteDoc,
@@ -243,11 +263,11 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                     telefono: clienteTelefono,
                     email: clienteEmail,
                 },
-                items: [
+                items: facturaLibre?.items ?? [
                     {
                         codigo_principal: 'MANO_OBRA',
                         descripcion: `Mano de obra: ${trabajoRealizado.trim().replace(/\s+/g, ' ')}`,
-                        precio_total_sin_impuestos: order.precio_total || 0,
+                        precio_total_sin_impuestos: order?.precio_total || 0,
                         tarifa_iva: ivaManoObra,
                     },
                     ...gastos.map(g => ({
@@ -279,7 +299,8 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
             }
 
             setAvisoCorreo(data.aviso_correo || (data.email_enviado === true ? 'La factura se envió al cliente con el PDF adjunto.' : null));
-            await checkExistingInvoice();
+            await checkExistingInvoice(data.invoice_id);
+            onEmitida?.();
         } catch (err: any) {
             console.error(err);
             setError(err.message || 'Ocurrió un error al procesar la factura con el SRI');
@@ -291,14 +312,14 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
 
     if (!isOpen) return null;
 
-    const totalManoObra = order.precio_total || 0;
+    const totalManoObra = order?.precio_total || 0;
     const totalGasto = gastos.reduce((sum, g) => sum + Number(g.monto), 0);
     const subtotal = totalManoObra + totalGasto;
-    const totalesVista = calcularTotalesFactura([
+    const totalesVista = calcularTotalesFactura(facturaLibre?.items ?? [
         { codigo_principal: 'MO', descripcion: 'Mano de obra', precio_total_sin_impuestos: totalManoObra, tarifa_iva: ivaManoObra === 15 ? 15 : 0 },
         ...gastos.map(g => ({ codigo_principal: g.id, descripcion: g.descripcion, precio_total_sin_impuestos: Number(g.monto), tarifa_iva: ivaGastos[g.id] === 15 ? 15 as const : 0 as const })),
     ]);
-    const impuestosPendientes = ivaManoObra === '' || gastos.some(g => ivaGastos[g.id] === undefined || ivaGastos[g.id] === '');
+    const impuestosPendientes = !facturaLibre && (ivaManoObra === '' || gastos.some(g => ivaGastos[g.id] === undefined || ivaGastos[g.id] === ''));
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -410,6 +431,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                             {existingInvoice.estado === 'RECHAZADA' && (
                                 <button
                                     onClick={() => {
+                                        solicitudId.current = crypto.randomUUID();
                                         setExistingInvoice(null);
                                     }}
                                     className="w-full py-3 flex items-center justify-center gap-2 text-base font-medium rounded-xl border-2 border-brand-orange text-brand-orange hover:bg-brand-orange/10 transition-colors"
@@ -433,6 +455,22 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                 onEmail={setClienteEmail} onTelefono={setClienteTelefono}
                             />
 
+                            {facturaLibre ? (
+                                <section className="space-y-3 border-t border-slate-200 pt-5">
+                                    <h3 className="font-semibold">Detalle de la factura</h3>
+                                    {facturaLibre.vehiculo && (
+                                        <p className="text-sm text-slate-600">
+                                            {facturaLibre.vehiculo.placa} · {facturaLibre.vehiculo.marca} {facturaLibre.vehiculo.modelo}
+                                        </p>
+                                    )}
+                                    {facturaLibre.items.map((item, indice) => (
+                                        <div key={indice} className="flex justify-between gap-3 text-sm">
+                                            <span className="min-w-0 break-words">{item.descripcion} · IVA {item.tarifa_iva}%</span>
+                                            <span className="shrink-0">${Number(item.precio_total_sin_impuestos).toFixed(2)}</span>
+                                        </div>
+                                    ))}
+                                </section>
+                            ) : (
                             <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
                                 <h3 className="text-sm font-semibold mb-3 dark:text-white">
                                     Detalle de la factura
@@ -444,7 +482,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                 <div className="space-y-3">
                                     <div className="flex flex-wrap justify-between items-center gap-3 text-sm">
                                         <span className="text-slate-600 dark:text-slate-300">
-                                            Mano de Obra (Orden {order.codigo})
+                                            Mano de Obra (Orden {order?.codigo})
                                         </span>
                                         <div className="flex items-center gap-3">
                                             <select
@@ -516,6 +554,7 @@ export function ModalFactura({ isOpen, onClose, order }: ModalFacturaProps) {
                                 </div>
                             </div>
 
+                            )}
                             {/* Forma de pago */}
                             <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
                                 <label className="text-sm font-semibold text-slate-900 dark:text-white mb-2 block">

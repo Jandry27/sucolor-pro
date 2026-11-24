@@ -22,6 +22,7 @@ const NAV = [
     { to: '/administracion/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/administracion/orders', icon: ClipboardList, label: 'Órdenes' },
     { to: '/administracion/orders/nueva', icon: PlusCircle, label: 'Nueva Orden' },
+    { to: '/administracion/facturas', icon: FileText, label: 'Facturas' },
     { to: '/administracion/clientes', icon: Users, label: 'Clientes' },
     { to: '/administracion/vehiculos', icon: Car, label: 'Vehículos' },
     { to: '/administracion/pinturas', icon: Palette, label: 'Inventario Pinturas' },

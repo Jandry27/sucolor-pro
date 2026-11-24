@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
+import { webcrypto } from 'node:crypto';
 const fuente = await fs.readFile('supabase/functions/sri-invoice/index.ts', 'utf8');
 const reglasFuente = await fs.readFile('supabase/functions/_shared/reglasFacturacion.ts', 'utf8');
 const transpilar = fuente => ts.transpileModule(fuente, { compilerOptions: { module: ts.ModuleKind.ES2020, target: ts.ScriptTarget.ES2020 } }).outputText;
@@ -9,14 +10,28 @@ const handler = transpilar(fuente.slice(fuente.indexOf('serve(async req =>')));
 let atender, datosXml, correo, filas, configuracion;
 const registros = [];
 const base = { ruc: '1104449473001', razon_social: 'Empresa de prueba', direccion_matriz: 'Loja', obligado_contabilidad: false, rimpe: false, contribuyente_especial: '', secuencial_factura: '1', establecimiento: '001', punto_emision: '001', p12_storage_path: 'firma-simulada' };
+const reservas = new Map();
 const supabase = {
+    rpc(nombre, parametros) {
+        assert.equal(nombre, 'reservar_factura_sri');
+        if (reservas.has(parametros.p_solicitud))
+            return {single: async () => ({data:reservas.get(parametros.p_solicitud),error:null})};
+        filas = {importe_total:parametros.p_totales.total,orden_id:parametros.p_orden};
+        const reserva = {
+            id:'factura-demo',estado:'CREADA',secuencial:'001-001-000000001',
+            comprador:parametros.p_comprador,vehiculo:parametros.p_vehiculo,
+        };
+        reservas.set(parametros.p_solicitud,reserva);
+        registros.push('reserva');
+        return {single: async () => ({data:reserva,error:null})};
+    },
     from(tabla) {
         let insertando = false;
         const cadena = {};
-        for (const metodo of ['select','limit','eq','in','order','like']) cadena[metodo] = () => cadena;
+        for (const metodo of ['select','limit','eq','in','order','like','is']) cadena[metodo] = () => cadena;
         cadena.insert = valor => { insertando = true; filas = valor; registros.push('insert'); return cadena; };
         cadena.update = valor => { registros.push(['update', tabla, valor]); return cadena; };
-        cadena.maybeSingle = async () => ({ data: null });
+        cadena.maybeSingle = async () => ({ data: tabla === 'invoices' ? {id:'factura-demo'} : null });
         cadena.single = async () => ({ data: tabla === 'company_settings' ? configuracion : tabla === 'ordenes' ? {id:'orden-demo',cliente:{nombres:'Cliente original'},vehiculo:{placa:'DEMO'}} : insertando ? {id:'factura-demo'} : null });
         cadena.then = resolver => Promise.resolve({data:null,error:null}).then(resolver);
         return cadena;
@@ -30,7 +45,7 @@ const dependencias = {
     signXmlWithP12: xml => xml, sendRecepcion: async () => ({estado:'RECIBIDA'}),
     sendAutorizacion: async () => ({estado:'AUTORIZADO',fechaAutorizacion:'2026-10-06T12:00:00-05:00'}),
     sendInvoiceEmail: async datos => { correo=datos; return {success:true}; },
-    setTimeout: resolver => resolver(), console: {log(){},warn(){},error(){}}, Response,
+    crypto: webcrypto, setTimeout: resolver => resolver(), console: {log(){},warn(){},error(){}}, Response,
 };
 new Function(...Object.keys(dependencias), handler)(...Object.values(dependencias));
 const entrada = pago => ({orden_id:'orden-demo',forma_pago:pago,comprador:{tipo_identificacion:'05',identificacion:'1104432198',razon_social:'Cliente de prueba',direccion:'Loja',email:'prueba@example.test'},items:[{codigo_principal:'MO',descripcion:'Reparación',precio_total_sin_impuestos:15,tarifa_iva:15},{codigo_principal:'REP',descripcion:'Repuesto',precio_total_sin_impuestos:3,tarifa_iva:0}]});
@@ -54,3 +69,17 @@ configuracion={...base};registros.length=0;
 assert.equal((await enviar(entrada('99'))).status,400);
 assert.equal(registros.length,0);
 console.log('OK: cuatro formas de pago coherentes entre XML, base de datos y correo; totales mixtos y rechazo previo de configuración y pago inválidos. Todo simulado, sin emisión ni correo real.');
+
+configuracion={...base}; registros.length=0;
+const directa={...entrada('01'), orden_id:null, solicitud_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', vehiculo:{placa:'abc-1234',marca:'Toyota',modelo:'Corolla',anio:'2020'},guardar_vehiculo:true};
+const respuestaDirecta=await enviar(directa);
+assert.equal(respuestaDirecta.status,200,await respuestaDirecta.clone().text());
+assert.equal(filas.orden_id,null);
+assert.equal(datosXml.infoAdicional.find(d=>d.nombre==='Placa').valor,'ABC1234');
+assert.equal(correo.vehiculo.placa,'ABC1234');
+reservas.get(directa.solicitud_id).estado='AUTORIZADA';
+registros.length=0;
+const repetida=await enviar(directa);
+assert.equal((await repetida.json()).status,'AUTORIZADA');
+assert.equal(registros.length,0);
+console.log('OK: factura directa sin orden, vehículo en XML y correo, reintento sin nueva emisión.');

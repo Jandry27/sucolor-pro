@@ -760,7 +760,10 @@ serve(async req => {
             );
         }
 
-        const { orden_id, items, notas, comprador, forma_pago } = await req.json();
+        const { orden_id, items, notas, comprador, forma_pago, solicitud_id, vehiculo, guardar_vehiculo } = await req.json();
+        const solicitudId = solicitud_id || crypto.randomUUID();
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(solicitudId))
+            throw new Error('Solicitud de factura inválida.');
         validarEmision(items, forma_pago);
 
         // --- 1. Company Settings ---
@@ -783,68 +786,48 @@ serve(async req => {
             (comprador.tipo_identificacion === '06' && !/^[A-Za-z0-9-]{5,20}$/.test(comprador.identificacion || '')))
             throw new Error('Revisa la identificación, razón social, dirección y correo del comprador.');
 
-        // --- 2. Order + Client ---
-        const { data: order } = await supabase
-            .from('ordenes')
-            .select('*, cliente:clientes(*), vehiculo:vehiculos(*)')
-            .eq('id', orden_id)
-            .single();
-        if (!order) throw new Error('Orden no encontrada');
-
-        // --- 3. Validar si ya existe factura autorizada/recibida para esta orden ---
-        const { data: existingValidInvoice } = await supabase
-            .from('invoices')
-            .select('id, estado, secuencial')
-            .eq('orden_id', orden_id)
-            .in('estado', ['AUTORIZADA', 'RECIBIDA'])
-            .limit(1)
-            .maybeSingle();
-
-        if (existingValidInvoice) {
-            throw new Error(
-                `Esta orden ya tiene una factura ${existingValidInvoice.estado} (${existingValidInvoice.secuencial}). No se puede generar otra.`
-            );
+        let order: any = { id: null, cliente: null, vehiculo: null };
+        if (orden_id) {
+            const { data, error } = await supabase
+                .from('ordenes')
+                .select('*, cliente:clientes(*), vehiculo:vehiculos(*)')
+                .eq('id', orden_id)
+                .single();
+            if (error || !data) throw new Error('Orden no encontrada.');
+            order = data;
+        } else if (vehiculo) {
+            const placa = typeof vehiculo.placa === 'string'
+                ? vehiculo.placa.replace(/[\s-]/g, '').toUpperCase() : '';
+            if (!/^[A-Z0-9]{2,10}$/.test(placa) || typeof vehiculo.marca !== 'string'
+                || !vehiculo.marca.trim() || vehiculo.marca.length>150
+                || (vehiculo.modelo && (typeof vehiculo.modelo !== 'string' || vehiculo.modelo.length>150))
+                || (vehiculo.anio && !/^\d{4}$/.test(String(vehiculo.anio))))
+                throw new Error('Revisa la placa, marca, modelo y año del vehículo.');
+            order.vehiculo = {
+                placa, marca: vehiculo.marca.trim(), modelo: vehiculo.modelo?.trim() || '',
+                anio: vehiculo.anio || null, color: String(vehiculo.color || '').slice(0,100),
+            };
         }
 
-        // Los intentos rechazados se conservan y sus secuenciales no se reutilizan.
-
-        // --- 3. Secuencial - Usar contador global seguro de company_settings ---
-        // Lectura del siguiente secuencial disponible
-        const { data: currentSettings } = await supabase
-            .from('company_settings')
-            .select('secuencial_factura')
-            .limit(1)
-            .single();
-
-        let baseSeq = parseInt(currentSettings?.secuencial_factura || '1', 10);
-
-        // Validar que el secuencial no esté duplicado en invoices recientes
-        let isDuplicate = true;
-        let attempts = 0;
-        while (isDuplicate && attempts < 10) {
-            const { data: existingSeq } = await supabase
-                .from('invoices')
-                .select('id')
-                .like('secuencial', `${(settings.establecimiento || '001').padStart(3, '0')}-${(settings.punto_emision || '001').padStart(3, '0')}-${String(baseSeq).padStart(9, '0')}`)
-                .limit(1)
-                .maybeSingle();
-
-            if (!existingSeq) {
-                isDuplicate = false;
-            } else {
-                baseSeq++;
-                attempts++;
-            }
+        const totalesReserva = calcularTotalesFactura(items);
+        const { data: reserva, error: falloReserva } = await supabase.rpc('reservar_factura_sri', {
+            p_solicitud: solicitudId,
+            p_orden: orden_id || null,
+            p_comprador: comprador,
+            p_vehiculo: order.vehiculo,
+            p_totales: totalesReserva,
+            p_guardar_vehiculo: !orden_id && guardar_vehiculo === true && !!order.vehiculo,
+        }).single();
+        if (falloReserva || !reserva) throw new Error(falloReserva?.message || 'No se pudo reservar la factura.');
+        if (reserva.clave_acceso || reserva.estado !== 'CREADA') {
+            return new Response(JSON.stringify({
+                success: true, status: reserva.estado, invoice_id: reserva.id,
+                secuencial: reserva.secuencial, clave_acceso: reserva.clave_acceso,
+            }), { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } });
         }
 
-        if (isDuplicate) {
-            throw new Error('No se pudo asignar un secuencial válido. Contacta al administrador.');
-        }
-
-        const nextSeq = String(baseSeq).padStart(9, '0');
-        const estab = (settings.establecimiento || '001').padStart(3, '0');
-        const ptoEmi = (settings.punto_emision || '001').padStart(3, '0');
-        const fullNumber = `${estab}-${ptoEmi}-${nextSeq}`;
+        const [estab, ptoEmi, nextSeq] = reserva.secuencial.split('-');
+        const fullNumber = reserva.secuencial;
 
         // --- 4. Tax calculations ---
         const totales = calcularTotalesFactura(items);
@@ -960,15 +943,28 @@ serve(async req => {
                     valor: comprador?.email || order.cliente?.email || 'N/A',
                 },
                 ...(comprador?.telefono ? [{ nombre: 'Telefono', valor: comprador.telefono }] : []),
+                ...(order.vehiculo ? [
+                    { nombre: 'Placa', valor: order.vehiculo.placa },
+                    { nombre: 'Vehiculo', valor: [order.vehiculo.marca, order.vehiculo.modelo, order.vehiculo.anio].filter(Boolean).join(' ') },
+                ] : []),
                 ...(notas ? [{ nombre: 'Observacion', valor: notas }] : []),
             ],
         };
 
         const xmlUnsigned = buildFacturaXml(xmlData);
-        console.log('XML generado, longitud:', xmlUnsigned.length);
-        console.log('Clave acceso generada:', claveAcceso);
-        console.log('Secuencial:', fullNumber);
-        // No registrar el XML: contiene información fiscal y del comprador.
+        const { data: reclamada, error: falloReclamo } = await supabase
+            .from('invoices')
+            .update({ clave_acceso: claveAcceso, xml_generado: xmlUnsigned })
+            .eq('id', reserva.id)
+            .is('clave_acceso', null)
+            .select('id')
+            .maybeSingle();
+        if (falloReclamo) throw new Error('No se pudo preparar la factura. Revisa el historial antes de reintentar.');
+        if (!reclamada) {
+            return new Response(JSON.stringify({
+                success: true, status: 'CREADA', invoice_id: reserva.id, secuencial: fullNumber,
+            }), { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } });
+        }
 
         // --- 8. Sign XML ---
         let xmlSigned = xmlUnsigned;
@@ -1001,6 +997,10 @@ serve(async req => {
         let sriMensajes: any = null;
 
         if (!signingError) {
+            const { error: falloFirma } = await supabase.from('invoices')
+                .update({ estado: 'FIRMADA', xml_generado: xmlSigned }).eq('id', reserva.id);
+            if (falloFirma) throw new Error('No se pudo guardar la firma. Revisa el historial.');
+            dbStatus = 'FIRMADA';
             try {
                 const recepcion = await sendRecepcion(xmlSigned, Number(ambiente));
                 sriMensajes = recepcion;
@@ -1026,48 +1026,14 @@ serve(async req => {
             }
         } else {
             sriMensajes = { error: signingError };
+            dbStatus = 'RECHAZADA';
         }
 
-        // --- 10. Save to DB ---
-        const { data: newInvoice, error: invError } = await supabase
-            .from('invoices')
-            .insert({
-                orden_id: order.id,
-                secuencial: fullNumber,
-                clave_acceso: claveAcceso,
-                estado: dbStatus,
-                ambiente: Number(ambiente),
-                subtotal_15: Number(subtotal_15.toFixed(2)),
-                subtotal_0: Number(subtotal_0.toFixed(2)),
-                valor_iva: Number(valorIva.toFixed(2)),
-                importe_total: Number(importeTotal.toFixed(2)),
-                xml_generado: xmlSigned,
-                mensajes_sri: sriMensajes,
-            })
-            .select()
-            .single();
-
-        if (invError) {
-            console.error('Error guardando factura en BD:', invError);
-        }
-
-        // --- Update secuencial counter in company_settings ---
-        // IMPORTANTE: se usa .eq con el RUC para que el UPDATE tenga un WHERE válido.
-        // .limit(1).single() NO funciona en UPDATE (Supabase lo ignora silenciosamente).
-        if (newInvoice) {
-            const { error: seqUpdateError } = await supabase
-                .from('company_settings')
-                .update({ secuencial_factura: String(baseSeq + 1) })
-                .eq('ruc', settings.ruc);
-            if (seqUpdateError) {
-                console.error('Error actualizando secuencial:', seqUpdateError.message);
-            } else {
-                console.log('Secuencial actualizado a:', baseSeq + 1);
-            }
-
-            // Conservar los intentos rechazados como parte del historial de comprobantes.
-
-        }
+        const newInvoice = reserva;
+        const { error: errorEstado } = await supabase.from('invoices')
+            .update({ estado: dbStatus, xml_generado: xmlSigned, mensajes_sri: sriMensajes })
+            .eq('id', reserva.id);
+        if (errorEstado) throw new Error('El envío no pudo confirmarse en SuColor. Revisa el historial antes de emitir otra factura.');
 
         let correoEnviado: boolean | null = null;
         // --- 11. Poll Autorización if RECIBIDA ---
@@ -1205,6 +1171,7 @@ serve(async req => {
         // --- 12. Response ---
         const responseBody: any = {
             success: true,
+            invoice_id: reserva.id,
             status: dbStatus,
             clave_acceso: claveAcceso,
             secuencial: fullNumber,

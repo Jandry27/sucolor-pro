@@ -52,6 +52,11 @@ const PaginaNuevaOrden = lazy(() =>
         default: module.PaginaNuevaOrden,
     }))
 );
+const PaginaFacturas = lazy(() =>
+    import('@/paginas/administracion/PaginaFacturas').then(module => ({
+        default: module.PaginaFacturas,
+    }))
+);
 const PaginaReportes = lazy(() =>
     import('@/paginas/administracion/PaginaReportes').then(module => ({
         default: module.PaginaReportes,
@@ -157,6 +162,10 @@ export default function App() {
                                         <PaginaVehiculos />
                                     </RutaProtegida>
                                 }
+                            />
+                            <Route
+                                path="/administracion/facturas"
+                                element={<RutaProtegida><PaginaFacturas /></RutaProtegida>}
                             />
                             <Route
                                 path="/administracion/reportes"
